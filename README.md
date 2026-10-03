@@ -5,11 +5,17 @@ Minimal base with FastAPI.
 ## Development
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync
 cp .env.example .env
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
+```
+
+Run tests and lint:
+
+```bash
+uv run pytest
+uv run ruff check .
+uv run ruff format .
 ```
 
 Initial endpoints:
