@@ -1,0 +1,18 @@
+"""Teacher routes: every endpoint is limited to courses the teacher owns."""
+
+from fastapi import APIRouter, Depends
+
+from app.core.errors import error_responses
+from app.core.security import require_role
+from app.routers.teacher import courses, documents, review, settings, topics
+
+router = APIRouter(
+    prefix="/teacher",
+    dependencies=[Depends(require_role("teacher"))],
+    responses=error_responses(401, 403),
+)
+router.include_router(courses.router)
+router.include_router(documents.router)
+router.include_router(settings.router)
+router.include_router(topics.router)
+router.include_router(review.router)

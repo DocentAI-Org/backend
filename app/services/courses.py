@@ -1,0 +1,204 @@
+"""Courses, class codes and enrolment (T1), plus the ownership checks every
+course-scoped endpoint relies on (constitution II)."""
+
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.core.errors import ApiError, not_found
+from app.models import Course, Enrolment, Profile, TutorSettings
+from app.schemas.courses import CourseStudent, StudentCourse, TeacherCourse
+from app.services.accounts import random_code
+
+
+def _new_class_code(session: Session) -> str:
+    while True:
+        code = f"{random_code(3)}-{random_code(4)}"
+        if session.scalar(select(Course.id).where(Course.class_code == code)) is None:
+            return code
+
+
+def get_owned_course(
+    session: Session, course_id: uuid.UUID, teacher: Profile
+) -> Course:
+    course = session.get(Course, course_id)
+    if course is None or course.teacher_id != teacher.id:
+        raise not_found("Course")
+    return course
+
+
+def get_active_enrolment(
+    session: Session, course_id: uuid.UUID, student: Profile
+) -> Enrolment:
+    enrolment = session.scalar(
+        select(Enrolment).where(
+            Enrolment.course_id == course_id, Enrolment.student_id == student.id
+        )
+    )
+    if enrolment is None:
+        raise not_found("Course")
+    if enrolment.status != "active":
+        raise ApiError(
+            403, "enrolment_revoked", "Your enrolment in this course was revoked."
+        )
+    return enrolment
+
+
+def _student_count(session: Session, course_id: uuid.UUID) -> int:
+    return (
+        session.scalar(
+            select(func.count(Enrolment.id)).where(
+                Enrolment.course_id == course_id, Enrolment.status == "active"
+            )
+        )
+        or 0
+    )
+
+
+def to_teacher_course(session: Session, course: Course) -> TeacherCourse:
+    return TeacherCourse(
+        id=course.id,
+        name=course.name,
+        description=course.description,
+        class_code=course.class_code,
+        class_code_active=course.class_code_active,
+        invitation_path=f"/unirse/{course.class_code}",
+        student_count=_student_count(session, course.id),
+        created_at=course.created_at,
+    )
+
+
+def to_student_course(enrolment: Enrolment) -> StudentCourse:
+    course = enrolment.course
+    return StudentCourse(
+        id=course.id,
+        name=course.name,
+        description=course.description,
+        teacher_name=course.teacher.display_name,
+        joined_at=enrolment.joined_at,
+        disclosure_acknowledged=enrolment.disclosure_acknowledged_at is not None,
+    )
+
+
+def create_course(
+    session: Session, teacher: Profile, name: str, description: str | None
+) -> Course:
+    course = Course(
+        teacher_id=teacher.id,
+        name=name,
+        description=description,
+        class_code=_new_class_code(session),
+    )
+    session.add(course)
+    session.flush()
+    session.add(TutorSettings(course_id=course.id))
+    session.flush()
+    session.refresh(course)
+    return course
+
+
+def list_teacher_courses(
+    session: Session, teacher: Profile, limit: int, offset: int
+) -> tuple[list[Course], int]:
+    query = select(Course).where(Course.teacher_id == teacher.id)
+    total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    rows = session.scalars(
+        query.order_by(Course.created_at.desc(), Course.id).limit(limit).offset(offset)
+    ).all()
+    return list(rows), total
+
+
+def regenerate_code(session: Session, course: Course) -> Course:
+    course.class_code = _new_class_code(session)
+    course.class_code_active = True
+    session.flush()
+    return course
+
+
+def list_students(
+    session: Session, course: Course, limit: int, offset: int
+) -> tuple[list[CourseStudent], int]:
+    query = select(Enrolment).where(Enrolment.course_id == course.id)
+    total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    rows = session.scalars(
+        query.order_by(Enrolment.joined_at, Enrolment.id).limit(limit).offset(offset)
+    ).all()
+    items = [
+        CourseStudent(
+            student_id=e.student_id,
+            display_name=e.student.display_name,
+            joined_at=e.joined_at,
+            status=e.status,  # type: ignore[arg-type]
+        )
+        for e in rows
+    ]
+    return items, total
+
+
+def get_course_enrolment(
+    session: Session, course: Course, student_id: uuid.UUID
+) -> Enrolment:
+    """A student of the teacher's course, active or revoked."""
+    enrolment = session.scalar(
+        select(Enrolment).where(
+            Enrolment.course_id == course.id, Enrolment.student_id == student_id
+        )
+    )
+    if enrolment is None:
+        raise not_found("Student")
+    return enrolment
+
+
+def revoke_enrolment(session: Session, course: Course, student_id: uuid.UUID) -> None:
+    enrolment = get_course_enrolment(session, course, student_id)
+    enrolment.status = "revoked"
+    session.flush()
+
+
+def join_course(session: Session, student: Profile, class_code: str) -> Enrolment:
+    course = session.scalar(
+        select(Course).where(Course.class_code == class_code.strip().upper())
+    )
+    if course is None:
+        raise ApiError(400, "class_code_invalid", "This class code is not valid.")
+    if not course.class_code_active:
+        raise ApiError(400, "class_code_disabled", "This class code is disabled.")
+    enrolment = session.scalar(
+        select(Enrolment).where(
+            Enrolment.course_id == course.id, Enrolment.student_id == student.id
+        )
+    )
+    if enrolment is None:
+        enrolment = Enrolment(course_id=course.id, student_id=student.id)
+        session.add(enrolment)
+        session.flush()
+        session.refresh(enrolment)
+    elif enrolment.status != "active":
+        raise ApiError(
+            403, "enrolment_revoked", "Your enrolment in this course was revoked."
+        )
+    return enrolment
+
+
+def list_student_enrolments(
+    session: Session, student: Profile, limit: int, offset: int
+) -> tuple[list[Enrolment], int]:
+    query = select(Enrolment).where(
+        Enrolment.student_id == student.id, Enrolment.status == "active"
+    )
+    total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    rows = session.scalars(
+        query.order_by(Enrolment.joined_at.desc(), Enrolment.id)
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    return list(rows), total
+
+
+def acknowledge_disclosure(session: Session, enrolment: Enrolment) -> Enrolment:
+    if enrolment.disclosure_acknowledged_at is None:
+        enrolment.disclosure_acknowledged_at = datetime.now(UTC)
+        session.flush()
+    return enrolment
