@@ -280,3 +280,13 @@ class DailyUsage(Base):
     )
     usage_date: Mapped[date] = mapped_column(primary_key=True)
     used: Mapped[int] = mapped_column(server_default="0")
+
+
+class ConsentEvent(Base):
+    __tablename__ = "consent_events"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    action: Mapped[str]
+    version: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())

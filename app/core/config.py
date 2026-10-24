@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     tutor_language: str = "es"
     recover_interrupted_on_startup: bool = True
 
+    # Study consent (specs/002): bump when the approved consent text changes.
+    consent_version: str = "2026-10"
+
     # Privacy (research R12)
     log_pseudonym_secret: str = "change-me"
 
