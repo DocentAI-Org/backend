@@ -71,7 +71,7 @@ def submit(
     problem_statement: str,
     worked_answer: str,
 ) -> schemas.StudentSubmission:
-    tutor.ensure_can_message(session, enrolment, request_solution=False)
+    tutor.ensure_can_message(session, settings, enrolment, request_solution=False)
     # The reservation stands even without a model call: feedback is always given.
     tutor.reserve_or_raise(session, settings, enrolment.student_id)
     started = time.perf_counter()

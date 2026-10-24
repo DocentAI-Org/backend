@@ -47,22 +47,35 @@ def submission_view(submission: ExerciseSubmission) -> schemas.TeacherSubmission
     )
 
 
+def _has_no_source():
+    return exists().where(
+        Message.conversation_id == Conversation.id, Message.kind == "no_source"
+    )
+
+
+def _has_correction():
+    return exists().where(
+        Message.conversation_id == Conversation.id,
+        TeacherFlag.message_id == Message.id,
+    )
+
+
 def _summary_query(course: Course) -> Select:
     message_count = (
         select(func.count(Message.id))
         .where(Message.conversation_id == Conversation.id)
         .scalar_subquery()
     )
-    has_no_source = exists().where(
-        Message.conversation_id == Conversation.id, Message.kind == "no_source"
-    )
     return select(
-        Conversation, message_count.label("count"), has_no_source.label("no_source")
+        Conversation,
+        message_count.label("count"),
+        _has_no_source().label("no_source"),
+        _has_correction().label("corrected"),
     ).where(Conversation.course_id == course.id)
 
 
 def _summary(row) -> schemas.ConversationSummary:
-    conversation, count, no_source = row
+    conversation, count, no_source, corrected = row
     return schemas.ConversationSummary(
         id=conversation.id,
         student_id=conversation.student_id,
@@ -71,6 +84,7 @@ def _summary(row) -> schemas.ConversationSummary:
         last_message_at=conversation.last_message_at,
         message_count=count,
         has_no_source=no_source,
+        has_correction=corrected,
     )
 
 
@@ -83,6 +97,7 @@ def list_conversations(
     created_from: datetime | None = None,
     created_to: datetime | None = None,
     has_no_source: bool | None = None,
+    has_correction: bool | None = None,
 ) -> tuple[list[schemas.ConversationSummary], int]:
     query = _summary_query(course)
     if student_id:
@@ -92,10 +107,11 @@ def list_conversations(
     if created_to:
         query = query.where(Conversation.started_at <= created_to)
     if has_no_source is not None:
-        condition = exists().where(
-            Message.conversation_id == Conversation.id, Message.kind == "no_source"
-        )
+        condition = _has_no_source()
         query = query.where(condition if has_no_source else ~condition)
+    if has_correction is not None:
+        condition = _has_correction()
+        query = query.where(condition if has_correction else ~condition)
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     rows = session.execute(
         query.order_by(Conversation.last_message_at.desc(), Conversation.id)
@@ -223,6 +239,54 @@ def evaluation_set(
                 original_answer=original,
                 citations=[tutor.citation_view(c) for c in citations],
                 created_at=flag.created_at,
+            )
+        )
+    return items, total
+
+
+def list_flags(
+    session: Session, course: Course, limit: int, offset: int
+) -> tuple[list[schemas.CourseFlag], int]:
+    query = select(TeacherFlag).where(TeacherFlag.course_id == course.id)
+    total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    flags = session.scalars(
+        query.order_by(TeacherFlag.created_at.desc(), TeacherFlag.id)
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    items = []
+    for flag in flags:
+        if flag.message_id:
+            message = session.get(Message, flag.message_id)
+            assert message is not None
+            conversation = session.get(Conversation, message.conversation_id)
+            assert conversation is not None
+            student, original = conversation.student, message.text
+            target = {
+                "target": "message",
+                "conversation_id": conversation.id,
+                "message_id": message.id,
+                "submission_id": None,
+            }
+        else:
+            submission = session.get(ExerciseSubmission, flag.submission_id)
+            assert submission is not None
+            student, original = submission.student, submission.explanation
+            target = {
+                "target": "submission",
+                "conversation_id": None,
+                "message_id": None,
+                "submission_id": submission.id,
+            }
+        view = flag_view(flag)
+        assert view is not None
+        items.append(
+            schemas.CourseFlag(
+                **view.model_dump(),
+                student_id=student.id,
+                student_name=student.display_name,
+                original_text=original,
+                **target,
             )
         )
     return items, total

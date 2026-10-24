@@ -37,6 +37,7 @@ class ConversationSummary(BaseModel):
     last_message_at: datetime
     message_count: int
     has_no_source: bool
+    has_correction: bool
 
 
 class TeacherConversation(ConversationSummary):
@@ -58,3 +59,13 @@ class EvaluationItem(BaseModel):
     original_answer: str
     citations: list[Citation]
     created_at: datetime
+
+
+class CourseFlag(TeacherFlag):
+    student_id: uuid.UUID
+    student_name: str
+    original_text: str = Field(description="The tutor answer or feedback corrected.")
+    target: Literal["message", "submission"]
+    conversation_id: uuid.UUID | None
+    message_id: uuid.UUID | None
+    submission_id: uuid.UUID | None

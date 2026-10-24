@@ -22,7 +22,7 @@ from app.models import (
     TutorSettings,
 )
 from app.schemas import chat as schemas
-from app.services import allowance, interactions
+from app.services import allowance, consent, interactions
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -249,8 +249,10 @@ def _retrieve_for(
 
 
 def ensure_can_message(
-    session: Session, enrolment: Enrolment, request_solution: bool
+    session: Session, settings: Settings, enrolment: Enrolment, request_solution: bool
 ) -> TutorSettings:
+    # Before anything is reserved or sent to the model (specs/002 FR-004).
+    consent.require(session, settings, enrolment.student_id)
     if enrolment.disclosure_acknowledged_at is None:
         raise ApiError(
             409,
@@ -290,7 +292,7 @@ def send_message(
     request_solution: bool,
     retry_of: Message | None = None,
 ) -> schemas.TutorExchange:
-    tutor_settings = ensure_can_message(session, enrolment, request_solution)
+    tutor_settings = ensure_can_message(session, settings, enrolment, request_solution)
     day = reserve_or_raise(session, settings, enrolment.student_id)
 
     if retry_of is None:

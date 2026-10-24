@@ -11,6 +11,7 @@ from app.core.security import TeacherUser
 from app.schemas.exercises import LearningRecordEntry
 from app.schemas.review import (
     ConversationSummary,
+    CourseFlag,
     FlagUpsert,
     TeacherConversation,
     TeacherFlag,
@@ -38,6 +39,7 @@ def list_conversations(
     created_from: From = None,
     created_to: To = None,
     has_no_source: Annotated[bool | None, Query()] = None,
+    has_correction: Annotated[bool | None, Query()] = None,
 ) -> Page[ConversationSummary]:
     course = courses.get_owned_course(session, course_id, teacher)
     items, total = review.list_conversations(
@@ -49,6 +51,7 @@ def list_conversations(
         created_from=created_from,
         created_to=created_to,
         has_no_source=has_no_source,
+        has_correction=has_correction,
     )
     return Page[ConversationSummary](
         items=items, total=total, limit=page.limit, offset=page.offset
@@ -203,5 +206,21 @@ def read_learning_record(
         session, course.id, student_id, page.limit, page.offset
     )
     return Page[LearningRecordEntry](
+        items=items, total=total, limit=page.limit, offset=page.offset
+    )
+
+
+@router.get(
+    "/flags",
+    response_model=Page[CourseFlag],
+    responses=error_responses(404),
+    summary="Every correction in the course, newest first",
+)
+def list_flags(
+    course_id: uuid.UUID, teacher: TeacherUser, session: DbSession, page: Pagination
+) -> Page[CourseFlag]:
+    course = courses.get_owned_course(session, course_id, teacher)
+    items, total = review.list_flags(session, course, page.limit, page.offset)
+    return Page[CourseFlag](
         items=items, total=total, limit=page.limit, offset=page.offset
     )

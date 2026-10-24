@@ -5,6 +5,7 @@ from tests.api.helpers import (
     UNCOVERED_QUESTION,
     ask,
     classroom,
+    give_consent,
     open_conversation,
 )
 from tests.api.test_us7_exercises import submit
@@ -28,6 +29,7 @@ def test_teacher_lists_and_filters_conversations(
         headers=other_student.headers,
         json={"class_code": room.course["class_code"]},
     )
+    give_consent(client, other_student)
     client.post(
         f"/v1/student/courses/{room.course_id}/disclosure",
         headers=other_student.headers,

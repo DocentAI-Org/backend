@@ -242,9 +242,9 @@ class TeacherFlag(Base):
     category: Mapped[str]
     correction: Mapped[str] = mapped_column(Text)
     author_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
     updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
+        server_default=func.clock_timestamp(), onupdate=func.clock_timestamp()
     )
 
     author: Mapped[Profile | None] = relationship(lazy="joined")
@@ -280,3 +280,13 @@ class DailyUsage(Base):
     )
     usage_date: Mapped[date] = mapped_column(primary_key=True)
     used: Mapped[int] = mapped_column(server_default="0")
+
+
+class ConsentEvent(Base):
+    __tablename__ = "consent_events"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    action: Mapped[str]
+    version: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())

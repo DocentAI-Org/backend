@@ -3306,6 +3306,22 @@
             }
           },
           {
+            "name": "has_correction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Has Correction"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -4139,6 +4155,107 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Page_LearningRecordEntry_"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/flags": {
+      "get": {
+        "tags": [
+          "teacher: review"
+        ],
+        "summary": "Every correction in the course, newest first",
+        "operationId": "list_flags_v1_teacher_courses__course_id__flags_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_CourseFlag_"
                 }
               }
             }
@@ -5541,6 +5658,190 @@
           }
         }
       }
+    },
+    "/v1/student/consent": {
+      "get": {
+        "tags": [
+          "student: consent"
+        ],
+        "summary": "Read Consent",
+        "operationId": "read_consent_v1_student_consent_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "student: consent"
+        ],
+        "summary": "Give study consent (current version)",
+        "operationId": "give_consent_v1_student_consent_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "student: consent"
+        ],
+        "summary": "Revoke study consent",
+        "operationId": "revoke_consent_v1_student_consent_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/student/consent/history": {
+      "get": {
+        "tags": [
+          "student: consent"
+        ],
+        "summary": "Read History",
+        "operationId": "read_history_v1_student_consent_history_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConsentEvent"
+                  },
+                  "type": "array",
+                  "title": "Response Read History V1 Student Consent History Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -5746,6 +6047,79 @@
         ],
         "title": "ClassCodeUpdate"
       },
+      "Consent": {
+        "properties": {
+          "given": {
+            "type": "boolean",
+            "title": "Given",
+            "description": "Given for the current version."
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Version of the latest consent given."
+          },
+          "given_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Given At"
+          },
+          "current_version": {
+            "type": "string",
+            "title": "Current Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "given",
+          "version",
+          "given_at",
+          "current_version"
+        ],
+        "title": "Consent"
+      },
+      "ConsentEvent": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "given",
+              "revoked"
+            ],
+            "title": "Action"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "version",
+          "created_at"
+        ],
+        "title": "ConsentEvent"
+      },
       "Conversation": {
         "properties": {
           "id": {
@@ -5813,6 +6187,10 @@
           "has_no_source": {
             "type": "boolean",
             "title": "Has No Source"
+          },
+          "has_correction": {
+            "type": "boolean",
+            "title": "Has Correction"
           }
         },
         "type": "object",
@@ -5823,7 +6201,8 @@
           "started_at",
           "last_message_at",
           "message_count",
-          "has_no_source"
+          "has_no_source",
+          "has_correction"
         ],
         "title": "ConversationSummary"
       },
@@ -5872,6 +6251,123 @@
           "name"
         ],
         "title": "CourseCreate"
+      },
+      "CourseFlag": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "incorrect",
+              "poor"
+            ],
+            "title": "Category"
+          },
+          "correction": {
+            "type": "string",
+            "title": "Correction"
+          },
+          "author_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "student_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Student Id"
+          },
+          "student_name": {
+            "type": "string",
+            "title": "Student Name"
+          },
+          "original_text": {
+            "type": "string",
+            "title": "Original Text",
+            "description": "The tutor answer or feedback corrected."
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "message",
+              "submission"
+            ],
+            "title": "Target"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "message_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Id"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submission Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "correction",
+          "author_name",
+          "created_at",
+          "updated_at",
+          "student_id",
+          "student_name",
+          "original_text",
+          "target",
+          "conversation_id",
+          "message_id",
+          "submission_id"
+        ],
+        "title": "CourseFlag"
       },
       "CourseStudent": {
         "properties": {
@@ -6584,6 +7080,37 @@
           "offset"
         ],
         "title": "Page[ConversationSummary]"
+      },
+      "Page_CourseFlag_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CourseFlag"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[CourseFlag]"
       },
       "Page_CourseStudent_": {
         "properties": {
@@ -7364,6 +7891,10 @@
             "type": "boolean",
             "title": "Has No Source"
           },
+          "has_correction": {
+            "type": "boolean",
+            "title": "Has Correction"
+          },
           "messages": {
             "items": {
               "$ref": "#/components/schemas/TeacherMessage"
@@ -7381,6 +7912,7 @@
           "last_message_at",
           "message_count",
           "has_no_source",
+          "has_correction",
           "messages"
         ],
         "title": "TeacherConversation"
