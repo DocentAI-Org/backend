@@ -4,15 +4,17 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.common import CleanText
+
 
 class CourseCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
-    description: str | None = Field(default=None, max_length=500)
+    name: CleanText = Field(min_length=1, max_length=80)
+    description: CleanText | None = Field(default=None, max_length=500)
 
 
 class CourseUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=80)
-    description: str | None = Field(default=None, max_length=500)
+    name: CleanText | None = Field(default=None, min_length=1, max_length=80)
+    description: CleanText | None = Field(default=None, max_length=500)
 
 
 class ClassCodeUpdate(BaseModel):

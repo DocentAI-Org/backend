@@ -1,9 +1,11 @@
 """Grounded tutor replies (S1, S2, S3; constitution I and V; research R4-R6)."""
 
+import logging
+import re
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -23,6 +25,7 @@ from app.schemas import chat as schemas
 from app.services import allowance, interactions
 from app.services.retrieval import Hit, retrieve
 
+logger = logging.getLogger(__name__)
 REPLY_KINDS = {"answer", "hint"}
 HISTORY_CHARS = 1000
 
@@ -73,26 +76,42 @@ class GroundedReply:
     kind: str
     text: str
     cited_indexes: list[int] = field(default_factory=list)
+    is_problem: bool = False
+
+
+_FRAGMENT_REF = re.compile(r"F([0-9]{1,3})", re.IGNORECASE)
 
 
 def ground_reply(data: dict, fragment_count: int) -> GroundedReply:
-    """Accepts a model reply only if it cites fragments it was actually given."""
+    """Accepts a model reply only if it cites fragments it was actually given.
+
+    Anything unexpected in the model output becomes `no_source`, never an error.
+    """
     kind = data.get("kind")
     text = data.get("text")
     cited = data.get("cited")
-    if kind not in REPLY_KINDS or not isinstance(text, str) or not text.strip():
+    if not isinstance(kind, str) or kind not in REPLY_KINDS:
         return GroundedReply("no_source", "")
-    if not isinstance(cited, list):
+    if not isinstance(text, str) or not text.strip() or not isinstance(cited, list):
         return GroundedReply("no_source", "")
     indexes: list[int] = []
     for ref in cited:
-        if isinstance(ref, str) and ref.upper().startswith("F") and ref[1:].isdigit():
-            index = int(ref[1:]) - 1
-            if 0 <= index < fragment_count and index not in indexes:
-                indexes.append(index)
+        match = _FRAGMENT_REF.fullmatch(ref) if isinstance(ref, str) else None
+        if match is None:
+            continue
+        index = int(match.group(1)) - 1
+        if 0 <= index < fragment_count and index not in indexes:
+            indexes.append(index)
     if not indexes:
         return GroundedReply("no_source", "")
-    return GroundedReply(kind, text.strip(), indexes)
+    return GroundedReply(
+        kind, text.strip(), indexes, is_problem=data.get("is_problem") is True
+    )
+
+
+def solution_allowed(tutor_settings: TutorSettings, request_solution: bool) -> bool:
+    policy = tutor_settings.solution_policy
+    return policy == "direct" or (policy == "hints_first" and request_solution)
 
 
 def no_source_text(settings: Settings) -> str:
@@ -291,24 +310,25 @@ def send_message(
     # The reservation and the question are kept even if the model call is slow.
     session.commit()
 
-    history = _history(
-        session, conversation, student_message.id, settings.history_max_messages
-    )
     started = time.perf_counter()
-    hits: list[Hit] = []
     try:
-        hits = _retrieve_for(
-            session, llm, settings, enrolment.course_id, history, student_message.text
+        return _reply(
+            session,
+            llm,
+            settings,
+            enrolment,
+            conversation,
+            tutor_settings,
+            student_message,
+            request_solution,
+            started,
         )
-        if hits:
-            result = llm.chat_json(
-                build_system_prompt(settings, tutor_settings, request_solution),
-                build_messages(history, hits, student_message.text),
-            )
-        else:
-            result = None
-    except LLMError:
-        _fail(session, settings, enrolment, student_message, day, hits, started)
+    except Exception as exc:
+        # Whatever went wrong after the commit, the student is not charged and
+        # can retry (FR-061).
+        if not isinstance(exc, LLMError):
+            logger.exception("Tutor reply failed for message %s", student_message.id)
+        _fail(session, settings, enrolment, student_message, day, started)
         raise ApiError(
             503,
             "tutor_unavailable",
@@ -316,12 +336,89 @@ def send_message(
             {"message_id": str(student_message.id)},
         ) from None
 
-    latency_ms = int((time.perf_counter() - started) * 1000)
-    reply = (
-        ground_reply(result.data, len(hits))
-        if result
-        else GroundedReply("no_source", "")
+
+@dataclass
+class _ModelReply:
+    reply: GroundedReply
+    model: str | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
+def _ask_model(
+    llm: LLMClient,
+    settings: Settings,
+    tutor_settings: TutorSettings,
+    request_solution: bool,
+    history: list[Message],
+    hits: list[Hit],
+    text: str,
+) -> _ModelReply:
+    system = build_system_prompt(settings, tutor_settings, request_solution)
+    messages = build_messages(history, hits, text)
+    result = llm.chat_json(system, messages)
+    outcome = _ModelReply(
+        ground_reply(result.data, len(hits)),
+        result.model,
+        result.input_tokens,
+        result.output_tokens,
     )
+    reply = outcome.reply
+    if (
+        reply.kind != "answer"
+        or not reply.is_problem
+        or solution_allowed(tutor_settings, request_solution)
+    ):
+        return outcome
+
+    # The policy forbids a full solution here (FR-054): ask once more, then fall
+    # back to a generic hint on the same cited material.
+    labels = load_labels("messages", settings.tutor_language)
+    retry = llm.chat_json(f"{system}\n\n{labels['hint_reminder']}", messages)
+    outcome.input_tokens += retry.input_tokens
+    outcome.output_tokens += retry.output_tokens
+    second = ground_reply(retry.data, len(hits))
+    if second.kind == "hint":
+        outcome.reply = second
+    else:
+        outcome.reply = GroundedReply(
+            "hint", labels["hint_fallback"], reply.cited_indexes, is_problem=True
+        )
+    return outcome
+
+
+def _reply(
+    session: Session,
+    llm: LLMClient,
+    settings: Settings,
+    enrolment: Enrolment,
+    conversation: Conversation,
+    tutor_settings: TutorSettings,
+    student_message: Message,
+    request_solution: bool,
+    started: float,
+) -> schemas.TutorExchange:
+    history = _history(
+        session, conversation, student_message.id, settings.history_max_messages
+    )
+    hits = _retrieve_for(
+        session, llm, settings, enrolment.course_id, history, student_message.text
+    )
+    answered = (
+        _ask_model(
+            llm,
+            settings,
+            tutor_settings,
+            request_solution,
+            history,
+            hits,
+            student_message.text,
+        )
+        if hits
+        else _ModelReply(GroundedReply("no_source", ""))
+    )
+    reply = answered.reply
+    latency_ms = int((time.perf_counter() - started) * 1000)
     cited_hits = [hits[i] for i in reply.cited_indexes]
     tutor_message = Message(
         conversation_id=conversation.id,
@@ -353,9 +450,9 @@ def send_message(
         fragment_ids=[hit.fragment.id for hit in hits],
         outcome=reply.kind,
         answer=tutor_message.text,
-        model=result.model if result else None,
-        input_tokens=result.input_tokens if result else 0,
-        output_tokens=result.output_tokens if result else 0,
+        model=answered.model,
+        input_tokens=answered.input_tokens,
+        output_tokens=answered.output_tokens,
         latency_ms=latency_ms,
     )
     session.flush()
@@ -372,8 +469,7 @@ def _fail(
     settings: Settings,
     enrolment: Enrolment,
     student_message: Message,
-    day,
-    hits: list[Hit],
+    day: date,
     started: float,
 ) -> None:
     session.rollback()
@@ -387,7 +483,7 @@ def _fail(
         student_id=enrolment.student_id,
         kind="chat",
         question=student_message.text,
-        fragment_ids=[hit.fragment.id for hit in hits],
+        fragment_ids=[],
         outcome="error",
         latency_ms=int((time.perf_counter() - started) * 1000),
         error_code="tutor_unavailable",

@@ -59,6 +59,8 @@ class OpenAICompatClient:
             )
         except OpenAIError as exc:
             raise LLMError(str(exc)) from exc
+        if not response.choices:
+            raise LLMError("The provider returned no choices.")
         content = response.choices[0].message.content or ""
         try:
             data = json.loads(content)

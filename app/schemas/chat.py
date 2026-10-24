@@ -4,11 +4,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.common import CleanText
+
 MessageKind = Literal["question", "answer", "hint", "no_source"]
 
 
 class MessageCreate(BaseModel):
-    text: str = Field(min_length=1, max_length=4000)
+    text: CleanText = Field(min_length=1, max_length=4000)
     request_solution: bool = Field(
         default=False, description="Ask for the full solution (policy permitting)."
     )

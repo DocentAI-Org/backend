@@ -240,3 +240,53 @@ def test_documents_interrupted_by_a_restart_are_flagged(client, db, teacher) -> 
     db.refresh(row)
     assert row.processing_status == "error"
     assert row.error_reason == "processing_interrupted"
+
+
+def test_file_name_cannot_escape_the_document_storage_path(
+    client, teacher, storage
+) -> None:
+    course = create_course(client, teacher)
+
+    response = upload(client, teacher, course["id"], "../../otro/doc/evil.md", MARKDOWN)
+
+    assert response.status_code == 202
+    document = response.json()
+    assert document["file_name"] == "evil.md"
+    [path] = storage.objects
+    assert path == f"{course['id']}/{document['id']}.md"
+    assert ".." not in path
+
+
+def test_nul_bytes_in_material_are_stripped(client, teacher) -> None:
+    course = create_course(client, teacher)
+    content = b"# Tema\n\nTexto con un car\x00acter nulo."
+
+    accepted = upload(client, teacher, course["id"], "nulo.md", content).json()
+    document = client.get(
+        f"/v1/teacher/courses/{course['id']}/documents/{accepted['id']}",
+        headers=teacher.headers,
+    ).json()
+
+    # NUL bytes are stripped, so the document still processes.
+    assert document["processing_status"] == "ready"
+
+
+def test_parser_crash_is_reported_not_left_processing(
+    client, teacher, monkeypatch
+) -> None:
+    from app.services import documents
+
+    def boom(*_args):
+        raise RecursionError("pypdf went too deep")
+
+    monkeypatch.setattr(documents, "parse_document", boom)
+    course = create_course(client, teacher)
+
+    accepted = upload(client, teacher, course["id"], "x.md", MARKDOWN).json()
+    document = client.get(
+        f"/v1/teacher/courses/{course['id']}/documents/{accepted['id']}",
+        headers=teacher.headers,
+    ).json()
+
+    assert document["processing_status"] == "error"
+    assert document["error_reason"] == "processing_failed"

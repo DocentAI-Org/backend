@@ -3,11 +3,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.common import CleanText
+
 AssignmentStatus = Literal["suggested", "confirmed"]
 
 
 class TopicCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=60)
+    name: CleanText = Field(min_length=1, max_length=60)
 
 
 class TopicUpdate(TopicCreate):

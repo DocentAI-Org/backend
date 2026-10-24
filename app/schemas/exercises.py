@@ -5,13 +5,14 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.schemas.chat import Citation, Correction
+from app.schemas.common import CleanText
 
 Verdict = Literal["correct", "partially_correct", "incorrect"]
 
 
 class SubmissionCreate(BaseModel):
-    problem_statement: str = Field(min_length=1, max_length=2000)
-    worked_answer: str = Field(min_length=1, max_length=4000)
+    problem_statement: CleanText = Field(min_length=1, max_length=2000)
+    worked_answer: CleanText = Field(min_length=1, max_length=4000)
 
 
 class StudentSubmission(BaseModel):

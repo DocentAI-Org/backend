@@ -3,7 +3,7 @@
 import uuid
 from dataclasses import dataclass
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.llm.client import LLMClient
@@ -35,6 +35,9 @@ def retrieve(
     min_similarity: float,
 ) -> list[Hit]:
     [query_vector] = llm.embed([question])
+    # Without this, the HNSW index returns the nearest fragments of *all* courses
+    # and the course/validation filters can leave too few (pgvector >= 0.8).
+    session.execute(text("set local hnsw.iterative_scan = relaxed_order"))
     distance = Fragment.embedding.cosine_distance(query_vector)
     rows = session.execute(
         select(Fragment, Document.file_name, distance.label("distance"))

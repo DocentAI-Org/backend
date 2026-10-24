@@ -122,7 +122,8 @@ def retry_message(
 ) -> TutorExchange:
     enrolment = courses.get_active_enrolment(session, course_id, student)
     conversation = tutor.get_conversation(session, enrolment, conversation_id)
-    message = session.get(Message, message_id)
+    # Locked so two concurrent retries cannot both pass the "failed" check.
+    message = session.get(Message, message_id, with_for_update=True)
     if (
         message is None
         or message.conversation_id != conversation.id

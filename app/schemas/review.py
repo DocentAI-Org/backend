@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.schemas.chat import Citation, StudentMessage
+from app.schemas.common import CleanText
 from app.schemas.exercises import StudentSubmission
 
 FlagCategory = Literal["incorrect", "poor"]
@@ -12,7 +13,7 @@ FlagCategory = Literal["incorrect", "poor"]
 
 class FlagUpsert(BaseModel):
     category: FlagCategory
-    correction: str = Field(min_length=1, max_length=4000)
+    correction: CleanText = Field(min_length=1, max_length=4000)
 
 
 class TeacherFlag(BaseModel):

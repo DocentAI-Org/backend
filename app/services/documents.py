@@ -3,6 +3,7 @@
 import logging
 import uuid
 from datetime import UTC, datetime
+from pathlib import PurePath
 
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
@@ -24,6 +25,7 @@ from app.services.parsing import (
 
 logger = logging.getLogger(__name__)
 EMBEDDING_BATCH = 32
+STORAGE_EXTENSIONS = {"pdf": "pdf", "docx": "docx", "markdown": "md"}
 
 
 def get_course_document(
@@ -93,16 +95,19 @@ def store_upload(
             f"Files are limited to {settings.max_upload_mb} MB.",
             {"max_mb": settings.max_upload_mb},
         )
+    # Only the base name is kept, and it never reaches the storage key: a name
+    # such as "../../x" must not address another object in the bucket.
+    display_name = PurePath(file_name.replace("\\", "/")).name.strip() or "documento"
     document = Document(
         id=uuid.uuid4(),
         course_id=course.id,
-        file_name=file_name[:255],
+        file_name=display_name[:255],
         file_type=file_type,
         size_bytes=len(content),
         storage_path="",
         uploaded_by=teacher.id,
     )
-    document.storage_path = f"{course.id}/{document.id}/{document.file_name}"
+    document.storage_path = f"{course.id}/{document.id}.{STORAGE_EXTENSIONS[file_type]}"
     try:
         storage.upload(document.storage_path, content, CONTENT_TYPES[file_type])
     except StorageError as exc:
@@ -141,6 +146,10 @@ def process_document(
             logger.warning("Embedding failed for document %s", document_id)
             _mark_error(session, document_id, "processing_failed")
             return
+        except Exception:
+            logger.exception("Processing failed for document %s", document_id)
+            _mark_error(session, document_id, "processing_failed")
+            return
 
         # The teacher may have deleted the document while it was processing.
         if session.get(Document, document_id, populate_existing=True) is None:
@@ -162,7 +171,12 @@ def process_document(
         document.page_count = parsed.page_count
         document.processing_status = "ready"
         document.error_reason = None
-        session.commit()
+        try:
+            session.commit()
+        except Exception:
+            logger.exception("Storing fragments failed for document %s", document_id)
+            session.rollback()
+            _mark_error(session, document_id, "processing_failed")
 
 
 def _mark_error(session: Session, document_id: uuid.UUID, reason: str) -> None:

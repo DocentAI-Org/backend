@@ -52,6 +52,12 @@ def parse_document(file_type: str, content: bytes) -> ParsedDocument:
         parsed = _parse_markdown(content)
     else:
         raise ParsingError("unsupported_format")
+    # Postgres text cannot hold NUL, which PDF extraction sometimes produces.
+    sections = [
+        Section(s.section, s.location_label, s.text.replace("\x00", ""))
+        for s in parsed.sections
+    ]
+    parsed = ParsedDocument(sections=sections, page_count=parsed.page_count)
     if not any(section.text.strip() for section in parsed.sections):
         raise ParsingError("no_readable_text")
     return parsed
@@ -116,7 +122,7 @@ def _parse_docx(content: bytes) -> ParsedDocument:
 
 
 def _parse_markdown(content: bytes) -> ParsedDocument:
-    text = content.decode("utf-8", errors="replace")
+    text = content.decode("utf-8", errors="replace").replace("\x00", "")
     blocks: list[tuple[str | None, str]] = []
     paragraph: list[str] = []
     in_code = False

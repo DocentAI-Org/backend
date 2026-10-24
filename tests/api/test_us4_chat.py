@@ -270,3 +270,88 @@ def test_new_question_after_an_answer_is_judged_on_its_own(
 
     assert response.json()["tutor_message"]["kind"] == "no_source"
     assert len(llm.chat_calls) == calls
+
+
+def test_malformed_model_output_never_charges_the_student(
+    client, db, teacher, student, llm
+) -> None:
+    room = classroom(client, teacher, student)
+    conversation = open_conversation(client, student, room.course_id)
+
+    for reply in (
+        {"kind": ["answer"], "text": "x", "cited": ["F1"]},
+        {"kind": "answer", "text": "x", "cited": ["F²"]},
+        {"kind": "answer", "text": 5, "cited": [1, None]},
+    ):
+        llm.reply = reply
+        response = ask(
+            client, student, room.course_id, conversation["id"], COVERED_QUESTION
+        )
+        assert response.status_code == 201, (reply, response.text)
+        assert response.json()["tutor_message"]["kind"] == "no_source"
+
+    llm.reply = lambda *_: (_ for _ in ()).throw(RuntimeError("unexpected"))
+    failed = ask(client, student, room.course_id, conversation["id"], COVERED_QUESTION)
+    assert failed.status_code == 503
+    message = db.get(Message, failed.json()["error"]["details"]["message_id"])
+    db.refresh(message)
+    assert message.status == "failed"
+    allowance = client.get("/v1/student/allowance", headers=student.headers).json()
+    assert allowance["used"] == 3
+
+
+def test_hints_policy_is_enforced_on_the_server(client, teacher, student, llm) -> None:
+    room = classroom(client, teacher, student)
+    client.put(
+        f"/v1/teacher/courses/{room.course_id}/tutor-settings",
+        headers=teacher.headers,
+        json={"level": "basic", "tone": "friendly", "solution_policy": "hints_only"},
+    )
+    conversation = open_conversation(client, student, room.course_id)
+    llm.reply = {
+        "kind": "answer",
+        "text": "La solución es x = 2.",
+        "cited": ["F1"],
+        "is_problem": True,
+    }
+
+    response = ask(
+        client, student, room.course_id, conversation["id"], COVERED_QUESTION
+    )
+
+    tutor = response.json()["tutor_message"]
+    assert tutor["kind"] == "hint"
+    assert "x = 2" not in tutor["text"]
+    assert tutor["citations"]
+    # One corrective re-ask before falling back to the generic hint.
+    assert len(llm.chat_calls) == 2
+
+
+def test_conceptual_answers_are_allowed_under_hints_only(
+    client, teacher, student, llm
+) -> None:
+    room = classroom(client, teacher, student)
+    client.put(
+        f"/v1/teacher/courses/{room.course_id}/tutor-settings",
+        headers=teacher.headers,
+        json={"level": "basic", "tone": "friendly", "solution_policy": "hints_only"},
+    )
+    conversation = open_conversation(client, student, room.course_id)
+    llm.reply = {"kind": "answer", "text": "Es una igualdad.", "cited": ["F1"]}
+
+    response = ask(
+        client, student, room.course_id, conversation["id"], COVERED_QUESTION
+    )
+
+    assert response.json()["tutor_message"]["kind"] == "answer"
+    assert len(llm.chat_calls) == 1
+
+
+def test_nul_characters_in_messages_are_removed(client, teacher, student) -> None:
+    room = classroom(client, teacher, student)
+    conversation = open_conversation(client, student, room.course_id)
+
+    response = ask(client, student, room.course_id, conversation["id"], "Ho\x00la")
+
+    assert response.status_code == 201
+    assert response.json()["student_message"]["text"] == "Hola"
