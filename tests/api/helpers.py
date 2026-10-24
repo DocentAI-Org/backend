@@ -16,7 +16,14 @@ class Classroom:
         return self.course["id"]
 
 
-def classroom(client, teacher, student, acknowledge: bool = True) -> Classroom:
+def give_consent(client, student) -> None:
+    response = client.post("/v1/student/consent", headers=student.headers)
+    assert response.status_code == 200, response.text
+
+
+def classroom(
+    client, teacher, student, acknowledge: bool = True, consent: bool = True
+) -> Classroom:
     course = create_course(client, teacher)
     document = validated_document(client, teacher, course["id"])
     client.post(
@@ -24,6 +31,8 @@ def classroom(client, teacher, student, acknowledge: bool = True) -> Classroom:
         headers=student.headers,
         json={"class_code": course["class_code"]},
     )
+    if consent:
+        give_consent(client, student)
     if acknowledge:
         client.post(
             f"/v1/student/courses/{course['id']}/disclosure", headers=student.headers
