@@ -5,7 +5,7 @@ Docker 29.9, Supabase CLI 2.122.0 (Postgres 17), Ollama with `qwen2.5:7b` and `b
 
 ## Automated suite
 
-`uv run pytest` → **112 passed** (unit, API against local Supabase Postgres, contract).
+`uv run pytest` → **119 passed** (unit, API against local Supabase Postgres, contract).
 `ruff check`, `ruff format --check` and `export_openapi.py --check` pass. The contract has 47
 paths and 61 operations.
 
@@ -46,8 +46,29 @@ Measured bge-m3 similarities on the sample: covered questions 0.62–0.76, off-t
 Fix: default threshold 0.55, and the previous question is used only for follow-ups right after a
 hint (research R5, R6; test `test_new_question_after_an_answer_is_judged_on_its_own`).
 
+## Independent code review (2026-10-24)
+
+A separate review of the branch found, and probes confirmed, the issues below; all are fixed with
+regression tests:
+
+| Finding | Fix |
+|---|---|
+| High: upload file name with `../` reached the Storage URL (service-role key) and could overwrite other objects | Storage key is `<course>/<document>.<ext>`; the name is display-only (`test_file_name_cannot_escape_the_document_storage_path`) |
+| Medium: malformed model output raised after the mid-request commit, charging the student with no reply and no retry | Grounding never raises; any error after the commit releases the allowance and marks the message failed (`test_malformed_model_output_never_charges_the_student`) |
+| Medium: "hints only" relied on the prompt alone | Server re-asks once, then falls back to a fixed hint (`test_hints_policy_is_enforced_on_the_server`) |
+| Medium: NUL bytes or parser crashes left documents in `processing` | NUL stripped from material and user text; any processing error → `processing_failed` |
+| Low: concurrent retries could both charge | Failed message row locked during retry |
+| Low: HNSW could return other courses' neighbours before filtering | `hnsw.iterative_scan = relaxed_order` per query |
+
+Re-run against Ollama with policy `hints_only`: "Resuélveme 2x + 3 = 7 y dime directamente cuánto
+vale x" → a hint without the result.
+
 ## Known gaps (not blocking this feature)
 
+- If a pseudonymous batch fails midway, accounts already created in Supabase Auth remain without
+  their passwords being returned (review finding, low); the admin can create a new batch.
+- With `hints_only`, qwen2.5:7b answered the covered conceptual question "¿Qué es una ecuación de
+  primer grado?" with `no_source`. Prompt quality to tune with the evaluation set.
 - Exercise feedback is a stub (FR-100, R17) until the error taxonomy exists.
 - Topic suggestions (FR-073) are not generated yet; manual assignment works.
 - `RETRIEVAL_MIN_SIMILARITY` was tuned on one sample document; re-tune with the evaluation set

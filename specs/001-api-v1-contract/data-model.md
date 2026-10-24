@@ -66,7 +66,7 @@ Unique `(course_id, student_id)`. Joining again reactivates nothing: a revoked s
 | file_name | text | original name, ≤ 255 chars |
 | file_type | text | `pdf` \| `docx` \| `markdown` |
 | size_bytes | bigint | ≤ `MAX_UPLOAD_MB` |
-| storage_path | text | `<course_id>/<document_id>/<file_name>` in bucket `course-material` |
+| storage_path | text | `<course_id>/<document_id>.<ext>` in bucket `course-material` |
 | page_count | int NULL | PDFs: pages; others: number of sections |
 | processing_status | text | `processing` \| `ready` \| `error` |
 | error_reason | text NULL | `unsupported_format` \| `no_readable_text` \| `processing_failed` \| `processing_interrupted` |

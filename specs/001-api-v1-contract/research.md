@@ -57,7 +57,9 @@ Each entry records a decision, why it was taken, and what else was considered.
 
 - **Decision**: the solution policy is injected into the system prompt. `hints_only` → the model
   must answer problem questions with hints only; `hints_first` → hints unless the request carries
-  `request_solution=true`; `direct` → may solve. The server enforces: with `hints_only`, a reply of
+  `request_solution=true`; `direct` → may solve. The model also returns `is_problem`; when the
+  policy forbids a solution and the reply is a full `answer` to a problem, the server asks once
+  more with a reminder and otherwise replaces it with a fixed hint on the same citations. The server enforces: with `hints_only`, a reply of
   kind `answer` to a request with `request_solution=true` is rejected with
   `solution_not_allowed` before calling the model. `hint_number` = consecutive tutor hints at the end
   of the conversation + 1. Retrieval uses the question alone; only when the last tutor
@@ -96,7 +98,9 @@ Each entry records a decision, why it was taken, and what else was considered.
 
 ## R9. File storage
 
-- **Decision**: private bucket `course-material` created in a migration; upload and signed URLs
+- **Decision**: private bucket `course-material` created in a migration; objects are keyed
+  `<course_id>/<document_id>.<ext>` (the uploaded name is display-only, so it cannot address
+  other objects); upload and signed URLs
   through the Supabase Storage REST API with httpx and the service-role key, behind a small
   `StorageClient` with an in-memory fake for tests.
 - **Rationale**: constitution VII and §4.2; avoids the supabase-py dependency.
