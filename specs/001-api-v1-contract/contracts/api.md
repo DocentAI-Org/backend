@@ -36,6 +36,9 @@ This document is its design: every endpoint, its role, models and error codes. F
 | 409 | `solution_not_allowed` | `request_solution` with policy `hints_only` |
 | 503 | `tutor_unavailable` | model provider failed or timed out; `details.message_id` |
 | 400 | `not_a_tutor_message` | flag target is not a tutor message |
+| 409 | `email_taken` | admin creates an account whose email already exists |
+| 503 | `auth_unavailable` | Supabase Auth admin API unreachable or failing |
+| 503 | `storage_unavailable` | Supabase Storage unreachable or failing |
 
 ## Public / self
 

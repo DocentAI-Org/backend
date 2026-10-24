@@ -96,7 +96,7 @@ app/
 ├── llm/
 │   ├── client.py            # LLMClient protocol, OpenAICompatClient, get_llm dependency
 │   └── prompts.py           # loads app/prompts/<lang>/*.md
-├── prompts/es/              # tutor_system.md, tutor_context.md
+├── prompts/es/              # tutor_system.md, policies.md, messages.md
 ├── integrations/
 │   ├── storage.py           # Supabase Storage (upload, signed URL, delete)
 │   └── auth_admin.py        # Supabase Auth admin (create user)

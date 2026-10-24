@@ -40,7 +40,8 @@ a ready-to-use access token for each (local development only).
 
 ## 3. Walk through the core loop
 
-With `$TEACHER` and `$STUDENT` set to the printed tokens (see `scripts/seed_dev.py --help`):
+With `$TEACHER` and `$STUDENT` set to the printed tokens (`ADMIN=…`, `TEACHER=…`, `STUDENT=…`;
+they expire after an hour, re-run the script for new ones):
 
 1. Teacher creates a course: `POST /v1/teacher/courses {"name": "Álgebra"}` → note `class_code`.
 2. Teacher uploads `tests/fixtures/ecuaciones.md`: `POST /v1/teacher/courses/{id}/documents`
