@@ -205,6 +205,7 @@ failing before the implementation tasks.
   Supabase + Ollama flow
 - [x] T067 Run quickstart.md end to end against local Supabase and Ollama; record results in
   `specs/001-api-v1-contract/validation.md`
+- [x] T068 Fix the findings of the independent code review (see `validation.md`)
 
 ---
 
