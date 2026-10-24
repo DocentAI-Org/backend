@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Fast local checks before each commit; CI runs the full suite.
+set -eu
+
+branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
+if [ "$branch" = "main" ]; then
+  echo "✗ Do not commit on main: create a branch (NNN-feature or type/name)." >&2
+  exit 1
+fi
+
+# Staged Python files. Checks read the working tree, so stage what you test.
+python_files=()
+while IFS= read -r file; do
+  python_files+=("$file")
+done < <(git diff --cached --name-only --diff-filter=ACMR -- '*.py')
+if [ "${#python_files[@]}" -gt 0 ]; then
+  uv run ruff check "${python_files[@]}"
+  uv run ruff format --check "${python_files[@]}"
+fi
+
+# The committed contract must match the app (constitution III).
+if [ -f scripts/export_openapi.py ] && git diff --cached --name-only | grep -q '^app/'; then
+  uv run python scripts/export_openapi.py --check
+fi
