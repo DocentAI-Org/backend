@@ -242,9 +242,9 @@ class TeacherFlag(Base):
     category: Mapped[str]
     correction: Mapped[str] = mapped_column(Text)
     author_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
     updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
+        server_default=func.clock_timestamp(), onupdate=func.clock_timestamp()
     )
 
     author: Mapped[Profile | None] = relationship(lazy="joined")
