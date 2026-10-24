@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # Retrieval and context (research R5)
     retrieval_top_k: int = 4
-    retrieval_min_similarity: float = 0.45
+    retrieval_min_similarity: float = 0.55
     history_max_messages: int = 6
 
     # Limits (research R10, R11)

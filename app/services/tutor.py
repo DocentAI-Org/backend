@@ -195,10 +195,38 @@ def _next_hint_number(history: list[Message]) -> int:
     return count + 1
 
 
-def _retrieval_query(history: list[Message], text: str) -> str:
-    # Follow-ups such as "no lo entiendo" need the previous question as context.
+def _retrieve_for(
+    session: Session,
+    llm: LLMClient,
+    settings: Settings,
+    course_id: uuid.UUID,
+    history: list[Message],
+    text: str,
+) -> list[Hit]:
+    """The question alone decides; inside a guided exercise (the last reply was a
+    hint), a follow-up such as "no lo entiendo" also searches with the previous
+    question. Joining them always would let any new question ride on the last one.
+    """
+    hits = retrieve(
+        session,
+        llm,
+        course_id,
+        text,
+        settings.retrieval_top_k,
+        settings.retrieval_min_similarity,
+    )
+    last = history[-1] if history else None
+    if hits or last is None or last.author != "tutor" or last.kind != "hint":
+        return hits
     previous = next((m.text for m in reversed(history) if m.author == "student"), "")
-    return f"{previous}\n{text}".strip()
+    return retrieve(
+        session,
+        llm,
+        course_id,
+        f"{previous}\n{text}",
+        settings.retrieval_top_k,
+        settings.retrieval_min_similarity,
+    )
 
 
 def ensure_can_message(
@@ -269,13 +297,8 @@ def send_message(
     started = time.perf_counter()
     hits: list[Hit] = []
     try:
-        hits = retrieve(
-            session,
-            llm,
-            enrolment.course_id,
-            _retrieval_query(history, student_message.text),
-            settings.retrieval_top_k,
-            settings.retrieval_min_similarity,
+        hits = _retrieve_for(
+            session, llm, settings, enrolment.course_id, history, student_message.text
         )
         if hits:
             result = llm.chat_json(

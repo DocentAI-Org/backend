@@ -50,7 +50,7 @@ Each entry records a decision, why it was taken, and what else was considered.
 
 - **Decision**: retrieve top-k (`RETRIEVAL_TOP_K=4`) by cosine similarity over non-excluded
   fragments of validated documents of the course; if none reaches `RETRIEVAL_MIN_SIMILARITY`
-  (default 0.45, tuned with the evaluation set later), return `no_source` without a model call.
+  (default 0.55: with bge-m3 on the sample material, covered questions scored ≥ 0.62 and off-topic ones ≤ 0.48; to be re-tuned with the evaluation set), return `no_source` without a model call.
 - **Rationale**: FR-053, SC-003; also saves cost.
 
 ## R6. Guided mode
@@ -60,7 +60,9 @@ Each entry records a decision, why it was taken, and what else was considered.
   `request_solution=true`; `direct` → may solve. The server enforces: with `hints_only`, a reply of
   kind `answer` to a request with `request_solution=true` is rejected with
   `solution_not_allowed` before calling the model. `hint_number` = consecutive tutor hints at the end
-  of the conversation + 1.
+  of the conversation + 1. Retrieval uses the question alone; only when the last tutor
+  reply was a hint does a follow-up also search with the previous question, so "no lo
+  entiendo" stays grounded while a new off-topic question is not carried by the last one.
 - **Rationale**: the model decides whether the question is a "problem" question; the server owns
   what the policy allows.
 

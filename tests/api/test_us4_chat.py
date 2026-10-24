@@ -254,3 +254,19 @@ def test_prompt_never_contains_identifying_data(client, teacher, student, llm) -
     assert "Lucas" not in sent
     assert str(student.id) not in sent
     assert "@" not in sent
+
+
+def test_new_question_after_an_answer_is_judged_on_its_own(
+    client, teacher, student, llm
+) -> None:
+    room = classroom(client, teacher, student)
+    conversation = open_conversation(client, student, room.course_id)
+    ask(client, student, room.course_id, conversation["id"], COVERED_QUESTION)
+    calls = len(llm.chat_calls)
+
+    response = ask(
+        client, student, room.course_id, conversation["id"], UNCOVERED_QUESTION
+    )
+
+    assert response.json()["tutor_message"]["kind"] == "no_source"
+    assert len(llm.chat_calls) == calls
