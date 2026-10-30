@@ -11,7 +11,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 - **Pagination**: list endpoints accept `limit` (1–100, default 20) and `offset` (≥ 0) and return
   `Page[T] = {items: T[], total: int, limit: int, offset: int}`.
 - **Errors**: `{"error": {"code": str, "message": str, "details": object | null}}`.
-- **Stubs**: endpoints marked *stub* have `x-stub: true` in OpenAPI.
+- **Stubs**: endpoints marked *stub* have `x-stub: true` in OpenAPI (none since specs/003).
 - **Not found vs forbidden**: another user's resource → `404 not_found`; wrong role for a router →
   `403 forbidden`.
 
@@ -150,7 +150,7 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 | GET | `/courses/{course_id}/conversations/{conversation_id}` | — | `Conversation` |
 | POST | `/courses/{course_id}/conversations/{conversation_id}/messages` | `MessageCreate {text 1–4000, request_solution=false}` | 201 `TutorExchange {student_message, tutor_message, allowance}` |
 | POST | `/courses/{course_id}/conversations/{conversation_id}/messages/{message_id}/retry` | — | 201 `TutorExchange` |
-| POST | `/courses/{course_id}/submissions` *(stub)* | `SubmissionCreate {problem_statement, worked_answer}` | 201 `StudentSubmission` |
+| POST | `/courses/{course_id}/submissions` (real feedback since specs/003; 503 `tutor_unavailable`) | `SubmissionCreate {problem_statement, worked_answer}` | 201 `StudentSubmission` |
 | GET | `/courses/{course_id}/submissions` | — | `Page[StudentSubmission]` |
 | GET | `/courses/{course_id}/submissions/{submission_id}` | — | `StudentSubmission` |
 | GET | `/courses/{course_id}/learning-record` | — | `Page[LearningRecordEntry]` |
@@ -162,9 +162,12 @@ Shared models:
   [Citation], correction: Correction?}`
 - `Citation {fragment_id?, document_name, location_label, passage?, available}`
 - `Correction {text, reviewed_at}` (no category — FR-092)
-- `StudentSubmission {id, problem_statement, worked_answer, verdict, mistake_location?,
-  error_type?, topic_name?, explanation, explanation_kind, citations, saved_to_record, is_stub,
-  correction?, created_at}`
+- `StudentSubmission {id, problem_statement, worked_answer, verdict: correct|partially_correct|
+  incorrect|not_assessed, mistake_location?, error_type? (code from `GET /v1/error-types`),
+  topic_name?, explanation, explanation_kind, citations, saved_to_record, is_stub (always false
+  since specs/003; to be removed), correction?, created_at}`
+- `ErrorTaxonomy {provisional, items: [{code, label: {es, en}, description: {es, en}}]}` at
+  `GET /v1/error-types` (any signed-in user; specs/003)
 - `TeacherSubmission` = `StudentSubmission` + `student_id, student_name, flag?`
 - `LearningRecordEntry {id, submission_id, error_type, topic_id?, topic_name?, topic_deleted,
   created_at}`

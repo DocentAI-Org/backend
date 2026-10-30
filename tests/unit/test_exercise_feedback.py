@@ -49,3 +49,18 @@ def test_correct_answers_carry_no_mistake() -> None:
     assert feedback.error_type is None
     assert feedback.unclassified is False
     assert feedback.mistake_location is None
+
+
+def test_fragment_ids_are_removed_from_the_explanation() -> None:
+    feedback = check(
+        {
+            **REPLY,
+            "explanation": "Según F1, el 2 multiplica a cada término (F2). "
+            "Como dice el fragmento F1, quedaría 2x - 6; ver F1 y F2.",
+        }
+    )
+    assert feedback is not None
+    assert feedback.explanation == (
+        "Según el material, el 2 multiplica a cada término. "
+        "Como dice el material, quedaría 2x - 6."
+    )

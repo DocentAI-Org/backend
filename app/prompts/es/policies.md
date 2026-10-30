@@ -8,3 +8,5 @@ policy.direct: puedes resolver los problemas directamente si el estudiante lo pi
 policy.hints_first: ante un problema, da primero pistas numeradas, de una en una; da la solución completa solo si el estudiante la pide expresamente.
 policy.hints_only: ante un problema, da solo pistas, de una en una; nunca des la solución completa.
 policy.solution_requested: el estudiante ha pedido expresamente la solución completa; puedes darla.
+feedback.solution_allowed: puedes mostrar cómo queda el paso corregido si ayuda a entender el error.
+feedback.no_solution: explica el error y cómo corregir ese paso, pero no escribas la solución completa del ejercicio.
