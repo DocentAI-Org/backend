@@ -135,6 +135,27 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 
 `TeacherMessage` = `StudentMessage` fields + `flag: TeacherFlag?`.
 
+### Dashboard and at-risk students (T5, T8; specs/004)
+
+| Method | Path | Request | Response |
+|---|---|---|---|
+| GET | `/courses/{course_id}/dashboard?period=7d\|30d\|all` (default `30d`) | — | `TeacherDashboard` |
+| GET | `/courses/{course_id}/students/{student_id}/risk` | — | `StudentRisk` |
+| GET | `/risk-criteria` | — | `RiskCriteriaList {provisional, items: [{code, enabled, thresholds}]}` |
+
+- `TeacherDashboard {period, since?, activity: {messages, exercises}, enough_data, thresholds:
+  {messages, exercises}, errors_by_topic: [{topic_id?, topic_name?, topic_deleted, errors,
+  students, top_error_type}], errors_by_student: [{student_id, display_name, errors,
+  top_error_type, top_topic_name?}], at_risk: [{student_id, display_name, last_activity_at?,
+  reasons: [RiskReason]}], criteria_provisional}`; active students only; `at_risk` does not depend
+  on `period`.
+- `RiskReason` (discriminated by `criterion`): `{criterion: "inactive", days_inactive,
+  threshold_days, since, never_active}` | `{criterion: "error_rate", mistakes, assessed,
+  window_days, min_exercises, threshold_rate}`; thresholds are those applied to the course.
+- `StudentRisk {student_id, display_name, at_risk, reasons, last_activity_at?, weekly_activity:
+  [{week_start (Monday, UTC), messages, exercises}] (8 weeks, oldest first), criteria_provisional}`;
+  a revoked student is never at risk.
+
 ## Student (`/v1/student`, role student, own data in enrolled courses only)
 
 | Method | Path | Request | Response |
