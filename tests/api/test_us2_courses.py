@@ -20,7 +20,7 @@ def test_teacher_creates_course_with_active_code(client, teacher) -> None:
     assert course["description"] == "Ecuaciones de primer grado"
     assert re.fullmatch(r"[A-Z0-9]{3}-[A-Z0-9]{4}", course["class_code"])
     assert course["class_code_active"] is True
-    assert course["invitation_path"] == f"/unirse/{course['class_code']}"
+    assert course["invitation_path"] == f"/join/{course['class_code']}"
     assert course["student_count"] == 0
 
 

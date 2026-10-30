@@ -76,7 +76,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | DELETE | `/courses/{course_id}/students/{student_id}` | — | 204 (revokes) |
 
 `TeacherCourse {id, name, description?, class_code, class_code_active, invitation_path,
-student_count, created_at}`. `invitation_path` is `/unirse/<class_code>`; the frontend prefixes its
+student_count, created_at}`. `invitation_path` is `/join/<class_code>` (`/unirse/<class_code>` before the app's English routes); the frontend prefixes its
 own origin.
 
 ### Tutor settings (T3)
