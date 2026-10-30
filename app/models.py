@@ -230,6 +230,20 @@ class LearningRecordEntry(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
 
 
+class ErrorType(Base):
+    """The error taxonomy (specs/003): data, so the educational stream can change it."""
+
+    __tablename__ = "error_types"
+
+    code: Mapped[str] = mapped_column(primary_key=True)
+    position: Mapped[int]
+    label_es: Mapped[str]
+    label_en: Mapped[str]
+    description_es: Mapped[str] = mapped_column(Text)
+    description_en: Mapped[str] = mapped_column(Text)
+    provisional: Mapped[bool]
+
+
 class TeacherFlag(Base):
     __tablename__ = "teacher_flags"
 

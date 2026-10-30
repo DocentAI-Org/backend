@@ -23,14 +23,16 @@ router = APIRouter(prefix="/courses/{course_id}", tags=["student: exercises"])
     "/submissions",
     status_code=201,
     response_model=StudentSubmission,
-    responses=error_responses(403, 404, 409, 422, 429),
-    summary="Submit a worked exercise (stub feedback in v1)",
+    responses=error_responses(403, 404, 409, 422, 429, 503),
+    summary="Submit a worked exercise and get feedback on the mistake",
     description=(
-        "Stores the submission, its citations and a learning-record entry, and "
-        "counts toward the daily allowance. The feedback content is a fixed "
-        "placeholder until the error taxonomy is agreed (`is_stub: true`)."
+        "The tutor checks the answer against the course material: verdict, first "
+        "mistake, error type (`GET /v1/error-types`), course topic and a cited "
+        "explanation. Mistakes with a type go to the learning record. Exercises the "
+        "material does not cover are `not_assessed`. Counts toward the daily "
+        "allowance, except when the tutor is unavailable (503). `is_stub` is always "
+        "false and will be removed."
     ),
-    openapi_extra={"x-stub": True},
 )
 def submit_exercise(
     course_id: uuid.UUID,

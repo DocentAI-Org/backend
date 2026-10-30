@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.schemas.chat import Citation, Correction
 from app.schemas.common import CleanText
 
-Verdict = Literal["correct", "partially_correct", "incorrect"]
+Verdict = Literal["correct", "partially_correct", "incorrect", "not_assessed"]
 
 
 class SubmissionCreate(BaseModel):
@@ -27,7 +27,9 @@ class StudentSubmission(BaseModel):
     explanation_kind: Literal["answer", "no_source"]
     citations: list[Citation]
     saved_to_record: bool
-    is_stub: bool = Field(description="True while feedback is a fixed placeholder.")
+    is_stub: bool = Field(
+        description="Always false since real feedback (specs/003); to be removed."
+    )
     correction: Correction | None
     created_at: datetime
 
@@ -40,3 +42,21 @@ class LearningRecordEntry(BaseModel):
     topic_name: str | None
     topic_deleted: bool
     created_at: datetime
+
+
+class Localized(BaseModel):
+    es: str
+    en: str
+
+
+class ErrorTypeView(BaseModel):
+    code: str = Field(description="Stable identifier stored in the learning record.")
+    label: Localized
+    description: Localized
+
+
+class ErrorTaxonomy(BaseModel):
+    provisional: bool = Field(
+        description="True while the taxonomy is the technical team's draft (specs/003)."
+    )
+    items: list[ErrorTypeView]

@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.db import get_session_factory
 from app.core.errors import register_error_handlers
-from app.routers import admin, health, me, student, teacher
+from app.routers import admin, error_types, health, me, student, teacher
 from app.services.documents import recover_interrupted
 
 logger = logging.getLogger(__name__)
@@ -35,10 +35,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=settings.app_version,
-        description=(
-            "DocentAI API v1. Errors use one schema with a stable `code`; "
-            "endpoints marked `x-stub` honor the contract with fixed content."
-        ),
+        description="DocentAI API v1. Errors use one schema with a stable `code`.",
         lifespan=lifespan,
     )
     app.add_middleware(
@@ -53,6 +50,7 @@ def create_app() -> FastAPI:
     v1 = APIRouter(prefix="/v1")
     v1.include_router(health.router)
     v1.include_router(me.router)
+    v1.include_router(error_types.router)
     v1.include_router(admin.router)
     v1.include_router(teacher.router)
     v1.include_router(student.router)

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "DocentAI API",
-    "description": "DocentAI API v1. Errors use one schema with a stable `code`; endpoints marked `x-stub` honor the contract with fixed content.",
+    "description": "DocentAI API v1. Errors use one schema with a stable `code`.",
     "version": "0.1.0"
   },
   "paths": {
@@ -121,6 +121,52 @@
           },
           "422": {
             "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/error-types": {
+      "get": {
+        "tags": [
+          "exercises"
+        ],
+        "summary": "The error taxonomy used to classify exercise mistakes",
+        "operationId": "list_error_types_v1_error_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorTaxonomy"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -5266,8 +5312,8 @@
         "tags": [
           "student: exercises"
         ],
-        "summary": "Submit a worked exercise (stub feedback in v1)",
-        "description": "Stores the submission, its citations and a learning-record entry, and counts toward the daily allowance. The feedback content is a fixed placeholder until the error taxonomy is agreed (`is_stub: true`).",
+        "summary": "Submit a worked exercise and get feedback on the mistake",
+        "description": "The tutor checks the answer against the course material: verdict, first mistake, error type (`GET /v1/error-types`), course topic and a cited explanation. Mistakes with a type go to the learning record. Exercises the material does not cover are `not_assessed`. Counts toward the daily allowance, except when the tutor is unavailable (503). `is_stub` is always false and will be removed.",
         "operationId": "submit_exercise_v1_student_courses__course_id__submissions_post",
         "security": [
           {
@@ -5366,9 +5412,18 @@
               }
             },
             "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
-        },
-        "x-stub": true
+        }
       },
       "get": {
         "tags": [
@@ -6627,6 +6682,50 @@
         ],
         "title": "ErrorResponse"
       },
+      "ErrorTaxonomy": {
+        "properties": {
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional",
+            "description": "True while the taxonomy is the technical team's draft (specs/003)."
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorTypeView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provisional",
+          "items"
+        ],
+        "title": "ErrorTaxonomy"
+      },
+      "ErrorTypeView": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Stable identifier stored in the learning record."
+          },
+          "label": {
+            "$ref": "#/components/schemas/Localized"
+          },
+          "description": {
+            "$ref": "#/components/schemas/Localized"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "description"
+        ],
+        "title": "ErrorTypeView"
+      },
       "EvaluationItem": {
         "properties": {
           "flag_id": {
@@ -6894,6 +6993,24 @@
           "created_at"
         ],
         "title": "LearningRecordEntry"
+      },
+      "Localized": {
+        "properties": {
+          "es": {
+            "type": "string",
+            "title": "Es"
+          },
+          "en": {
+            "type": "string",
+            "title": "En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "es",
+          "en"
+        ],
+        "title": "Localized"
       },
       "Me": {
         "properties": {
@@ -7697,7 +7814,8 @@
             "enum": [
               "correct",
               "partially_correct",
-              "incorrect"
+              "incorrect",
+              "not_assessed"
             ],
             "title": "Verdict"
           },
@@ -7760,7 +7878,7 @@
           "is_stub": {
             "type": "boolean",
             "title": "Is Stub",
-            "description": "True while feedback is a fixed placeholder."
+            "description": "Always false since real feedback (specs/003); to be removed."
           },
           "correction": {
             "anyOf": [
@@ -8188,7 +8306,8 @@
             "enum": [
               "correct",
               "partially_correct",
-              "incorrect"
+              "incorrect",
+              "not_assessed"
             ],
             "title": "Verdict"
           },
@@ -8251,7 +8370,7 @@
           "is_stub": {
             "type": "boolean",
             "title": "Is Stub",
-            "description": "True while feedback is a fixed placeholder."
+            "description": "Always false since real feedback (specs/003); to be removed."
           },
           "correction": {
             "anyOf": [

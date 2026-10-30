@@ -82,6 +82,19 @@ class GroundedReply:
 _FRAGMENT_REF = re.compile(r"F([0-9]{1,3})", re.IGNORECASE)
 
 
+def cited_fragment_indexes(cited: list, fragment_count: int) -> list[int]:
+    """Indexes of the given fragments ("F1", "F2"...) that the model cites."""
+    indexes: list[int] = []
+    for ref in cited:
+        match = _FRAGMENT_REF.fullmatch(ref) if isinstance(ref, str) else None
+        if match is None:
+            continue
+        index = int(match.group(1)) - 1
+        if 0 <= index < fragment_count and index not in indexes:
+            indexes.append(index)
+    return indexes
+
+
 def ground_reply(data: dict, fragment_count: int) -> GroundedReply:
     """Accepts a model reply only if it cites fragments it was actually given.
 
@@ -94,14 +107,7 @@ def ground_reply(data: dict, fragment_count: int) -> GroundedReply:
         return GroundedReply("no_source", "")
     if not isinstance(text, str) or not text.strip() or not isinstance(cited, list):
         return GroundedReply("no_source", "")
-    indexes: list[int] = []
-    for ref in cited:
-        match = _FRAGMENT_REF.fullmatch(ref) if isinstance(ref, str) else None
-        if match is None:
-            continue
-        index = int(match.group(1)) - 1
-        if 0 <= index < fragment_count and index not in indexes:
-            indexes.append(index)
+    indexes = cited_fragment_indexes(cited, fragment_count)
     if not indexes:
         return GroundedReply("no_source", "")
     return GroundedReply(
@@ -143,20 +149,24 @@ def build_messages(
         }
         for m in history
     ]
+    turns.append(
+        {
+            "role": "user",
+            "content": f"{material_block(hits)}\n\n<pregunta>\n{question}\n</pregunta>",
+        }
+    )
+    return turns
+
+
+def material_block(hits: list[Hit]) -> str:
+    """The retrieved fragments, numbered F1, F2... so the model can cite them."""
     material = "\n\n".join(
         f'<fragmento id="F{i}" '
         f'fuente="{hit.document_name}, {hit.fragment.location_label}">'
         f"\n{hit.fragment.text}\n</fragmento>"
         for i, hit in enumerate(hits, start=1)
     )
-    turns.append(
-        {
-            "role": "user",
-            "content": f"<material>\n{material}\n</material>\n\n"
-            f"<pregunta>\n{question}\n</pregunta>",
-        }
-    )
-    return turns
+    return f"<material>\n{material}\n</material>"
 
 
 # --- Conversation flow ------------------------------------------------------------
