@@ -64,7 +64,7 @@ def to_teacher_course(session: Session, course: Course) -> TeacherCourse:
         description=course.description,
         class_code=course.class_code,
         class_code_active=course.class_code_active,
-        invitation_path=f"/unirse/{course.class_code}",
+        invitation_path=f"/join/{course.class_code}",
         student_count=_student_count(session, course.id),
         created_at=course.created_at,
     )
