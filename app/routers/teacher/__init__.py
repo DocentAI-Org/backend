@@ -4,7 +4,14 @@ from fastapi import APIRouter, Depends
 
 from app.core.errors import error_responses
 from app.core.security import require_role
-from app.routers.teacher import courses, documents, review, settings, topics
+from app.routers.teacher import (
+    courses,
+    dashboard,
+    documents,
+    review,
+    settings,
+    topics,
+)
 
 router = APIRouter(
     prefix="/teacher",
@@ -16,3 +23,4 @@ router.include_router(documents.router)
 router.include_router(settings.router)
 router.include_router(topics.router)
 router.include_router(review.router)
+router.include_router(dashboard.router)

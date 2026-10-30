@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import ARRAY, DateTime, ForeignKey, Numeric, Text, Uuid, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -241,6 +242,18 @@ class ErrorType(Base):
     label_en: Mapped[str]
     description_es: Mapped[str] = mapped_column(Text)
     description_en: Mapped[str] = mapped_column(Text)
+    provisional: Mapped[bool]
+
+
+class RiskCriterion(Base):
+    """The at-risk criteria (specs/004): data, with thresholds as JSON per criterion."""
+
+    __tablename__ = "risk_criteria"
+
+    code: Mapped[str] = mapped_column(primary_key=True)
+    position: Mapped[int]
+    enabled: Mapped[bool]
+    thresholds: Mapped[dict] = mapped_column(JSONB)
     provisional: Mapped[bool]
 
 

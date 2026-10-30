@@ -4349,6 +4349,233 @@
         }
       }
     },
+    "/v1/teacher/courses/{course_id}/dashboard": {
+      "get": {
+        "tags": [
+          "teacher: dashboard"
+        ],
+        "summary": "Recurring errors by topic and by student, and at-risk students",
+        "operationId": "read_dashboard_v1_teacher_courses__course_id__dashboard_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "7d",
+                "30d",
+                "all"
+              ],
+              "type": "string",
+              "default": "30d",
+              "title": "Period"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherDashboard"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/students/{student_id}/risk": {
+      "get": {
+        "tags": [
+          "teacher: dashboard"
+        ],
+        "summary": "Whether a student is at risk, why, and their weekly activity",
+        "operationId": "read_student_risk_v1_teacher_courses__course_id__students__student_id__risk_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Student Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentRisk"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/risk-criteria": {
+      "get": {
+        "tags": [
+          "teacher: dashboard"
+        ],
+        "summary": "The criteria that flag a student as at risk",
+        "operationId": "list_risk_criteria_v1_teacher_risk_criteria_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskCriteriaList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/v1/student/enrolments": {
       "post": {
         "tags": [
@@ -5901,6 +6128,26 @@
   },
   "components": {
     "schemas": {
+      "ActivityCounts": {
+        "properties": {
+          "messages": {
+            "type": "integer",
+            "title": "Messages",
+            "description": "Messages students sent to the tutor."
+          },
+          "exercises": {
+            "type": "integer",
+            "title": "Exercises",
+            "description": "Exercises submitted, whatever the verdict."
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages",
+          "exercises"
+        ],
+        "title": "ActivityCounts"
+      },
       "AdminCourse": {
         "properties": {
           "id": {
@@ -6025,6 +6272,60 @@
           "resets_at"
         ],
         "title": "Allowance"
+      },
+      "AtRiskStudent": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Student Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "last_activity_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Activity At"
+          },
+          "reasons": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InactiveReason"
+                },
+                {
+                  "$ref": "#/components/schemas/ErrorRateReason"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "criterion",
+                "mapping": {
+                  "error_rate": "#/components/schemas/ErrorRateReason",
+                  "inactive": "#/components/schemas/InactiveReason"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "display_name",
+          "last_activity_at",
+          "reasons"
+        ],
+        "title": "AtRiskStudent"
       },
       "Body_upload_document_v1_teacher_courses__course_id__documents_post": {
         "properties": {
@@ -6670,6 +6971,45 @@
         ],
         "title": "ErrorBody"
       },
+      "ErrorRateReason": {
+        "properties": {
+          "criterion": {
+            "type": "string",
+            "const": "error_rate",
+            "title": "Criterion"
+          },
+          "mistakes": {
+            "type": "integer",
+            "title": "Mistakes"
+          },
+          "assessed": {
+            "type": "integer",
+            "title": "Assessed"
+          },
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days"
+          },
+          "min_exercises": {
+            "type": "integer",
+            "title": "Min Exercises"
+          },
+          "threshold_rate": {
+            "type": "number",
+            "title": "Threshold Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criterion",
+          "mistakes",
+          "assessed",
+          "window_days",
+          "min_exercises",
+          "threshold_rate"
+        ],
+        "title": "ErrorRateReason"
+      },
       "ErrorResponse": {
         "properties": {
           "error": {
@@ -6917,6 +7257,42 @@
           "llm"
         ],
         "title": "Health"
+      },
+      "InactiveReason": {
+        "properties": {
+          "criterion": {
+            "type": "string",
+            "const": "inactive",
+            "title": "Criterion"
+          },
+          "days_inactive": {
+            "type": "integer",
+            "title": "Days Inactive"
+          },
+          "threshold_days": {
+            "type": "integer",
+            "title": "Threshold Days"
+          },
+          "since": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Since",
+            "description": "The last activity, or joining the course if there was none."
+          },
+          "never_active": {
+            "type": "boolean",
+            "title": "Never Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criterion",
+          "days_inactive",
+          "threshold_days",
+          "since",
+          "never_active"
+        ],
+        "title": "InactiveReason"
       },
       "JoinCourse": {
         "properties": {
@@ -7594,6 +7970,61 @@
         ],
         "title": "PseudonymousBatchCreate"
       },
+      "RiskCriteriaList": {
+        "properties": {
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional",
+            "description": "True while the criteria are the technical team's draft (spec 004)."
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RiskCriterionView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provisional",
+          "items"
+        ],
+        "title": "RiskCriteriaList"
+      },
+      "RiskCriterionView": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "thresholds": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Thresholds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "enabled",
+          "thresholds"
+        ],
+        "title": "RiskCriterionView"
+      },
       "SignedUrl": {
         "properties": {
           "url": {
@@ -7699,6 +8130,47 @@
         ],
         "title": "StudentCourse"
       },
+      "StudentErrors": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Student Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "errors": {
+            "type": "integer",
+            "title": "Errors"
+          },
+          "top_error_type": {
+            "type": "string",
+            "title": "Top Error Type"
+          },
+          "top_topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top Topic Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "display_name",
+          "errors",
+          "top_error_type",
+          "top_topic_name"
+        ],
+        "title": "StudentErrors"
+      },
       "StudentMessage": {
         "properties": {
           "id": {
@@ -7793,6 +8265,79 @@
           "correction"
         ],
         "title": "StudentMessage"
+      },
+      "StudentRisk": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Student Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "at_risk": {
+            "type": "boolean",
+            "title": "At Risk"
+          },
+          "reasons": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InactiveReason"
+                },
+                {
+                  "$ref": "#/components/schemas/ErrorRateReason"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "criterion",
+                "mapping": {
+                  "error_rate": "#/components/schemas/ErrorRateReason",
+                  "inactive": "#/components/schemas/InactiveReason"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "last_activity_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Activity At"
+          },
+          "weekly_activity": {
+            "items": {
+              "$ref": "#/components/schemas/WeekActivity"
+            },
+            "type": "array",
+            "title": "Weekly Activity",
+            "description": "The last 8 weeks, oldest first."
+          },
+          "criteria_provisional": {
+            "type": "boolean",
+            "title": "Criteria Provisional"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "display_name",
+          "at_risk",
+          "reasons",
+          "last_activity_at",
+          "weekly_activity",
+          "criteria_provisional"
+        ],
+        "title": "StudentRisk"
       },
       "StudentSubmission": {
         "properties": {
@@ -8127,6 +8672,82 @@
           "display_name"
         ],
         "title": "TeacherCreate"
+      },
+      "TeacherDashboard": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "enum": [
+              "7d",
+              "30d",
+              "all"
+            ],
+            "title": "Period"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since",
+            "description": "Start of the period; None for 'all'."
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityCounts"
+          },
+          "enough_data": {
+            "type": "boolean",
+            "title": "Enough Data",
+            "description": "At least `thresholds.messages` messages or `thresholds.exercises` exercises in the period."
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/ActivityCounts"
+          },
+          "errors_by_topic": {
+            "items": {
+              "$ref": "#/components/schemas/TopicErrors"
+            },
+            "type": "array",
+            "title": "Errors By Topic"
+          },
+          "errors_by_student": {
+            "items": {
+              "$ref": "#/components/schemas/StudentErrors"
+            },
+            "type": "array",
+            "title": "Errors By Student"
+          },
+          "at_risk": {
+            "items": {
+              "$ref": "#/components/schemas/AtRiskStudent"
+            },
+            "type": "array",
+            "title": "At Risk",
+            "description": "Independent of the period: each criterion has its own window."
+          },
+          "criteria_provisional": {
+            "type": "boolean",
+            "title": "Criteria Provisional"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "since",
+          "activity",
+          "enough_data",
+          "thresholds",
+          "errors_by_topic",
+          "errors_by_student",
+          "at_risk",
+          "criteria_provisional"
+        ],
+        "title": "TeacherDashboard"
       },
       "TeacherFlag": {
         "properties": {
@@ -8586,6 +9207,60 @@
         ],
         "title": "TopicCreate"
       },
+      "TopicErrors": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name",
+            "description": "None for mistakes without a topic."
+          },
+          "topic_deleted": {
+            "type": "boolean",
+            "title": "Topic Deleted"
+          },
+          "errors": {
+            "type": "integer",
+            "title": "Errors"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          },
+          "top_error_type": {
+            "type": "string",
+            "title": "Top Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "topic_deleted",
+          "errors",
+          "students",
+          "top_error_type"
+        ],
+        "title": "TopicErrors"
+      },
       "TopicOrder": {
         "properties": {
           "topic_ids": {
@@ -8807,6 +9482,31 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WeekActivity": {
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start",
+            "description": "Monday of the week (UTC)."
+          },
+          "messages": {
+            "type": "integer",
+            "title": "Messages"
+          },
+          "exercises": {
+            "type": "integer",
+            "title": "Exercises"
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_start",
+          "messages",
+          "exercises"
+        ],
+        "title": "WeekActivity"
       }
     },
     "securitySchemes": {
