@@ -39,6 +39,13 @@ git config core.hooksPath .githooks
 - One PR per feature, squash-merged. The PR title becomes the commit, so it follows the same
   format (a task ID is not required in the title).
 - Feature PRs link `specs/NNN-name/spec.md` in the description; the template has the place.
-- A PR that changes `openapi.json` says so, so the frontend can regenerate its types.
+- A PR that changes `openapi.json` says so in "API contract", so the frontend can regenerate its
+  types.
+- The description follows the template: summary, type, spec, what changes, API contract,
+  database, how to verify, dependencies and merge order, risks and rollback, checks, and known
+  gaps. CI fails if "Summary" or "How to verify" is empty. Write "None" or "n/a" in a section that
+  does not apply.
+- "How to verify" is written for a reviewer who has not followed the work: setup (database,
+  seed, Ollama models), the commands to run, and the requests to try with the expected responses.
 
 `git commit --no-verify` skips the local hooks; CI still checks every commit of the PR.
