@@ -121,7 +121,8 @@ def fresh_student(client, make_user, room):
 
 
 def test_feedback_classification(client, llm, make_user, teacher, student) -> None:
-    assert RUNS <= get_settings().repeated_mistake_count, "EVAL_RUNS would trigger S8"
+    # The study's default repeated-mistake count (spec 015); more runs would trigger S8.
+    assert RUNS <= 3, "EVAL_RUNS would trigger the adaptation note"
     room = classroom(client, teacher, student)
     assign_sections(client, teacher, room.course_id, room.document["id"])
     graded = []

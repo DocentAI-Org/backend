@@ -44,21 +44,13 @@ class Settings(BaseSettings):
     daily_reset_timezone: str = "Europe/Madrid"
     max_upload_mb: int = 20
     tutor_language: str = "es"
-    # A repeated mistake (specs/005, provisional): the same error type and topic this
-    # many times within this many days, counting the current one.
-    repeated_mistake_count: int = 3
-    repeated_mistake_days: int = 30
     # Adaptive quizzes (specs/006, provisional): questions per quiz, starting
     # level (1-3) and the right or wrong answers in a row that move the level.
     quiz_length: int = 5
     quiz_start_level: int = 2
     quiz_streak: int = 2
-    # Progress by topic (specs/007, provisional): the latest graded items that count,
-    # the items needed for a score, and the scores for "progressing" and "mastered".
-    progress_window: int = 10
-    progress_min_items: int = 3
-    progress_progressing: float = 0.5
-    progress_mastered: float = 0.8
+    # Repeated mistakes, adaptation and mastery are pedagogical criteria in the
+    # database since specs/015, set by the admin and per course by the teacher.
     recover_interrupted_on_startup: bool = True
 
     # Study consent (specs/002): bump when the approved consent text changes.

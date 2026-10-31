@@ -412,16 +412,21 @@ class ErrorType(Base):
     provisional: Mapped[bool]
 
 
-class RiskCriterion(Base):
-    """The at-risk criteria (specs/004): data, with thresholds as JSON per criterion."""
+class PedagogyCriteria(Base):
+    """Study defaults (no course) or a course's overrides, per group (specs/015)."""
 
-    __tablename__ = "risk_criteria"
+    __tablename__ = "pedagogy_criteria"
 
-    code: Mapped[str] = mapped_column(primary_key=True)
-    position: Mapped[int]
-    enabled: Mapped[bool]
-    thresholds: Mapped[dict] = mapped_column(JSONB)
-    provisional: Mapped[bool]
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("courses.id"))
+    inactive: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    error_rate: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    repeated_mistakes: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    adaptation: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    mastery: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    provisional: Mapped[bool] = mapped_column(server_default="true")
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
 
 
 class TeacherFlag(Base):

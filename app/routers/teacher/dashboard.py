@@ -79,11 +79,11 @@ def read_student_progress(
     summary="The criteria that flag a student as at risk",
 )
 def list_risk_criteria(_: TeacherUser, session: DbSession) -> RiskCriteriaList:
-    rows = risk.all_criteria(session)
+    criteria, provisional = risk.study_criteria(session)
     return RiskCriteriaList(
-        provisional=any(r.provisional for r in rows),
+        provisional=provisional,
         items=[
-            RiskCriterionView(code=r.code, enabled=r.enabled, thresholds=r.thresholds)
-            for r in rows
+            RiskCriterionView(code=c.code, enabled=c.enabled, thresholds=c.thresholds)
+            for c in criteria
         ],
     )

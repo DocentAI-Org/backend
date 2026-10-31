@@ -11,14 +11,20 @@ from app.core.config import Settings
 from app.llm.prompts import load_labels
 from app.models import ErrorType, LearningRecordEntry
 from app.schemas.chat import Adaptation
+from app.services import pedagogy
 
 
 def focus(
     session: Session, settings: Settings, course_id: uuid.UUID, student_id: uuid.UUID
 ) -> Adaptation | None:
-    """The most frequent error type in the window, if repeated enough (spec 005
-    thresholds); ties go to the most recent."""
-    since = datetime.now(UTC) - timedelta(days=settings.repeated_mistake_days)
+    """The most frequent error type in the window, if repeated enough (the course's
+    repeated-mistake criteria, specs/015); ties go to the most recent. None when the
+    course turns adaptation off."""
+    criteria = pedagogy.in_effect(session, course_id).criteria
+    if not criteria.adaptation.enabled:
+        return None
+    threshold = criteria.repeated_mistakes
+    since = datetime.now(UTC) - timedelta(days=threshold.window_days)
     count = func.count(LearningRecordEntry.id)
     row = session.execute(
         select(LearningRecordEntry.error_type, count)
@@ -28,14 +34,14 @@ def focus(
             LearningRecordEntry.created_at >= since,
         )
         .group_by(LearningRecordEntry.error_type)
-        .having(count >= settings.repeated_mistake_count)
+        .having(count >= threshold.count)
         .order_by(count.desc(), func.max(LearningRecordEntry.created_at).desc())
         .limit(1)
     ).first()
     if row is None:
         return None
     return Adaptation(
-        error_type=row[0], count=row[1], window_days=settings.repeated_mistake_days
+        error_type=row[0], count=row[1], window_days=threshold.window_days
     )
 
 

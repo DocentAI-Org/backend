@@ -28,7 +28,7 @@ from app.models import (
 )
 from app.schemas import exercises as schemas
 from app.schemas.chat import Adaptation, Correction
-from app.services import adaptation, allowance, interactions, tutor
+from app.services import adaptation, allowance, interactions, pedagogy, tutor
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -189,7 +189,8 @@ def repeated_mistake(
     )
     if entry is None:
         return None
-    window = timedelta(days=settings.repeated_mistake_days)
+    threshold = pedagogy.in_effect(session, entry.course_id).criteria.repeated_mistakes
+    window = timedelta(days=threshold.window_days)
     same_topic = (
         LearningRecordEntry.topic_id == entry.topic_id
         if entry.topic_id is not None
@@ -206,11 +207,11 @@ def repeated_mistake(
             LearningRecordEntry.created_at > entry.created_at - window,
         )
     )
-    if not count or count < settings.repeated_mistake_count:
+    if not count or count < threshold.count:
         return None
     return schemas.RepeatedMistake(
         count=count,
-        window_days=settings.repeated_mistake_days,
+        window_days=threshold.window_days,
         error_type=entry.error_type,
         topic_name=entry.topic_name,
     )

@@ -3,11 +3,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Course, RiskCriterion
+from app.models import Course
 from app.schemas.dashboard import ErrorRateReason, InactiveReason, RiskReason
+from app.schemas.pedagogy import Criteria
+from app.services import pedagogy
 
 
 @dataclass(frozen=True)
@@ -26,18 +27,33 @@ class StudentFacts:
     mistakes: int
 
 
-def all_criteria(session: Session) -> list[RiskCriterion]:
-    return list(session.scalars(select(RiskCriterion).order_by(RiskCriterion.position)))
+def _from(criteria: Criteria) -> list[Criterion]:
+    inactive, error_rate = criteria.inactive, criteria.error_rate
+    return [
+        Criterion("inactive", inactive.enabled, {"days": inactive.days}),
+        Criterion(
+            "error_rate",
+            error_rate.enabled,
+            {
+                "window_days": error_rate.window_days,
+                "min_exercises": error_rate.min_exercises,
+                "rate": error_rate.rate,
+            },
+        ),
+    ]
+
+
+def study_criteria(session: Session) -> tuple[list[Criterion], bool]:
+    """The study's defaults (specs/015)."""
+    defaults = pedagogy.study(session)
+    return _from(defaults.criteria), defaults.provisional
 
 
 def criteria_for(session: Session, course: Course) -> tuple[list[Criterion], bool]:
-    """The criteria applied to a course and whether they are provisional.
-
-    Global for now; per-course overrides set by the teacher go here later (spec 004).
-    """
-    rows = all_criteria(session)
-    criteria = [Criterion(r.code, r.enabled, r.thresholds) for r in rows]
-    return criteria, any(r.provisional for r in rows)
+    """The criteria applied to a course (its own or the study's, specs/015) and whether
+    they are provisional."""
+    current = pedagogy.in_effect(session, course.id)
+    return _from(current.criteria), current.provisional
 
 
 def enabled(criteria: list[Criterion], code: str) -> Criterion | None:

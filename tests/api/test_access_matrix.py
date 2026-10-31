@@ -8,10 +8,23 @@ import pytest
 from tests.api.helpers import classroom
 from tests.api.test_us7_exercises import EXERCISE
 
+CRITERIA = {
+    "inactive": {"enabled": True, "days": 7},
+    "error_rate": {"enabled": True, "rate": 0.6, "min_exercises": 5, "window_days": 14},
+    "repeated_mistakes": {"count": 3, "window_days": 30},
+    "adaptation": {"enabled": True},
+    "mastery": {"window": 10, "min_items": 3, "progressing": 0.5, "mastered": 0.8},
+}
+
 BODIES: dict[tuple[str, str], dict] = {
     ("patch", "/v1/me"): {"preferred_language": "es"},
     ("post", "/v1/admin/teachers"): {"email": "x@example.org", "display_name": "X"},
     ("post", "/v1/admin/students/pseudonymous"): {"count": 1},
+    ("put", "/v1/admin/pedagogy-criteria"): {
+        "criteria": CRITERIA,
+        "provisional": True,
+    },
+    ("put", "/v1/teacher/courses/{course_id}/pedagogy-criteria"): {},
     ("post", "/v1/admin/questionnaires"): {
         "title": "X",
         "url": "https://example.org",

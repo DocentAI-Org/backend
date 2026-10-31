@@ -2,7 +2,6 @@
 
 from sqlalchemy import text
 
-from app.core.config import get_settings
 from tests.api.helpers import (
     COVERED_QUESTION,
     UNCOVERED_QUESTION,
@@ -39,7 +38,7 @@ def test_recurring_mistakes_adapt_the_chat_answer(
 
     reply = chat(client, student, room.course_id)["tutor_message"]
 
-    days = get_settings().repeated_mistake_days
+    days = 30  # the study's default repeated-mistake window (spec 015)
     assert reply["adaptation"] == {
         "error_type": "procedural",
         "count": 3,
@@ -71,7 +70,7 @@ def test_no_adaptation_below_the_threshold_outside_the_window_or_course(
 ) -> None:
     room = classroom(client, teacher, student)
     other = create_course(client, teacher)
-    days = get_settings().repeated_mistake_days
+    days = 30  # the study's default repeated-mistake window (spec 015)
     mistakes(db, room.course_id, student, 1, 2, "procedural")
     mistakes(db, room.course_id, student, days + 1, 3, "procedural")
     mistakes(db, other["id"], student, 1, 3, "procedural")
