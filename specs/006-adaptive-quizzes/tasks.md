@@ -32,7 +32,7 @@
 
 ## Phase 6: Follow-up after the real-stack walkthrough (frontend 008)
 
-- [ ] T008 The quiz level is the difficulty shown; `level_exhausted` changes; no change after the
+- [x] T008 The quiz level is the difficulty shown; `level_exhausted` changes; no change after the
   last answer (US3 AS1, AS4)
-- [ ] T009 Generation asks for a number of questions per level (FR-003)
-- [ ] T010 Student quiz topics `GET …/quiz-topics` (US3 AS8, FR-007)
+- [x] T009 Generation asks for a number of questions per level (FR-003)
+- [x] T010 Student quiz topics `GET …/quiz-topics` (US3 AS8, FR-007)
