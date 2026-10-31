@@ -29,6 +29,14 @@ class Correction(BaseModel):
     reviewed_at: datetime
 
 
+class Adaptation(BaseModel):
+    """Why an explanation was adapted (specs/013): shown to the student and teacher."""
+
+    error_type: str = Field(description="Error type code the student repeats.")
+    count: int = Field(description="Mistakes of that type in the window.")
+    window_days: int
+
+
 class StudentMessage(BaseModel):
     id: uuid.UUID
     author: Literal["student", "tutor"]
@@ -41,6 +49,9 @@ class StudentMessage(BaseModel):
     created_at: datetime
     citations: list[Citation]
     correction: Correction | None
+    adaptation: Adaptation | None = Field(
+        default=None, description="Set when the answer was adapted (specs/013)."
+    )
 
 
 class Allowance(BaseModel):
