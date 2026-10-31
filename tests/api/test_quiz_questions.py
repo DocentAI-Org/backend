@@ -103,8 +103,10 @@ def test_drafts_are_grounded_pending_and_logged(
     assert first["topic_id"] == topic["id"]
     assert first["topic_name"] == "Paréntesis"
     assert first["statement"] == "¿Cuánto vale 2(x - 3) sin paréntesis?"
-    assert first["options"] == ["2x - 3", "2x - 6", "2x + 6", "x - 6"]
-    assert first["correct_option"] == 1
+    assert sorted(first["options"]) == ["2x + 6", "2x - 3", "2x - 6", "x - 6"]
+    # The right answer is moved to a different position in each draft.
+    assert [q["options"][q["correct_option"]] for q in made] == ["2x - 6"] * 3
+    assert [q["correct_option"] for q in made] == [0, 1, 2]
     assert "F1" not in first["explanation"]
     assert [q["difficulty"] for q in made] == [1, 2, 3]
     assert [c["location_label"] for c in first["citations"]] == [f"§ {SECTION}"]

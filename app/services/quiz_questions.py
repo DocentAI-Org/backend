@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 OPTIONS = 4
 LETTERS = "ABCD"
+_LETTER_PREFIX = re.compile(r"([A-Da-d])\s*[).:]\s+")
 DEFAULT_DIFFICULTY = 2
 STATEMENT_CHARS = 1000
 OPTION_CHARS = 300
@@ -73,15 +74,37 @@ def _correct_index(value: object) -> int | None:
     return None
 
 
+def _without_letter(option: str, position: int) -> str:
+    """ "B) 2x - 6" -> "2x - 6": the interface shows its own letters."""
+    match = _LETTER_PREFIX.match(option)
+    if match and match.group(1).upper() == LETTERS[position]:
+        return option[match.end() :]
+    return option
+
+
 def _options(value: object) -> list[str] | None:
     if not isinstance(value, list) or len(value) != OPTIONS:
         return None
     if not all(isinstance(option, str) and option.strip() for option in value):
         return None
-    options = [option.strip()[:OPTION_CHARS] for option in value]
-    if len({option.casefold() for option in options}) != OPTIONS:
+    options = [
+        _without_letter(option.strip(), i).strip()[:OPTION_CHARS]
+        for i, option in enumerate(value)
+    ]
+    if not all(options) or len({o.casefold() for o in options}) != OPTIONS:
         return None
     return options
+
+
+def spread(options: list[str], correct: int, target: int) -> tuple[list[str], int]:
+    """Rotates the options so the correct one is at `target`.
+
+    Small models put the right answer in the same place almost every time (B in 11 of
+    15 questions in the validation run); rotating keeps the distractors' order.
+    """
+    shift = (target - correct) % OPTIONS
+    rotated = [options[(i - shift) % OPTIONS] for i in range(OPTIONS)]
+    return rotated, target
 
 
 def _difficulty(value: object) -> int:
@@ -118,11 +141,12 @@ def validate_drafts(
         if not indexes or key in seen:
             continue
         seen.add(key)
+        options, correct = spread(options, correct, len(accepted) % OPTIONS)  # type: ignore[arg-type]
         accepted.append(
             Draft(
                 statement=statement,  # type: ignore[arg-type]
-                options=options,  # type: ignore[arg-type]
-                correct_option=correct,  # type: ignore[arg-type]
+                options=options,
+                correct_option=correct,
                 explanation=explanation,  # type: ignore[arg-type]
                 difficulty=_difficulty(item.get("difficulty")),
                 cited_indexes=indexes,

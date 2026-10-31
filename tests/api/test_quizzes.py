@@ -18,7 +18,10 @@ LEVELS = {
         for n in (1, 2)
     ]
 }
-RIGHT, WRONG = 1, 0  # every draft's correct option is "B"
+# Every draft's right answer is "2x - 6"; generation moves it to different positions,
+# so answers are given by text: RIGHT and WRONG pick the option shown to the student.
+RIGHT, WRONG = True, False
+RIGHT_TEXT, WRONG_TEXT = "2x - 6", "2x - 3"
 
 
 def quizzes_path(course_id: str) -> str:
@@ -33,7 +36,11 @@ def start(client, student, course_id: str, topic_id: str | None = None):
     )
 
 
-def answer(client, student, course_id: str, quiz: dict, choice: int, question_id=None):
+def answer(client, student, course_id: str, quiz: dict, choice, question_id=None):
+    if isinstance(choice, bool):
+        options = quiz["current"]["options"] if quiz["current"] else []
+        text = RIGHT_TEXT if choice else WRONG_TEXT
+        choice = options.index(text) if text in options else 0
     return client.post(
         f"{quizzes_path(course_id)}/{quiz['id']}/answers",
         headers=student.headers,
@@ -114,7 +121,7 @@ def test_each_answer_gets_immediate_feedback(client, llm, teacher, student) -> N
     assert response.status_code == 200, response.text
     result = response.json()
     assert result["correct"] is False
-    assert result["correct_option"] == RIGHT
+    assert quiz["current"]["options"][result["correct_option"]] == RIGHT_TEXT
     assert result["explanation"] == "El 2 multiplica a cada término de dentro."
     assert [c["document_name"] for c in result["citations"]] == ["ecuaciones.md"]
     assert result["difficulty_change"] is None
@@ -228,7 +235,8 @@ def test_the_last_answer_completes_the_quiz_with_a_summary(
         True,
         False,
     ]
-    assert detail["items"][0]["correct_option"] == RIGHT
+    first_item = detail["items"][0]
+    assert first_item["options"][first_item["correct_option"]] == RIGHT_TEXT
     listed = client.get(quizzes_path(room.course_id), headers=student.headers).json()
     assert [q["id"] for q in listed["items"]] == [quiz["id"]]
 
