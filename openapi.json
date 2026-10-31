@@ -5100,6 +5100,668 @@
         }
       }
     },
+    "/v1/teacher/courses/{course_id}/test": {
+      "get": {
+        "tags": [
+          "teacher: pre/post-test"
+        ],
+        "summary": "The course's pre/post-test: questions and phases",
+        "operationId": "read_test_v1_teacher_courses__course_id__test_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseTest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/test/questions": {
+      "post": {
+        "tags": [
+          "teacher: pre/post-test"
+        ],
+        "summary": "Add Question",
+        "description": "409 `test_locked` once the pre-test has been opened.",
+        "operationId": "add_question_v1_teacher_courses__course_id__test_questions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestQuestionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestQuestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/test/questions/from-quiz": {
+      "post": {
+        "tags": [
+          "teacher: pre/post-test"
+        ],
+        "summary": "Copy an approved quiz question into the test",
+        "operationId": "copy_quiz_question_v1_teacher_courses__course_id__test_questions_from_quiz_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyQuizQuestion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestQuestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/test/questions/{question_id}": {
+      "patch": {
+        "tags": [
+          "teacher: pre/post-test"
+        ],
+        "summary": "Update Question",
+        "operationId": "update_question_v1_teacher_courses__course_id__test_questions__question_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestQuestionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestQuestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "teacher: pre/post-test"
+        ],
+        "summary": "Delete Question",
+        "operationId": "delete_question_v1_teacher_courses__course_id__test_questions__question_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/test/phases/{phase}": {
+      "put": {
+        "tags": [
+          "teacher: pre/post-test"
+        ],
+        "summary": "Open or close the pre-test or the post-test",
+        "description": "409 `test_empty` without questions. Opening the pre-test freezes the questions. A closed phase can be opened again; answers given stay.",
+        "operationId": "set_phase_v1_teacher_courses__course_id__test_phases__phase__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "pre",
+                "post"
+              ],
+              "type": "string",
+              "title": "Phase"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhaseUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPhaseView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/test/results": {
+      "get": {
+        "tags": [
+          "teacher: pre/post-test"
+        ],
+        "summary": "Scores by student, phase and topic, and course averages",
+        "operationId": "read_results_v1_teacher_courses__course_id__test_results_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResults"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/student/enrolments": {
       "post": {
         "tags": [
@@ -7227,6 +7889,300 @@
         }
       }
     },
+    "/v1/student/courses/{course_id}/test": {
+      "get": {
+        "tags": [
+          "student: pre/post-test"
+        ],
+        "summary": "The pre-test and post-test: status and whether I have done them",
+        "operationId": "list_phases_v1_student_courses__course_id__test_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentTestPhase"
+                  },
+                  "title": "Response List Phases V1 Student Courses  Course Id  Test Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/student/courses/{course_id}/test/{phase}": {
+      "get": {
+        "tags": [
+          "student: pre/post-test"
+        ],
+        "summary": "Read Phase",
+        "description": "The questions, without the right option; empty once done. 409 `test_not_open` if the phase is not open and not done.",
+        "operationId": "read_phase_v1_student_courses__course_id__test__phase__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "pre",
+                "post"
+              ],
+              "type": "string",
+              "title": "Phase"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentTest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "student: pre/post-test"
+        ],
+        "summary": "Submit my answers, once",
+        "description": "One answer per question. Nothing about right or wrong is returned. 409 `test_already_done`, `test_not_open` or `consent_required`.",
+        "operationId": "submit_phase_v1_student_courses__course_id__test__phase__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "pre",
+                "post"
+              ],
+              "type": "string",
+              "title": "Phase"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSubmitted"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/student/consent": {
       "get": {
         "tags": [
@@ -7965,6 +8921,21 @@
         ],
         "title": "ConversationSummary"
       },
+      "CopyQuizQuestion": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Question Id",
+            "description": "An approved quiz question of the course."
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id"
+        ],
+        "title": "CopyQuizQuestion"
+      },
       "Correction": {
         "properties": {
           "text": {
@@ -8161,6 +9132,36 @@
           "status"
         ],
         "title": "CourseStudent"
+      },
+      "CourseTest": {
+        "properties": {
+          "locked": {
+            "type": "boolean",
+            "title": "Locked",
+            "description": "True once the pre-test has been opened: questions are frozen."
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/TestQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/TestPhaseView"
+            },
+            "type": "array",
+            "title": "Phases"
+          }
+        },
+        "type": "object",
+        "required": [
+          "locked",
+          "questions",
+          "phases"
+        ],
+        "title": "CourseTest"
       },
       "CourseUpdate": {
         "properties": {
@@ -9509,6 +10510,98 @@
         ],
         "title": "Page[TeacherSubmission]"
       },
+      "PhaseAverage": {
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "pre",
+              "post"
+            ],
+            "title": "Phase"
+          },
+          "submitted": {
+            "type": "integer",
+            "title": "Submitted"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "Mean share right, 0-1; null if none."
+          },
+          "by_topic": {
+            "items": {
+              "$ref": "#/components/schemas/TopicAverage"
+            },
+            "type": "array",
+            "title": "By Topic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "submitted",
+          "score",
+          "by_topic"
+        ],
+        "title": "PhaseAverage"
+      },
+      "PhaseScore": {
+        "properties": {
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "right": {
+            "type": "integer",
+            "title": "Right"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "by_topic": {
+            "items": {
+              "$ref": "#/components/schemas/app__schemas__course_tests__TopicScore"
+            },
+            "type": "array",
+            "title": "By Topic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "submitted_at",
+          "right",
+          "total",
+          "by_topic"
+        ],
+        "title": "PhaseScore"
+      },
+      "PhaseUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "PhaseUpdate"
+      },
       "Progress": {
         "properties": {
           "provisional": {
@@ -10163,7 +11256,7 @@
           },
           "by_topic": {
             "items": {
-              "$ref": "#/components/schemas/TopicScore"
+              "$ref": "#/components/schemas/app__schemas__quizzes__TopicScore"
             },
             "type": "array",
             "title": "By Topic"
@@ -10535,6 +11628,47 @@
         ],
         "title": "StudentMessage"
       },
+      "StudentResult": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Student Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "pre": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PhaseScore"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "post": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PhaseScore"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "display_name",
+          "pre",
+          "post"
+        ],
+        "title": "StudentResult"
+      },
       "StudentRisk": {
         "properties": {
           "student_id": {
@@ -10740,6 +11874,134 @@
           "created_at"
         ],
         "title": "StudentSubmission"
+      },
+      "StudentTest": {
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "pre",
+              "post"
+            ],
+            "title": "Phase"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_open",
+              "open",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/StudentTestQuestion"
+            },
+            "type": "array",
+            "title": "Questions",
+            "description": "Empty once done; never with the right option."
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "status",
+          "done",
+          "submitted_at",
+          "questions"
+        ],
+        "title": "StudentTest"
+      },
+      "StudentTestPhase": {
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "pre",
+              "post"
+            ],
+            "title": "Phase"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_open",
+              "open",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          },
+          "question_count": {
+            "type": "integer",
+            "title": "Question Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "status",
+          "done",
+          "question_count"
+        ],
+        "title": "StudentTestPhase"
+      },
+      "StudentTestQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "position",
+          "statement",
+          "options",
+          "topic_name"
+        ],
+        "title": "StudentTestQuestion"
       },
       "StudentTutorSettings": {
         "properties": {
@@ -11462,6 +12724,321 @@
         ],
         "title": "TeacherSubmission"
       },
+      "TestAnswerIn": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Question Id"
+          },
+          "choice": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Choice",
+            "description": "Index of the option, 0-3."
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "choice"
+        ],
+        "title": "TestAnswerIn"
+      },
+      "TestPhaseView": {
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "pre",
+              "post"
+            ],
+            "title": "Phase"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_open",
+              "open",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "opened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opened At"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "submitted_count": {
+            "type": "integer",
+            "title": "Submitted Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "status",
+          "opened_at",
+          "closed_at",
+          "submitted_count"
+        ],
+        "title": "TestPhaseView"
+      },
+      "TestQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "correct_option": {
+            "type": "integer",
+            "title": "Correct Option"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "topic_id",
+          "topic_name",
+          "position",
+          "statement",
+          "options",
+          "correct_option"
+        ],
+        "title": "TestQuestion"
+      },
+      "TestQuestionCreate": {
+        "properties": {
+          "topic_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Topic Id"
+          },
+          "statement": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Statement"
+          },
+          "options": {
+            "items": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Options"
+          },
+          "correct_option": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Correct Option",
+            "description": "Index of the option, 0-3."
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "statement",
+          "options",
+          "correct_option"
+        ],
+        "title": "TestQuestionCreate"
+      },
+      "TestQuestionUpdate": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "statement": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statement"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          },
+          "correct_option": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3.0,
+                "minimum": 0.0,
+                "description": "Index of the option, 0-3."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct Option"
+          }
+        },
+        "type": "object",
+        "title": "TestQuestionUpdate"
+      },
+      "TestResults": {
+        "properties": {
+          "question_count": {
+            "type": "integer",
+            "title": "Question Count"
+          },
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/TestPhaseView"
+            },
+            "type": "array",
+            "title": "Phases"
+          },
+          "students": {
+            "items": {
+              "$ref": "#/components/schemas/StudentResult"
+            },
+            "type": "array",
+            "title": "Students",
+            "description": "Active students of the course."
+          },
+          "averages": {
+            "items": {
+              "$ref": "#/components/schemas/PhaseAverage"
+            },
+            "type": "array",
+            "title": "Averages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_count",
+          "phases",
+          "students",
+          "averages"
+        ],
+        "title": "TestResults"
+      },
+      "TestSubmission": {
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/TestAnswerIn"
+            },
+            "type": "array",
+            "title": "Answers",
+            "description": "One answer per question."
+          }
+        },
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "TestSubmission"
+      },
+      "TestSubmitted": {
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "pre",
+              "post"
+            ],
+            "title": "Phase"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "submitted_at"
+        ],
+        "title": "TestSubmitted"
+      },
       "Topic": {
         "properties": {
           "id": {
@@ -11603,6 +13180,38 @@
         },
         "type": "object",
         "title": "TopicAssignmentUpdate"
+      },
+      "TopicAverage": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Mean share right, 0-1."
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "score"
+        ],
+        "title": "TopicAverage"
       },
       "TopicCreate": {
         "properties": {
@@ -11827,42 +13436,6 @@
           "name"
         ],
         "title": "TopicRef"
-      },
-      "TopicScore": {
-        "properties": {
-          "topic_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Topic Id"
-          },
-          "topic_name": {
-            "type": "string",
-            "title": "Topic Name"
-          },
-          "correct": {
-            "type": "integer",
-            "title": "Correct"
-          },
-          "total": {
-            "type": "integer",
-            "title": "Total"
-          }
-        },
-        "type": "object",
-        "required": [
-          "topic_id",
-          "topic_name",
-          "correct",
-          "total"
-        ],
-        "title": "TopicScore"
       },
       "TopicUpdate": {
         "properties": {
@@ -12107,6 +13680,78 @@
           "score"
         ],
         "title": "WeekScore"
+      },
+      "app__schemas__course_tests__TopicScore": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "right": {
+            "type": "integer",
+            "title": "Right"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "right",
+          "total"
+        ],
+        "title": "TopicScore"
+      },
+      "app__schemas__quizzes__TopicScore": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "correct",
+          "total"
+        ],
+        "title": "TopicScore"
       }
     },
     "securitySchemes": {
