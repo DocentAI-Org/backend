@@ -51,6 +51,12 @@ def test_correct_answers_carry_no_mistake() -> None:
     assert feedback.mistake_location is None
 
 
+def test_correct_answers_keep_their_topic() -> None:
+    # Progress by topic counts correct exercises too (spec 007 FR-005).
+    feedback = check({**REPLY, "verdict": "correct", "topic": "T1"})
+    assert feedback is not None and feedback.topic_index == 0
+
+
 def test_fragment_ids_are_removed_from_the_explanation() -> None:
     feedback = check(
         {

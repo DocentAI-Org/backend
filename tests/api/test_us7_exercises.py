@@ -98,6 +98,7 @@ def test_correct_answer_has_no_error_type_and_nothing_is_recorded(
     client, db, llm, teacher, student
 ) -> None:
     room = classroom(client, teacher, student)
+    create_topic(client, teacher, room.course_id, "Paréntesis")
     llm.reply = {
         **MISTAKE,
         "verdict": "correct",
@@ -109,6 +110,8 @@ def test_correct_answer_has_no_error_type_and_nothing_is_recorded(
     feedback = submit(client, student, room.course_id).json()
 
     assert feedback["verdict"] == "correct"
+    # The topic counts toward progress (spec 007), but nothing goes to the record.
+    assert feedback["topic_name"] == "Paréntesis"
     assert feedback["error_type"] is None
     assert feedback["mistake_location"] is None
     assert feedback["saved_to_record"] is False
