@@ -7,6 +7,7 @@ from app.core.config import get_settings
 from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
+from app.core.security import AdminUser as AdminProfile
 from app.core.security import require_role
 from app.integrations.auth_admin import AuthAdminClient, get_auth_admin
 from app.schemas.admin import (
@@ -19,13 +20,14 @@ from app.schemas.admin import (
 from app.schemas.admin import (
     AdminUser as AdminUserOut,
 )
+from app.schemas.pedagogy import StudyCriteria, StudyCriteriaUpdate
 from app.schemas.questionnaires import (
     Questionnaire,
     QuestionnaireCreate,
     QuestionnaireUpdate,
 )
 from app.schemas.review import EvaluationItem
-from app.services import accounts, questionnaires, review, study_export
+from app.services import accounts, pedagogy, questionnaires, review, study_export
 
 router = APIRouter(
     prefix="/admin",
@@ -173,3 +175,24 @@ def update_questionnaire(
 def delete_questionnaire(questionnaire_id: uuid.UUID, session: DbSession) -> Response:
     questionnaires.delete(session, questionnaire_id)
     return Response(status_code=204)
+
+
+@router.get(
+    "/pedagogy-criteria",
+    response_model=StudyCriteria,
+    summary="The study's default pedagogical criteria (specs/015)",
+)
+def read_study_criteria(session: DbSession) -> StudyCriteria:
+    return pedagogy.study(session)
+
+
+@router.put(
+    "/pedagogy-criteria",
+    response_model=StudyCriteria,
+    responses=error_responses(422),
+    summary="Set the defaults for every course without its own values",
+)
+def update_study_criteria(
+    payload: StudyCriteriaUpdate, admin: AdminProfile, session: DbSession
+) -> StudyCriteria:
+    return pedagogy.update_study(session, payload, admin)

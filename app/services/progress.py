@@ -21,6 +21,7 @@ from app.models import (
     Topic,
 )
 from app.schemas import progress as schemas
+from app.services import pedagogy
 
 WEEKS = 8
 EXERCISE_VALUE = {"correct": 1.0, "partially_correct": 0.5, "incorrect": 0.0}
@@ -35,12 +36,14 @@ class Criteria:
     mastered: float
 
     @classmethod
-    def from_settings(cls, settings: Settings) -> "Criteria":
+    def of_course(cls, session: Session, course_id: uuid.UUID) -> "Criteria":
+        """The course's mastery criteria (its own or the study's, specs/015)."""
+        mastery = pedagogy.in_effect(session, course_id).criteria.mastery
         return cls(
-            window=settings.progress_window,
-            min_items=settings.progress_min_items,
-            progressing=settings.progress_progressing,
-            mastered=settings.progress_mastered,
+            window=mastery.window,
+            min_items=mastery.min_items,
+            progressing=mastery.progressing,
+            mastered=mastery.mastered,
         )
 
 
@@ -155,7 +158,7 @@ def student_progress(
     now: datetime | None = None,
 ) -> schemas.Progress:
     """The same for the student and the teacher (constitution I)."""
-    criteria = Criteria.from_settings(settings)
+    criteria = Criteria.of_course(session, course_id)
     weeks = last_weeks(now or datetime.now(UTC))
     by_topic: dict[uuid.UUID | None, _Topic] = defaultdict(_Topic)
 
@@ -240,7 +243,7 @@ def student_progress(
         v.last_activity_at for v in [*views, unassigned] if v and v.last_activity_at
     ]
     return schemas.Progress(
-        provisional=True,
+        provisional=pedagogy.in_effect(session, course_id).provisional,
         criteria=schemas.ProgressCriteria(
             window=criteria.window,
             min_items=criteria.min_items,

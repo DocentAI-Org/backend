@@ -1026,6 +1026,116 @@
         }
       }
     },
+    "/v1/admin/pedagogy-criteria": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "The study's default pedagogical criteria (specs/015)",
+        "operationId": "read_study_criteria_v1_admin_pedagogy_criteria_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyCriteria"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Set the defaults for every course without its own values",
+        "operationId": "update_study_criteria_v1_admin_pedagogy_criteria_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudyCriteriaUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyCriteria"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/v1/teacher/courses": {
       "post": {
         "tags": [
@@ -6159,6 +6269,170 @@
         }
       }
     },
+    "/v1/teacher/courses/{course_id}/pedagogy-criteria": {
+      "get": {
+        "tags": [
+          "teacher: pedagogy"
+        ],
+        "summary": "The study's criteria, the course's own groups and those in effect",
+        "operationId": "read_course_criteria_v1_teacher_courses__course_id__pedagogy_criteria_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseCriteria"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "teacher: pedagogy"
+        ],
+        "summary": "Set the course's own groups; null keeps the study's (specs/015)",
+        "operationId": "update_course_criteria_v1_teacher_courses__course_id__pedagogy_criteria_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseCriteriaUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseCriteria"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/student/enrolments": {
       "post": {
         "tags": [
@@ -8813,6 +9087,20 @@
         "title": "Adaptation",
         "description": "Why an explanation was adapted (specs/013): shown to the student and teacher."
       },
+      "AdaptationCriteria": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "AdaptationCriteria",
+        "description": "Explanations adapted to repeated mistakes (spec 013)."
+      },
       "AdminCourse": {
         "properties": {
           "id": {
@@ -9405,6 +9693,102 @@
         ],
         "title": "CourseCreate"
       },
+      "CourseCriteria": {
+        "properties": {
+          "study": {
+            "$ref": "#/components/schemas/Criteria"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional"
+          },
+          "custom": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "propertyNames": {
+              "enum": [
+                "inactive",
+                "error_rate",
+                "repeated_mistakes",
+                "adaptation",
+                "mastery"
+              ]
+            },
+            "type": "object",
+            "title": "Custom",
+            "description": "Groups the course overrides."
+          },
+          "effective": {
+            "$ref": "#/components/schemas/Criteria"
+          }
+        },
+        "type": "object",
+        "required": [
+          "study",
+          "provisional",
+          "custom",
+          "effective"
+        ],
+        "title": "CourseCriteria"
+      },
+      "CourseCriteriaUpdate": {
+        "properties": {
+          "inactive": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InactiveCriteria"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_rate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorRateCriteria"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "repeated_mistakes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepeatedMistakeCriteria"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "adaptation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdaptationCriteria"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mastery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MasteryCriteria"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "CourseCriteriaUpdate",
+        "description": "A group's own values for the course, or null for the study's."
+      },
       "CourseFlag": {
         "properties": {
           "id": {
@@ -9635,6 +10019,34 @@
         ],
         "title": "CreatedAccount"
       },
+      "Criteria": {
+        "properties": {
+          "inactive": {
+            "$ref": "#/components/schemas/InactiveCriteria"
+          },
+          "error_rate": {
+            "$ref": "#/components/schemas/ErrorRateCriteria"
+          },
+          "repeated_mistakes": {
+            "$ref": "#/components/schemas/RepeatedMistakeCriteria"
+          },
+          "adaptation": {
+            "$ref": "#/components/schemas/AdaptationCriteria"
+          },
+          "mastery": {
+            "$ref": "#/components/schemas/MasteryCriteria"
+          }
+        },
+        "type": "object",
+        "required": [
+          "inactive",
+          "error_rate",
+          "repeated_mistakes",
+          "adaptation",
+          "mastery"
+        ],
+        "title": "Criteria"
+      },
       "DifficultyChange": {
         "properties": {
           "from_level": {
@@ -9832,6 +10244,41 @@
           "message"
         ],
         "title": "ErrorBody"
+      },
+      "ErrorRateCriteria": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "rate": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Rate"
+          },
+          "min_exercises": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Min Exercises"
+          },
+          "window_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Window Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "rate",
+          "min_exercises",
+          "window_days"
+        ],
+        "title": "ErrorRateCriteria",
+        "description": "At risk with this share of mistakes in enough assessed exercises (spec 004)."
       },
       "ErrorRateReason": {
         "properties": {
@@ -10159,6 +10606,27 @@
         ],
         "title": "Health"
       },
+      "InactiveCriteria": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "days"
+        ],
+        "title": "InactiveCriteria",
+        "description": "At risk after this many days without activity (spec 004)."
+      },
       "InactiveReason": {
         "properties": {
           "criterion": {
@@ -10288,6 +10756,43 @@
           "en"
         ],
         "title": "Localized"
+      },
+      "MasteryCriteria": {
+        "properties": {
+          "window": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Window"
+          },
+          "min_items": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Min Items"
+          },
+          "progressing": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Progressing"
+          },
+          "mastered": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Mastered"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window",
+          "min_items",
+          "progressing",
+          "mastered"
+        ],
+        "title": "MasteryCriteria",
+        "description": "Latest items that count, items needed for a level, and the scores (spec 007)."
       },
       "Me": {
         "properties": {
@@ -11907,6 +12412,29 @@
         ],
         "title": "RepeatedMistake"
       },
+      "RepeatedMistakeCriteria": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Count"
+          },
+          "window_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Window Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "window_days"
+        ],
+        "title": "RepeatedMistakeCriteria",
+        "description": "The same mistake this many times in this many days (spec 005)."
+      },
       "RiskCriteriaList": {
         "properties": {
           "provisional": {
@@ -12637,6 +13165,47 @@
           "solution_policy"
         ],
         "title": "StudentTutorSettings"
+      },
+      "StudyCriteria": {
+        "properties": {
+          "criteria": {
+            "$ref": "#/components/schemas/Criteria"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional",
+            "description": "True until the educational stream agrees the defaults."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criteria",
+          "provisional",
+          "updated_at"
+        ],
+        "title": "StudyCriteria"
+      },
+      "StudyCriteriaUpdate": {
+        "properties": {
+          "criteria": {
+            "$ref": "#/components/schemas/Criteria"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criteria",
+          "provisional"
+        ],
+        "title": "StudyCriteriaUpdate"
       },
       "SubmissionCreate": {
         "properties": {
