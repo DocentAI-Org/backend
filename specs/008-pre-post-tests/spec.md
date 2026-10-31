@@ -80,7 +80,8 @@ and topic" (requirement **P3**; KPI "pre/post-test improvement, topic mastery").
 1. **Given** submissions, **When** the teacher reads the results, **Then** each active student
    shows, for each phase, the score (right / total) and the score by topic, or null if not done;
    and the course average per phase and topic.
-2. **Given** a student who did both phases, **Then** the result shows the change per topic.
+2. **Given** a student who did both phases, **Then** both phases appear with their scores by
+   topic, so the change per topic can be read.
 
 ## Requirements *(mandatory)*
 
