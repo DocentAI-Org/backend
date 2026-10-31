@@ -145,6 +145,7 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 | GET | `/courses/{course_id}/dashboard?period=7d\|30d\|all` (default `30d`) | — | `TeacherDashboard` |
 | GET | `/courses/{course_id}/students/{student_id}/risk` | — | `StudentRisk` |
 | GET | `/risk-criteria` | — | `RiskCriteriaList {provisional, items: [{code, enabled, thresholds}]}` |
+| GET | `/courses/{course_id}/students/{student_id}/progress` (specs/007) | — | `Progress`, identical to the student's |
 
 - `TeacherDashboard {period, since?, activity: {messages, exercises}, enough_data, thresholds:
   {messages, exercises}, errors_by_topic: [{topic_id?, topic_name?, topic_deleted, errors,
@@ -156,7 +157,7 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
   threshold_days, since, never_active}` | `{criterion: "error_rate", mistakes, assessed,
   window_days, min_exercises, threshold_rate}`; thresholds are those applied to the course.
 - `StudentRisk {student_id, display_name, at_risk, reasons, last_activity_at?, weekly_activity:
-  [{week_start (Monday, UTC), messages, exercises}] (8 weeks, oldest first), criteria_provisional}`;
+  [{week_start (Monday, UTC), messages, exercises, quizzes (completed, specs/007)}] (8 weeks, oldest first), criteria_provisional}`;
   a revoked student is never at risk.
 
 ### Quiz questions (T7; specs/006)
@@ -193,6 +194,7 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 | GET | `/courses/{course_id}/submissions` | — | `Page[StudentSubmission]` |
 | GET | `/courses/{course_id}/submissions/{submission_id}` | — | `StudentSubmission` |
 | GET | `/courses/{course_id}/learning-record` | — | `Page[LearningRecordEntry]` |
+| GET | `/courses/{course_id}/progress` (specs/007) | — | `Progress` |
 | GET | `/courses/{course_id}/quiz-topics` | — | `[QuizTopic {topic_id, topic_name, question_count}]` (topics with approved questions) |
 | POST | `/courses/{course_id}/quizzes` (specs/006; 409 `consent_required`, `no_questions`) | `QuizStart {topic_id?}` | 201 `Quiz` |
 | GET | `/courses/{course_id}/quizzes` | — | `Page[Quiz]` |
@@ -221,6 +223,14 @@ Shared models:
   counted; 200 if it existed, free; 409 `no_repeated_mistake`; 429; 503 `tutor_unavailable`),
   `GET` on the same path, and `GET /v1/teacher/courses/{course_id}/submissions/{submission_id}/review`
 - `TeacherSubmission` = `StudentSubmission` + `student_id, student_name, flag?`
+- `Progress {provisional, criteria {window, min_items, progressing, mastered}, updated_at?,
+  quizzes_completed, topics: [TopicProgress] (every course topic, in order), unassigned?}`;
+  `TopicProgress {topic_id?, topic_name?, level: not_started|insufficient|starting|progressing|
+  mastered, score? (0–1, latest `window` graded items: exercise 1/½/0, quiz answer 1/0), basis
+  {exercises_correct, exercises_partial, exercises_total, quiz_right, quiz_total} (the items in
+  the window), history: [{week_start, score?}] (8 weeks), top_errors: [{error_type, count,
+  latest_submission_id}] (≤ 3), last_activity_at?}` (provisional `PROGRESS_*` settings).
+  Since specs/007, correct exercises also carry their `topic_name`.
 - `Quiz {id, topic_id?, topic_name?, status: in_progress|completed, question_count,
   answered_count, level: 1|2|3, current?: {id (question), position, statement, options,
   difficulty, topic_name}, summary?: {score, total, final_level, by_topic: [{topic_id?,
