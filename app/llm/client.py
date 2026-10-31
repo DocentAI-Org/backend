@@ -1,6 +1,7 @@
 """Single entry point for chat and embedding calls (constitution V, research R1)."""
 
 import json
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Protocol
@@ -8,6 +9,42 @@ from typing import Any, Protocol
 from openai import OpenAI, OpenAIError
 
 from app.core.config import Settings, get_settings
+
+# A valid JSON escape, or a lone backslash: models write LaTeX (\sqrt, \() unescaped.
+_ESCAPE = re.compile(r'(\\(?:u[0-9a-fA-F]{4}|["\\/bfnrt]))|\\', re.S)
+# Math delimiters only; `$` is common in prices (spec 010 FR-002).
+_MATH = re.compile(r"\\\(.*?\\\)|\\\[.*?\\\]", re.S)
+# \frac, \times, \neq, \rightarrow, \beta read as JSON escapes.
+_ESCAPED_COMMAND = re.compile(r"[\b\f\n\r\t](?=[a-zA-Z])")
+_COMMAND_LETTER = {"\b": "b", "\f": "f", "\n": "n", "\r": "r", "\t": "t"}
+
+
+# Form feed and backspace never appear in real text, so outside math too.
+_ESCAPED_COMMAND_ANYWHERE = re.compile(r"[\b\f](?=[a-zA-Z])")
+
+
+def _command(match: re.Match[str]) -> str:
+    return "\\" + _COMMAND_LETTER[match.group(0)]
+
+
+def _restore_math(value: Any) -> Any:
+    if isinstance(value, str):
+        value = _MATH.sub(lambda m: _ESCAPED_COMMAND.sub(_command, m.group(0)), value)
+        return _ESCAPED_COMMAND_ANYWHERE.sub(_command, value)
+    if isinstance(value, list):
+        return [_restore_math(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _restore_math(item) for key, item in value.items()}
+    return value
+
+
+def parse_json_reply(content: str) -> dict[str, Any]:
+    """The model's JSON object, keeping its LaTeX (spec 010); {} if unusable."""
+    try:
+        data = json.loads(_ESCAPE.sub(lambda m: m.group(1) or "\\\\", content))
+    except json.JSONDecodeError:
+        return {}
+    return _restore_math(data) if isinstance(data, dict) else {}
 
 
 class LLMError(Exception):
@@ -65,13 +102,7 @@ class OpenAICompatClient:
             raise LLMError(str(exc)) from exc
         if not response.choices:
             raise LLMError("The provider returned no choices.")
-        content = response.choices[0].message.content or ""
-        try:
-            data = json.loads(content)
-        except json.JSONDecodeError:
-            data = {}
-        if not isinstance(data, dict):
-            data = {}
+        data = parse_json_reply(response.choices[0].message.content or "")
         usage = response.usage
         return ChatResult(
             data=data,
