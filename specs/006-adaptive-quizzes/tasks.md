@@ -29,3 +29,10 @@
 
 - [x] T007 Contract note in `specs/001-api-v1-contract/contracts/api.md`; validation against the
   local model (SC-002) in `validation.md`
+
+## Phase 6: Follow-up after the real-stack walkthrough (frontend 008)
+
+- [x] T008 The quiz level is the difficulty shown; `level_exhausted` changes; no change after the
+  last answer (US3 AS1, AS4)
+- [x] T009 Generation asks for a number of questions per level (FR-003)
+- [x] T010 Student quiz topics `GET …/quiz-topics` (US3 AS8, FR-007)

@@ -192,8 +192,65 @@ def test_the_nearest_level_is_used_when_one_runs_out(
 
     after = answer(client, student, room.course_id, quiz, RIGHT).json()
 
-    assert after["quiz"]["level"] == 2
     assert after["quiz"]["current"]["statement"] == "Fácil"
+    # The level is the difficulty shown, and the change says why it moved.
+    assert after["quiz"]["level"] == 1
+    assert after["difficulty_change"] == {
+        "from_level": 2,
+        "to_level": 1,
+        "reason": "level_exhausted",
+        "streak": 1,
+    }
+
+
+def test_the_level_is_the_difficulty_shown(client, llm, teacher, student) -> None:
+    easy = {"questions": [draft(f"Fácil {n}", difficulty=1) for n in range(5)]}
+    room, _, _ = quiz_room(client, llm, teacher, student, easy)
+    quiz = start(client, student, room.course_id).json()
+    assert (quiz["level"], quiz["current"]["difficulty"]) == (1, 1)
+
+    changes = []
+    for choice in (WRONG, WRONG, RIGHT, RIGHT):
+        result = answer(client, student, room.course_id, quiz, choice).json()
+        changes.append(result["difficulty_change"])
+        quiz = result["quiz"]
+
+    # Without questions at another level, nothing moves and nothing is said.
+    assert changes == [None] * 4
+    assert quiz["level"] == 1
+
+
+def test_no_change_is_reported_after_the_last_answer(
+    client, llm, teacher, student
+) -> None:
+    two = {
+        "questions": [draft("Media 1", difficulty=2), draft("Media 2", difficulty=2)]
+    }
+    room, _, _ = quiz_room(client, llm, teacher, student, two)
+    quiz = start(client, student, room.course_id).json()
+    first = answer(client, student, room.course_id, quiz, RIGHT).json()
+
+    last = answer(client, student, room.course_id, first["quiz"], RIGHT).json()
+
+    assert last["quiz"]["status"] == "completed"
+    assert last["difficulty_change"] is None
+    assert last["quiz"]["summary"]["final_level"] == 2
+
+
+def test_students_see_the_topics_with_approved_questions(
+    client, llm, teacher, student
+) -> None:
+    room, topic, _ = quiz_room(client, llm, teacher, student)
+    create_topic(client, teacher, room.course_id, "Sin preguntas")
+
+    response = client.get(
+        f"/v1/student/courses/{room.course_id}/quiz-topics", headers=student.headers
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json() == [
+        {"topic_id": topic["id"], "topic_name": "Paréntesis", "question_count": 6}
+    ]
 
 
 def test_the_last_answer_completes_the_quiz_with_a_summary(

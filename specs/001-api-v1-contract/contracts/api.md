@@ -193,6 +193,7 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 | GET | `/courses/{course_id}/submissions` | — | `Page[StudentSubmission]` |
 | GET | `/courses/{course_id}/submissions/{submission_id}` | — | `StudentSubmission` |
 | GET | `/courses/{course_id}/learning-record` | — | `Page[LearningRecordEntry]` |
+| GET | `/courses/{course_id}/quiz-topics` | — | `[QuizTopic {topic_id, topic_name, question_count}]` (topics with approved questions) |
 | POST | `/courses/{course_id}/quizzes` (specs/006; 409 `consent_required`, `no_questions`) | `QuizStart {topic_id?}` | 201 `Quiz` |
 | GET | `/courses/{course_id}/quizzes` | — | `Page[Quiz]` |
 | GET | `/courses/{course_id}/quizzes/{quiz_id}` | — | `QuizDetail` = `Quiz` + `items: [AnsweredItem]` |
@@ -225,7 +226,7 @@ Shared models:
   difficulty, topic_name}, summary?: {score, total, final_level, by_topic: [{topic_id?,
   topic_name, correct, total}]}, started_at, completed_at?}`; the correct option is never sent
   before the answer. `difficulty_change {from_level, to_level, reason: correct_streak|
-  wrong_streak, streak}` (provisional `QUIZ_START_LEVEL=2`, `QUIZ_STREAK=2`, `QUIZ_LENGTH=5`).
+  wrong_streak|level_exhausted, streak}`; `level` is the difficulty of the current question (provisional `QUIZ_START_LEVEL=2`, `QUIZ_STREAK=2`, `QUIZ_LENGTH=5`).
   Quizzes never call the model and do not count toward the allowance.
 - `LearningRecordEntry {id, submission_id, error_type, topic_id?, topic_name?, topic_deleted,
   created_at}`

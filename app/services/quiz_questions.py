@@ -163,14 +163,24 @@ def build_prompt(settings: Settings, tutor_settings: TutorSettings) -> str:
     )
 
 
+def level_plan(count: int) -> dict[int, int]:
+    """How many questions to ask for at each level, spread evenly; spare ones go to the
+    middle level first (left alone, the local model labelled every draft as basic)."""
+    base, spare = divmod(count, 3)
+    extra = {0: (), 1: (2,), 2: (1, 2)}[spare]
+    return {level: base + (level in extra) for level in (1, 2, 3)}
+
+
 def build_messages(hits: list[Hit], topic: Topic, count: int) -> list[dict[str, str]]:
     """Only course material and the topic name; no personal data."""
+    plan = level_plan(count)
     return [
         {
             "role": "user",
             "content": f"{tutor.material_block(hits)}\n\n"
             f"<tema>\n{topic.name}\n</tema>\n\n"
-            f"Prepara {count} preguntas sobre este tema.",
+            f"Prepara {count} preguntas sobre este tema: {plan[1]} de dificultad 1, "
+            f"{plan[2]} de dificultad 2 y {plan[3]} de dificultad 3.",
         }
     ]
 

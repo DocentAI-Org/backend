@@ -44,3 +44,20 @@ is loaded.
 - **No level 3 questions**: an adaptive quiz on this topic cannot go above level 2 until the
   teacher raises a question's difficulty; the quiz falls back to the nearest level, as specified.
   Worth a prompt change or asking for one level per request.
+
+## Follow-up: levels per request (T009), 2026-10-31
+
+The real-stack walkthrough of frontend 008 got five "Fácil" questions, so a quiz showed easy
+questions while "at level 2". The request now says how many questions to write at each level
+(5 → two at 1, two at 2, one at 3), and the prompt describes each level by what it asks of the
+student. Same setup, three runs:
+
+| Run | Levels | Notes |
+|---|---|---|
+| 1 | 1, 1, 2, 2, 3 | level 3 is a full equation, `2(3x - 4) + 5 = 11 → x = 7/3`, correct |
+| 2 | 1, 1, 1, 2, 3 | the level 3 question ("qué error se comete…") has a confusing answer |
+| 3 | 1, 1, 2, 2, 3 | level 2–3 questions ask to expand or find the error in an expansion |
+
+Every run now has questions at all three levels (none had level 3 before). The quiz also changed
+(T008): its level is the difficulty of the question shown, so with only easy questions it says
+"Fácil" from the start and reports no change it cannot make.

@@ -7,7 +7,14 @@ from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
 from app.core.security import StudentUser
-from app.schemas.quizzes import AnswerResult, Quiz, QuizAnswer, QuizDetail, QuizStart
+from app.schemas.quizzes import (
+    AnswerResult,
+    Quiz,
+    QuizAnswer,
+    QuizDetail,
+    QuizStart,
+    QuizTopic,
+)
 from app.services import courses, quizzes
 
 router = APIRouter(prefix="/courses/{course_id}", tags=["student: quizzes"])
@@ -30,6 +37,20 @@ def start_quiz(
 ) -> Quiz:
     enrolment = courses.get_active_enrolment(session, course_id, student)
     return quizzes.start(session, get_settings(), enrolment, payload.topic_id)
+
+
+@router.get(
+    "/quiz-topics",
+    response_model=list[QuizTopic],
+    responses=error_responses(403, 404),
+    summary="Topics a quiz can be about",
+    description="Course topics with approved questions, in course order.",
+)
+def list_quiz_topics(
+    course_id: uuid.UUID, student: StudentUser, session: DbSession
+) -> list[QuizTopic]:
+    enrolment = courses.get_active_enrolment(session, course_id, student)
+    return quizzes.quiz_topics(session, enrolment)
 
 
 @router.get("/quizzes", response_model=Page[Quiz], responses=error_responses(403, 404))
