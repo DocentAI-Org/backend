@@ -49,6 +49,18 @@ BODIES: dict[tuple[str, str], dict] = {
         "/v1/student/courses/{course_id}/conversations/{conversation_id}/messages",
     ): {"text": "hola"},
     ("post", "/v1/student/courses/{course_id}/submissions"): EXERCISE,
+    (
+        "post",
+        "/v1/teacher/courses/{course_id}/topics/{topic_id}/questions/generate",
+    ): {"count": 1},
+    ("patch", "/v1/teacher/courses/{course_id}/questions/{question_id}"): {
+        "status": "approved"
+    },
+    ("post", "/v1/student/courses/{course_id}/quizzes"): {},
+    ("post", "/v1/student/courses/{course_id}/quizzes/{quiz_id}/answers"): {
+        "question_id": str(uuid.uuid4()),
+        "choice": 0,
+    },
 }
 UPLOADS = {("post", "/v1/teacher/courses/{course_id}/documents")}
 
