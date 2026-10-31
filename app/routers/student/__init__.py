@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app.core.errors import error_responses
 from app.core.security import require_role
-from app.routers.student import chat, consent, courses, exercises, quizzes
+from app.routers.student import chat, consent, courses, exercises, progress, quizzes
 
 router = APIRouter(
     prefix="/student",
@@ -15,4 +15,5 @@ router.include_router(courses.router)
 router.include_router(chat.router)
 router.include_router(exercises.router)
 router.include_router(quizzes.router)
+router.include_router(progress.router)
 router.include_router(consent.router)

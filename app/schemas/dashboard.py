@@ -81,6 +81,7 @@ class WeekActivity(BaseModel):
     week_start: date = Field(description="Monday of the week (UTC).")
     messages: int
     exercises: int
+    quizzes: int = Field(description="Quizzes completed that week (spec 007).")
 
 
 class StudentRisk(BaseModel):

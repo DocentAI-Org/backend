@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
+from app.core.config import get_settings
 from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.security import TeacherUser
@@ -13,7 +14,8 @@ from app.schemas.dashboard import (
     StudentRisk,
     TeacherDashboard,
 )
-from app.services import courses, dashboard, risk
+from app.schemas.progress import Progress
+from app.services import courses, dashboard, progress, risk
 
 router = APIRouter(tags=["teacher: dashboard"])
 
@@ -49,6 +51,26 @@ def read_student_risk(
     course = courses.get_owned_course(session, course_id, teacher)
     enrolment = courses.get_course_enrolment(session, course, student_id)
     return dashboard.student_risk(session, course, enrolment)
+
+
+@router.get(
+    "/courses/{course_id}/students/{student_id}/progress",
+    response_model=Progress,
+    responses=error_responses(404),
+    summary="A student's progress and mastery by topic",
+    description="Exactly what the student sees in their own progress (spec 007).",
+)
+def read_student_progress(
+    course_id: uuid.UUID,
+    student_id: uuid.UUID,
+    teacher: TeacherUser,
+    session: DbSession,
+) -> Progress:
+    course = courses.get_owned_course(session, course_id, teacher)
+    enrolment = courses.get_course_enrolment(session, course, student_id)
+    return progress.student_progress(
+        session, get_settings(), course.id, enrolment.student_id
+    )
 
 
 @router.get(

@@ -4618,6 +4618,95 @@
         }
       }
     },
+    "/v1/teacher/courses/{course_id}/students/{student_id}/progress": {
+      "get": {
+        "tags": [
+          "teacher: dashboard"
+        ],
+        "summary": "A student's progress and mastery by topic",
+        "description": "Exactly what the student sees in their own progress (spec 007).",
+        "operationId": "read_student_progress_v1_teacher_courses__course_id__students__student_id__progress_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Student Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/teacher/risk-criteria": {
       "get": {
         "tags": [
@@ -7059,6 +7148,85 @@
         }
       }
     },
+    "/v1/student/courses/{course_id}/progress": {
+      "get": {
+        "tags": [
+          "student: progress"
+        ],
+        "summary": "My progress and mastery by topic",
+        "description": "Every course topic with a provisional mastery level, its score and the graded exercises and quiz answers behind it, a weekly history and the most frequent mistakes. The teacher sees exactly the same (spec 007).",
+        "operationId": "read_progress_v1_student_courses__course_id__progress_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/student/consent": {
       "get": {
         "tags": [
@@ -9341,6 +9509,130 @@
         ],
         "title": "Page[TeacherSubmission]"
       },
+      "Progress": {
+        "properties": {
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional",
+            "description": "True while the criteria are the technical team's draft (spec 007)."
+          },
+          "criteria": {
+            "$ref": "#/components/schemas/ProgressCriteria"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At",
+            "description": "Latest graded activity."
+          },
+          "quizzes_completed": {
+            "type": "integer",
+            "title": "Quizzes Completed"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/TopicProgress"
+            },
+            "type": "array",
+            "title": "Topics",
+            "description": "Every course topic, in order."
+          },
+          "unassigned": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TopicProgress"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Graded work without a topic; null if there is none."
+          }
+        },
+        "type": "object",
+        "required": [
+          "provisional",
+          "criteria",
+          "updated_at",
+          "quizzes_completed",
+          "topics",
+          "unassigned"
+        ],
+        "title": "Progress"
+      },
+      "ProgressBasis": {
+        "properties": {
+          "exercises_correct": {
+            "type": "integer",
+            "title": "Exercises Correct"
+          },
+          "exercises_partial": {
+            "type": "integer",
+            "title": "Exercises Partial"
+          },
+          "exercises_total": {
+            "type": "integer",
+            "title": "Exercises Total"
+          },
+          "quiz_right": {
+            "type": "integer",
+            "title": "Quiz Right"
+          },
+          "quiz_total": {
+            "type": "integer",
+            "title": "Quiz Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exercises_correct",
+          "exercises_partial",
+          "exercises_total",
+          "quiz_right",
+          "quiz_total"
+        ],
+        "title": "ProgressBasis",
+        "description": "The items behind the score: those in the window."
+      },
+      "ProgressCriteria": {
+        "properties": {
+          "window": {
+            "type": "integer",
+            "title": "Window",
+            "description": "Latest graded items that count, per topic."
+          },
+          "min_items": {
+            "type": "integer",
+            "title": "Min Items",
+            "description": "Items needed for a score."
+          },
+          "progressing": {
+            "type": "number",
+            "title": "Progressing",
+            "description": "Score from which the level is `progressing`."
+          },
+          "mastered": {
+            "type": "number",
+            "title": "Mastered",
+            "description": "Score from which the level is `mastered`."
+          }
+        },
+        "type": "object",
+        "required": [
+          "window",
+          "min_items",
+          "progressing",
+          "mastered"
+        ],
+        "title": "ProgressCriteria"
+      },
       "PseudonymousAccount": {
         "properties": {
           "user_id": {
@@ -11327,6 +11619,30 @@
         ],
         "title": "TopicCreate"
       },
+      "TopicError": {
+        "properties": {
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "latest_submission_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Latest Submission Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_type",
+          "count",
+          "latest_submission_id"
+        ],
+        "title": "TopicError"
+      },
       "TopicErrors": {
         "properties": {
           "topic_id": {
@@ -11398,6 +11714,100 @@
           "topic_ids"
         ],
         "title": "TopicOrder"
+      },
+      "TopicProgress": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id",
+            "description": "Null for graded work without a topic."
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "insufficient",
+              "starting",
+              "progressing",
+              "mastered"
+            ],
+            "title": "Level"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "Share right, 0-1; null below `min_items`."
+          },
+          "basis": {
+            "$ref": "#/components/schemas/ProgressBasis"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/WeekScore"
+            },
+            "type": "array",
+            "title": "History",
+            "description": "The last 8 weeks, oldest first."
+          },
+          "top_errors": {
+            "items": {
+              "$ref": "#/components/schemas/TopicError"
+            },
+            "type": "array",
+            "title": "Top Errors",
+            "description": "Up to three most frequent error types (exercises only)."
+          },
+          "last_activity_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Activity At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "level",
+          "score",
+          "basis",
+          "history",
+          "top_errors",
+          "last_activity_at"
+        ],
+        "title": "TopicProgress"
       },
       "TopicRef": {
         "properties": {
@@ -11654,15 +12064,49 @@
           "exercises": {
             "type": "integer",
             "title": "Exercises"
+          },
+          "quizzes": {
+            "type": "integer",
+            "title": "Quizzes",
+            "description": "Quizzes completed that week (spec 007)."
           }
         },
         "type": "object",
         "required": [
           "week_start",
           "messages",
-          "exercises"
+          "exercises",
+          "quizzes"
         ],
         "title": "WeekActivity"
+      },
+      "WeekScore": {
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start",
+            "description": "Monday of the week (UTC)."
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "Null with too few items by then."
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_start",
+          "score"
+        ],
+        "title": "WeekScore"
       }
     },
     "securitySchemes": {
