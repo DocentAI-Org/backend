@@ -22,7 +22,7 @@ from app.models import (
     TutorSettings,
 )
 from app.schemas import chat as schemas
-from app.services import allowance, consent, interactions
+from app.services import adaptation, allowance, consent, interactions
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,9 @@ def message_view(message: Message) -> schemas.StudentMessage:
         citations=[citation_view(c) for c in message.citations],
         correction=schemas.Correction(text=flag.correction, reviewed_at=flag.updated_at)
         if flag
+        else None,
+        adaptation=schemas.Adaptation(**message.adaptation)
+        if message.adaptation
         else None,
     )
 
@@ -368,8 +371,11 @@ def _ask_model(
     history: list[Message],
     hits: list[Hit],
     text: str,
+    note: str | None = None,
 ) -> _ModelReply:
     system = build_system_prompt(settings, tutor_settings, request_solution)
+    if note:
+        system = f"{system}\n\n{note}"
     messages = build_messages(history, hits, text)
     result = llm.chat_json(system, messages)
     outcome = _ModelReply(
@@ -419,6 +425,9 @@ def _reply(
     hits = _retrieve_for(
         session, llm, settings, enrolment.course_id, history, student_message.text
     )
+    focus = adaptation.focus(
+        session, settings, enrolment.course_id, enrolment.student_id
+    )
     answered = (
         _ask_model(
             llm,
@@ -428,6 +437,7 @@ def _reply(
             history,
             hits,
             student_message.text,
+            adaptation.prompt_note(session, settings, focus),
         )
         if hits
         else _ModelReply(GroundedReply("no_source", ""))
@@ -441,6 +451,9 @@ def _reply(
         kind=reply.kind,
         text=reply.text or no_source_text(settings),
         hint_number=_next_hint_number(history) if reply.kind == "hint" else None,
+        adaptation=focus.model_dump()
+        if focus and reply.kind in ("answer", "hint")
+        else None,
     )
     session.add(tutor_message)
     session.flush()
