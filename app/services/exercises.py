@@ -7,11 +7,12 @@ import re
 import time
 import uuid
 from dataclasses import dataclass
+from datetime import timedelta
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
-from app.core.config import Settings
+from app.core.config import Settings, get_settings
 from app.core.errors import ApiError, not_found
 from app.llm.client import ChatResult, LLMClient, LLMError
 from app.llm.prompts import load_labels, load_prompt
@@ -40,6 +41,7 @@ _REF_CLEANUP = [
     (re.compile(rf"\s*\(\s*{_REFS}\s*\)"), ""),
     (re.compile(rf"\b(?:el\s+)?(?:fragmento\s+)?{_REFS}\b"), "el material"),
 ]
+_CONTRACTIONS = re.compile(r"\b([Dd]e|[Aa]) el (?=material\b)")
 LOCATION_CHARS = 300
 
 
@@ -93,6 +95,8 @@ def validate_feedback(
 def without_fragment_refs(text: str) -> str:
     for pattern, replacement in _REF_CLEANUP:
         text = pattern.sub(replacement, text)
+    # "de F1" became "de el material": contract it as Spanish does.
+    text = _CONTRACTIONS.sub(lambda m: f"{m.group(1)}l ", text)
     return text.strip()
 
 
@@ -138,8 +142,47 @@ def build_feedback_messages(
     ]
 
 
+def repeated_mistake(
+    session: Session, settings: Settings, submission: ExerciseSubmission
+) -> schemas.RepeatedMistake | None:
+    """The pattern this submission's mistake repeats, counted up to it (spec 005)."""
+    entry = session.scalar(
+        select(LearningRecordEntry).where(
+            LearningRecordEntry.submission_id == submission.id
+        )
+    )
+    if entry is None:
+        return None
+    window = timedelta(days=settings.repeated_mistake_days)
+    same_topic = (
+        LearningRecordEntry.topic_id == entry.topic_id
+        if entry.topic_id is not None
+        else LearningRecordEntry.topic_id.is_(None)
+        & LearningRecordEntry.topic_name.is_not_distinct_from(entry.topic_name)
+    )
+    count = session.scalar(
+        select(func.count()).where(
+            LearningRecordEntry.course_id == entry.course_id,
+            LearningRecordEntry.student_id == entry.student_id,
+            LearningRecordEntry.error_type == entry.error_type,
+            same_topic,
+            LearningRecordEntry.created_at <= entry.created_at,
+            LearningRecordEntry.created_at > entry.created_at - window,
+        )
+    )
+    if not count or count < settings.repeated_mistake_count:
+        return None
+    return schemas.RepeatedMistake(
+        count=count,
+        window_days=settings.repeated_mistake_days,
+        error_type=entry.error_type,
+        topic_name=entry.topic_name,
+    )
+
+
 def submission_view(submission: ExerciseSubmission) -> schemas.StudentSubmission:
     flag = submission.flag
+    session = object_session(submission)
     return schemas.StudentSubmission(
         id=submission.id,
         problem_statement=submission.problem_statement,
@@ -155,6 +198,9 @@ def submission_view(submission: ExerciseSubmission) -> schemas.StudentSubmission
         is_stub=submission.is_stub,
         correction=Correction(text=flag.correction, reviewed_at=flag.updated_at)
         if flag
+        else None,
+        repeated_mistake=repeated_mistake(session, get_settings(), submission)
+        if session is not None and submission.saved_to_record
         else None,
         created_at=submission.created_at,
     )

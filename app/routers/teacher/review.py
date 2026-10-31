@@ -8,7 +8,7 @@ from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
 from app.core.security import TeacherUser
-from app.schemas.exercises import LearningRecordEntry
+from app.schemas.exercises import LearningRecordEntry, MistakeReview
 from app.schemas.review import (
     ConversationSummary,
     CourseFlag,
@@ -17,7 +17,7 @@ from app.schemas.review import (
     TeacherFlag,
     TeacherSubmission,
 )
-from app.services import courses, exercises, review
+from app.services import courses, exercises, review, reviews
 
 router = APIRouter(prefix="/courses/{course_id}", tags=["teacher: review"])
 
@@ -119,6 +119,23 @@ def read_submission(
     course = courses.get_owned_course(session, course_id, teacher)
     submission = review.get_course_submission(session, course, submission_id)
     return review.submission_view(submission)
+
+
+@router.get(
+    "/submissions/{submission_id}/review",
+    response_model=MistakeReview,
+    responses=error_responses(404),
+    summary="The review the student got for a repeated mistake",
+)
+def read_review(
+    course_id: uuid.UUID,
+    submission_id: uuid.UUID,
+    teacher: TeacherUser,
+    session: DbSession,
+) -> MistakeReview:
+    course = courses.get_owned_course(session, course_id, teacher)
+    submission = review.get_course_submission(session, course, submission_id)
+    return reviews.read_review(session, submission.id)
 
 
 @router.put(

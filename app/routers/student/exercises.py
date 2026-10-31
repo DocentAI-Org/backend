@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from app.core.config import get_settings
 from app.core.db import DbSession
@@ -11,10 +11,11 @@ from app.core.security import StudentUser
 from app.llm.client import LLMClient, get_llm
 from app.schemas.exercises import (
     LearningRecordEntry,
+    MistakeReview,
     StudentSubmission,
     SubmissionCreate,
 )
-from app.services import courses, exercises
+from app.services import courses, exercises, reviews
 
 router = APIRouter(prefix="/courses/{course_id}", tags=["student: exercises"])
 
@@ -86,6 +87,53 @@ def read_submission(
     enrolment = courses.get_active_enrolment(session, course_id, student)
     submission = exercises.get_submission(session, enrolment, submission_id)
     return exercises.submission_view(submission)
+
+
+@router.post(
+    "/submissions/{submission_id}/review",
+    status_code=201,
+    response_model=MistakeReview,
+    responses=error_responses(403, 404, 409, 429, 503),
+    summary="A targeted review of a repeated mistake",
+    description=(
+        "Only for a submission with `repeated_mistake`, else 409 "
+        "`no_repeated_mistake`. What is going wrong, a worked example and practice "
+        "statements, grounded in the material. Created once (201) and counted toward "
+        "the daily allowance; asking again returns the same review (200) for free."
+    ),
+)
+def request_review(
+    course_id: uuid.UUID,
+    submission_id: uuid.UUID,
+    student: StudentUser,
+    session: DbSession,
+    llm: Annotated[LLMClient, Depends(get_llm)],
+    response: Response,
+) -> MistakeReview:
+    enrolment = courses.get_active_enrolment(session, course_id, student)
+    submission = exercises.get_submission(session, enrolment, submission_id)
+    review, created = reviews.request_review(
+        session, llm, get_settings(), enrolment, submission
+    )
+    if not created:
+        response.status_code = 200
+    return review
+
+
+@router.get(
+    "/submissions/{submission_id}/review",
+    response_model=MistakeReview,
+    responses=error_responses(403, 404),
+)
+def read_review(
+    course_id: uuid.UUID,
+    submission_id: uuid.UUID,
+    student: StudentUser,
+    session: DbSession,
+) -> MistakeReview:
+    enrolment = courses.get_active_enrolment(session, course_id, student)
+    submission = exercises.get_submission(session, enrolment, submission_id)
+    return reviews.read_review(session, submission.id)
 
 
 @router.get(

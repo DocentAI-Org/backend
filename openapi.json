@@ -3773,6 +3773,94 @@
         }
       }
     },
+    "/v1/teacher/courses/{course_id}/submissions/{submission_id}/review": {
+      "get": {
+        "tags": [
+          "teacher: review"
+        ],
+        "summary": "The review the student got for a repeated mistake",
+        "operationId": "read_review_v1_teacher_courses__course_id__submissions__submission_id__review_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "submission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Submission Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MistakeReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/teacher/courses/{course_id}/messages/{message_id}/flag": {
       "put": {
         "tags": [
@@ -5840,6 +5928,211 @@
         }
       }
     },
+    "/v1/student/courses/{course_id}/submissions/{submission_id}/review": {
+      "post": {
+        "tags": [
+          "student: exercises"
+        ],
+        "summary": "A targeted review of a repeated mistake",
+        "description": "Only for a submission with `repeated_mistake`, else 409 `no_repeated_mistake`. What is going wrong, a worked example and practice statements, grounded in the material. Created once (201) and counted toward the daily allowance; asking again returns the same review (200) for free.",
+        "operationId": "request_review_v1_student_courses__course_id__submissions__submission_id__review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "submission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Submission Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MistakeReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "student: exercises"
+        ],
+        "summary": "Read Review",
+        "operationId": "read_review_v1_student_courses__course_id__submissions__submission_id__review_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "submission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Submission Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MistakeReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/student/courses/{course_id}/learning-record": {
       "get": {
         "tags": [
@@ -7481,6 +7774,92 @@
         ],
         "title": "MessageCreate"
       },
+      "MistakeReview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "submission_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Submission Id"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "answer",
+              "no_source"
+            ],
+            "title": "Kind"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "worked_example": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worked Example"
+          },
+          "practice": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Practice",
+            "description": "Practice statements, without solutions."
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "submission_id",
+          "error_type",
+          "topic_name",
+          "kind",
+          "explanation",
+          "worked_example",
+          "practice",
+          "citations",
+          "created_at"
+        ],
+        "title": "MistakeReview"
+      },
       "Page_AdminCourse_": {
         "properties": {
           "items": {
@@ -7970,6 +8349,42 @@
         ],
         "title": "PseudonymousBatchCreate"
       },
+      "RepeatedMistake": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Mistakes of this type and topic in the window, up to this one."
+          },
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "window_days",
+          "error_type",
+          "topic_name"
+        ],
+        "title": "RepeatedMistake"
+      },
       "RiskCriteriaList": {
         "properties": {
           "provisional": {
@@ -8435,6 +8850,17 @@
               }
             ]
           },
+          "repeated_mistake": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepeatedMistake"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when this mistake repeats a pattern (specs/005, provisional)."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -8456,6 +8882,7 @@
           "saved_to_record",
           "is_stub",
           "correction",
+          "repeated_mistake",
           "created_at"
         ],
         "title": "StudentSubmission"
@@ -9003,6 +9430,17 @@
               }
             ]
           },
+          "repeated_mistake": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepeatedMistake"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when this mistake repeats a pattern (specs/005, provisional)."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -9043,6 +9481,7 @@
           "saved_to_record",
           "is_stub",
           "correction",
+          "repeated_mistake",
           "created_at",
           "student_id",
           "student_name",
