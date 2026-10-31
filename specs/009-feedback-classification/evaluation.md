@@ -107,3 +107,22 @@ All runs of a case agree in both models (shown once).
    type; re-measure.
 2. Wrong `correct` verdicts: make the analysis check the final result by substitution explicitly.
 3. Grow the case set (only 12 cases; one case is 3 of 27 mistakes, about 11 points).
+
+## End-to-end review (2026-10-31)
+
+`qwen2.5:3b`, on top of the adaptation fix (backend PR #20; before it, adapted exercises came
+back `not_assessed`). The runner uses one student for every case, so after three mistakes of a
+type the adaptation note of spec 013 is in the prompt for the rest of the run.
+
+| Variant | Verdict | Type | Topic | Consistent |
+|---|---|---|---|---|
+| Adaptation fix only | 31/36 (86 %) | 13/27 (48 %) | 21/27 (78 %) | 9/12 (75 %) |
+| + analysis and explanation in "tú" | 23/36 (64 %) | 14/27 (52 %) | 21/27 (78 %) | 11/12 (92 %) |
+| + explanation in "tú" only (kept) | 30/36 (83 %) | 16/27 (59 %) | 23/27 (85 %) | 10/12 (83 %) |
+
+Asking the hidden analysis in the second person made the model grade correct answers as
+mistakes; only the explanation rule is kept. `qwen2.5:3b` still often writes "el estudiante";
+a stronger model is expected to follow the rule.
+
+Follow-up: give each case its own student, so the evaluation measures classification without
+the adaptation note (or measure both on purpose).

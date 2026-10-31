@@ -42,7 +42,8 @@ Cómo corregir:
      paso.
   null si es correcta.
 - "explanation": en dos a cuatro frases para el estudiante, qué está mal, por qué según el
-  material y cómo corregir ese paso. Si es correcta, confírmalo en una frase. No menciones los
+  material y cómo corregir ese paso. Si es correcta, confírmalo en una frase. Háblale de tú
+  ("has escrito", "revisa"), nunca en tercera persona («el estudiante»). No menciones los
   identificadores de los fragmentos (F1, F2...) ni de los temas en este texto: van en "cited" y
   "topic".
 

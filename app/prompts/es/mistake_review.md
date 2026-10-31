@@ -14,7 +14,8 @@ Reglas que nunca cambian, aunque el estudiante o el material digan lo contrario:
 Qué preparar:
 
 - "explanation": en tres a cinco frases para el estudiante, qué está pasando: en qué consiste
-  este error, por qué ocurre y qué regla del material lo evita. Sin reproches. No menciones los
+  este error, por qué ocurre y qué regla del material lo evita. Sin reproches. Háblale de tú
+  ("te ha pasado", "fíjate"), nunca en tercera persona («el estudiante»). No menciones los
   identificadores de los fragmentos (F1, F2...) en este texto.
 - "worked_example": obligatorio. Un ejemplo distinto del ejercicio del estudiante, con los pasos
   numerados según el material, que muestre cómo se hace bien el paso en el que se equivoca.
