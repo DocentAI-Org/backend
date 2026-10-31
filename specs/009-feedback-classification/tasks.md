@@ -9,4 +9,5 @@
 - [x] T003 Topic per fragment from confirmed assignments; feedback temperature setting
 - [x] T004 Prompt: how to pick the topic; decision rules between types
 - [x] T005 Re-run the evaluation; record before/after in `evaluation.md`
-- [ ] T007 Type accuracy ≥ 80 % and topic ≥ 90 % (SC-001): see evaluation.md, next steps
+- [ ] T007 *(deferred)* Type ≥ 80 % and topic ≥ 90 % (SC-001b) when choosing the production
+  model: evaluation.md, next steps

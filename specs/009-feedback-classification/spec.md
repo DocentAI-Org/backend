@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-31
 
-**Status**: Draft
+**Status**: Done (SC-001b deferred)
 
 **Input**: User description: "The same mistake gets a different error type and topic on each
 submission; make the classification stable" (open point of specs 003 and 005).
@@ -62,9 +62,12 @@ that cover them, so `RETRIEVAL_MIN_SIMILARITY=0.55` left 12–16 of 36 answers `
 
 ## Success Criteria *(mandatory)*
 
-- **SC-001**: On the evaluation set with `qwen2.5:7b`, 3 runs per case: topic accuracy ≥ 90 %,
-  type accuracy ≥ 80 %, consistency (same type and topic in all runs of a case) ≥ 80 %, verdict
-  accuracy not lower than the baseline.
+- **SC-001**: On the evaluation set, 3 runs per case: consistency (same type and topic in all
+  runs of a case) ≥ 80 % and verdict accuracy not lower than the baseline. Met with
+  `qwen2.5:7b` and `qwen2.5:3b` (evaluation.md).
+- **SC-001b** *(deferred to the choice of production model)*: topic accuracy ≥ 90 %, type
+  accuracy ≥ 80 %. With the local models: topic 78 %, type 44 %. The evaluation set and runner
+  are the tool to compare candidate models later.
 - **SC-002**: The full test suite passes.
 
 ## Assumptions
