@@ -97,6 +97,25 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
 
+# Written out, not taken from `http.HTTPStatus`: Python 3.13 renamed some reason phrases
+# ("Unprocessable Content"), which made openapi.json depend on the machine exporting it.
+_DESCRIPTIONS = {
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+    409: "Conflict",
+    413: "Request Entity Too Large",
+    415: "Unsupported Media Type",
+    422: "Unprocessable Entity",
+    429: "Too Many Requests",
+    503: "Service Unavailable",
+}
+
+
 # Shared OpenAPI declarations of error responses.
 def error_responses(*status_codes: int) -> dict[int | str, dict[str, Any]]:
-    return {code: {"model": ErrorResponse} for code in status_codes}
+    return {
+        code: {"model": ErrorResponse, "description": _DESCRIPTIONS[code]}
+        for code in status_codes
+    }
