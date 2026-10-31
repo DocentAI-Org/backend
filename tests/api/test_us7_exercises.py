@@ -336,3 +336,47 @@ def test_exercises_use_their_own_retrieval_threshold(
 
     assert assessed["verdict"] == "incorrect"
     assert uncovered["verdict"] == "not_assessed"
+
+
+def test_each_fragment_tells_the_model_its_confirmed_topic(
+    client, llm, teacher, student
+) -> None:
+    # The topic of the mistake is the one of the material it breaks (spec 009 FR-002).
+    room = classroom(client, teacher, student)
+    create_topic(client, teacher, room.course_id, "Despejar la incógnita")
+    parens = create_topic(client, teacher, room.course_id, "Paréntesis").json()
+    fragments = client.get(
+        f"/v1/teacher/courses/{room.course_id}/documents/"
+        f"{room.document['id']}/fragments",
+        headers=teacher.headers,
+    ).json()["items"]
+    section = next(f["section"] for f in fragments if "paréntesis" in f["section"])
+    client.post(
+        f"/v1/teacher/courses/{room.course_id}/topic-assignments",
+        headers=teacher.headers,
+        json={
+            "topic_id": parens["id"],
+            "document_id": room.document["id"],
+            "section": section,
+        },
+    )
+    llm.reply = MISTAKE
+
+    submit(client, student, room.course_id)
+
+    _, messages = llm.chat_calls[-1]
+    fragments_sent = messages[0]["content"].split("<fragmento ")[1:]
+    with_topic = [f for f in fragments_sent if 'tema="T2"' in f]
+    assert len(with_topic) == 1 and "Quitar paréntesis" in with_topic[0]
+    assert all("tema=" not in f for f in fragments_sent if f not in with_topic)
+
+
+def test_feedback_is_asked_with_the_feedback_temperature(
+    client, llm, teacher, student
+) -> None:
+    room = classroom(client, teacher, student)
+    llm.reply = MISTAKE
+
+    submit(client, student, room.course_id)
+
+    assert llm.temperatures[-1] == 0.0

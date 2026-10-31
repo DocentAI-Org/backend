@@ -158,13 +158,16 @@ def build_messages(
     return turns
 
 
-def material_block(hits: list[Hit]) -> str:
-    """The retrieved fragments, numbered F1, F2... so the model can cite them."""
+def material_block(hits: list[Hit], topic_refs: list[str | None] | None = None) -> str:
+    """The retrieved fragments, numbered F1, F2... so the model can cite them, with
+    the topic of each one when given (spec 009)."""
+    refs = topic_refs or [None] * len(hits)
     material = "\n\n".join(
         f'<fragmento id="F{i}" '
-        f'fuente="{hit.document_name}, {hit.fragment.location_label}">'
-        f"\n{hit.fragment.text}\n</fragmento>"
-        for i, hit in enumerate(hits, start=1)
+        f'fuente="{hit.document_name}, {hit.fragment.location_label}"'
+        + (f' tema="{ref}"' if ref else "")
+        + f">\n{hit.fragment.text}\n</fragmento>"
+        for i, (hit, ref) in enumerate(zip(hits, refs, strict=True), start=1)
     )
     return f"<material>\n{material}\n</material>"
 

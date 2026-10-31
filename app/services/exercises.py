@@ -23,6 +23,7 @@ from app.models import (
     ExerciseSubmission,
     LearningRecordEntry,
     Topic,
+    TopicAssignment,
     TutorSettings,
 )
 from app.schemas import exercises as schemas
@@ -115,12 +116,41 @@ def build_feedback_prompt(settings: Settings, tutor_settings: TutorSettings) -> 
     )
 
 
+def fragment_topic_refs(
+    session: Session, hits: list[Hit], topics: list[Topic]
+) -> list[str | None]:
+    """The topic (T1, T2...) of each fragment from confirmed assignments; a section
+    assignment wins over one for the whole document (spec 009 FR-002)."""
+    refs = {topic.id: f"T{i}" for i, topic in enumerate(topics, start=1)}
+    assignments = session.execute(
+        select(
+            TopicAssignment.topic_id,
+            TopicAssignment.document_id,
+            TopicAssignment.section,
+        ).where(
+            TopicAssignment.document_id.in_({h.fragment.document_id for h in hits}),
+            TopicAssignment.status == "confirmed",
+        )
+    ).all()
+    by_section = {(doc, section): t for t, doc, section in assignments if section}
+    by_document = {doc: t for t, doc, section in assignments if section is None}
+    result = []
+    for hit in hits:
+        fragment = hit.fragment
+        topic_id = by_section.get(
+            (fragment.document_id, fragment.section)
+        ) or by_document.get(fragment.document_id)
+        result.append(refs.get(topic_id) if topic_id else None)
+    return result
+
+
 def build_feedback_messages(
     hits: list[Hit],
     topics: list[Topic],
     error_types: list[ErrorType],
     problem_statement: str,
     worked_answer: str,
+    topic_refs: list[str | None] | None = None,
 ) -> list[dict[str, str]]:
     """Only course material, topic names, the taxonomy and the exercise (FR-007)."""
     topic_list = "\n".join(
@@ -134,7 +164,7 @@ def build_feedback_messages(
     return [
         {
             "role": "user",
-            "content": f"{tutor.material_block(hits)}\n\n"
+            "content": f"{tutor.material_block(hits, topic_refs)}\n\n"
             f"<temas>\n{topic_list}\n</temas>\n\n"
             f"<tipos_de_error>\n{type_list}\n</tipos_de_error>\n\n"
             f"<enunciado>\n{problem_statement}\n</enunciado>\n\n"
@@ -306,8 +336,14 @@ def _assess(
         result = llm.chat_json(
             build_feedback_prompt(settings, tutor_settings),
             build_feedback_messages(
-                hits, topics, error_types, problem_statement, worked_answer
+                hits,
+                topics,
+                error_types,
+                problem_statement,
+                worked_answer,
+                fragment_topic_refs(session, hits, topics),
             ),
+            temperature=settings.llm_feedback_temperature,
         )
         feedback = validate_feedback(
             result.data, len(hits), len(topics), {t.code for t in error_types}

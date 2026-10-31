@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 60.0
     llm_price_input_per_mtok: float = 0.0
     llm_price_output_per_mtok: float = 0.0
+    # Exercise feedback must classify the same mistake the same way (spec 009).
+    llm_feedback_temperature: float = 0.0
 
     # Retrieval and context (research R5)
     retrieval_top_k: int = 4

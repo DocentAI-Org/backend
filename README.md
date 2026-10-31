@@ -74,5 +74,5 @@ LLM_PRICE_OUTPUT_PER_MTOK=0.3
 ```
 
 Embeddings must stay 1024-dimensional (`EMBEDDING_DIMENSIONS`); a different size needs a
-migration and re-processing the material. Re-tune `RETRIEVAL_MIN_SIMILARITY` for a new embedding
-model.
+migration and re-processing the material. Re-tune `RETRIEVAL_MIN_SIMILARITY` and
+`RETRIEVAL_MIN_SIMILARITY_EXERCISES` for a new embedding model.
