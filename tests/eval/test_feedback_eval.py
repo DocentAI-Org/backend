@@ -15,7 +15,7 @@ import pytest
 
 from app.core.config import get_settings
 from app.llm.client import get_llm
-from tests.api.helpers import classroom
+from tests.api.helpers import classroom, give_consent
 from tests.api.test_us6_topics import create_topic
 
 CASES = json.loads((Path(__file__).parent / "feedback_cases.json").read_text())
@@ -103,16 +103,35 @@ def report(graded: list[dict], model: str) -> str:
     return "\n".join(lines)
 
 
-def test_feedback_classification(client, llm, teacher, student) -> None:
+def fresh_student(client, make_user, room):
+    """A student of their own for each case: with RUNS < 4 they never reach the repeated
+    mistakes that switch on the adaptation note (spec 013), so only classification is
+    measured."""
+    student = make_user("student")
+    client.post(
+        "/v1/student/enrolments",
+        headers=student.headers,
+        json={"class_code": room.course["class_code"]},
+    )
+    give_consent(client, student)
+    client.post(
+        f"/v1/student/courses/{room.course_id}/disclosure", headers=student.headers
+    )
+    return student
+
+
+def test_feedback_classification(client, llm, make_user, teacher, student) -> None:
+    assert RUNS <= get_settings().repeated_mistake_count, "EVAL_RUNS would trigger S8"
     room = classroom(client, teacher, student)
     assign_sections(client, teacher, room.course_id, room.document["id"])
     graded = []
     for case in CASES["cases"]:
+        case_student = fresh_student(client, make_user, room)
         results = []
         for _ in range(RUNS):
             response = client.post(
                 f"/v1/student/courses/{room.course_id}/submissions",
-                headers=student.headers,
+                headers=case_student.headers,
                 json={
                     "problem_statement": case["statement"],
                     "worked_answer": case["answer"],
