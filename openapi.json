@@ -120,7 +120,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Entity",
+            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
@@ -364,7 +364,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Entity",
+            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
@@ -440,7 +440,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Entity",
+            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
@@ -690,7 +690,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       },
@@ -933,7 +933,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -1099,7 +1099,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -1369,7 +1369,7 @@
                 }
               }
             },
-            "description": "Request Entity Too Large"
+            "description": "Content Too Large"
           },
           "415": {
             "content": {
@@ -2080,7 +2080,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -2342,7 +2342,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -2520,7 +2520,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -2612,7 +2612,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -2720,7 +2720,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       },
@@ -2997,7 +2997,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -3095,7 +3095,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       },
@@ -3964,7 +3964,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       },
@@ -4141,7 +4141,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       },
@@ -4525,7 +4525,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -4664,6 +4664,353 @@
         ]
       }
     },
+    "/v1/teacher/courses/{course_id}/topics/{topic_id}/questions/generate": {
+      "post": {
+        "tags": [
+          "teacher: quiz questions"
+        ],
+        "summary": "Draft quiz questions for a topic with the AI",
+        "description": "Multiple-choice drafts from the topic's confirmed material (or, without any, the material closest to its name), each citing its source. They are stored as `pending`: students only see approved questions. Unusable drafts are dropped; `kind: no_source` when none is usable. Logged with its cost; not charged to any student.",
+        "operationId": "generate_questions_v1_teacher_courses__course_id__topics__topic_id__questions_generate_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "topic_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Topic Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateQuestions"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneratedQuestions"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/questions": {
+      "get": {
+        "tags": [
+          "teacher: quiz questions"
+        ],
+        "summary": "List Questions",
+        "operationId": "list_questions_v1_teacher_courses__course_id__questions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "approved",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "topic_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Topic Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/questions/{question_id}": {
+      "patch": {
+        "tags": [
+          "teacher: quiz questions"
+        ],
+        "summary": "Edit, approve or reject a question",
+        "description": "Any of the content fields and/or `status`. Changing the content of an AI draft marks it `edited`. Quizzes already started keep the version the student saw.",
+        "operationId": "update_question_v1_teacher_courses__course_id__questions__question_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "question_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Question Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherQuestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
     "/v1/student/enrolments": {
       "post": {
         "tags": [
@@ -4723,7 +5070,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Entity",
+            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
@@ -5469,7 +5816,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "429": {
             "content": {
@@ -5716,7 +6063,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "429": {
             "content": {
@@ -6234,6 +6581,401 @@
         }
       }
     },
+    "/v1/student/courses/{course_id}/quizzes": {
+      "post": {
+        "tags": [
+          "student: quizzes"
+        ],
+        "summary": "Start an adaptive quiz",
+        "description": "Over the teacher's approved questions, for one topic or all. 409 `no_questions` when there are none. Answering never calls the model and does not count toward the daily allowance.",
+        "operationId": "start_quiz_v1_student_courses__course_id__quizzes_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quiz"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "student: quizzes"
+        ],
+        "summary": "List Quizzes",
+        "operationId": "list_quizzes_v1_student_courses__course_id__quizzes_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Quiz_"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/student/courses/{course_id}/quizzes/{quiz_id}": {
+      "get": {
+        "tags": [
+          "student: quizzes"
+        ],
+        "summary": "Read Quiz",
+        "operationId": "read_quiz_v1_student_courses__course_id__quizzes__quiz_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "quiz_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Quiz Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/student/courses/{course_id}/quizzes/{quiz_id}/answers": {
+      "post": {
+        "tags": [
+          "student: quizzes"
+        ],
+        "summary": "Answer the current question",
+        "description": "Immediate feedback: whether it was right, the correct option, the explanation and its sources, and the next question. `difficulty_change` says when and why the level moved. 409 `not_current_question` or `quiz_completed`.",
+        "operationId": "answer_question_v1_student_courses__course_id__quizzes__quiz_id__answers_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "quiz_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Quiz Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizAnswer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
     "/v1/student/consent": {
       "get": {
         "tags": [
@@ -6565,6 +7307,123 @@
           "resets_at"
         ],
         "title": "Allowance"
+      },
+      "AnswerResult": {
+        "properties": {
+          "correct": {
+            "type": "boolean",
+            "title": "Correct"
+          },
+          "correct_option": {
+            "type": "integer",
+            "title": "Correct Option"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "difficulty_change": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DifficultyChange"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when this answer moved the level (provisional rule, spec 006)."
+          },
+          "quiz": {
+            "$ref": "#/components/schemas/Quiz"
+          }
+        },
+        "type": "object",
+        "required": [
+          "correct",
+          "correct_option",
+          "explanation",
+          "citations",
+          "difficulty_change",
+          "quiz"
+        ],
+        "title": "AnswerResult"
+      },
+      "AnsweredItem": {
+        "properties": {
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "choice": {
+            "type": "integer",
+            "title": "Choice"
+          },
+          "correct": {
+            "type": "boolean",
+            "title": "Correct"
+          },
+          "correct_option": {
+            "type": "integer",
+            "title": "Correct Option"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "answered_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Answered At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "position",
+          "statement",
+          "options",
+          "difficulty",
+          "topic_name",
+          "choice",
+          "correct",
+          "correct_option",
+          "explanation",
+          "citations",
+          "answered_at"
+        ],
+        "title": "AnsweredItem"
       },
       "AtRiskStudent": {
         "properties": {
@@ -7101,6 +7960,39 @@
         ],
         "title": "CreatedAccount"
       },
+      "DifficultyChange": {
+        "properties": {
+          "from_level": {
+            "type": "integer",
+            "title": "From Level"
+          },
+          "to_level": {
+            "type": "integer",
+            "title": "To Level"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "correct_streak",
+              "wrong_streak"
+            ],
+            "title": "Reason"
+          },
+          "streak": {
+            "type": "integer",
+            "title": "Streak",
+            "description": "Right or wrong answers in a row that caused it."
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_level",
+          "to_level",
+          "reason",
+          "streak"
+        ],
+        "title": "DifficultyChange"
+      },
       "Document": {
         "properties": {
           "id": {
@@ -7492,6 +8384,45 @@
           "excluded"
         ],
         "title": "FragmentUpdate"
+      },
+      "GenerateQuestions": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "default": 5
+          }
+        },
+        "type": "object",
+        "title": "GenerateQuestions"
+      },
+      "GeneratedQuestions": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "answer",
+              "no_source"
+            ],
+            "title": "Kind",
+            "description": "`no_source` when the material gave no usable question."
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "questions"
+        ],
+        "title": "GeneratedQuestions"
       },
       "HTTPValidationError": {
         "properties": {
@@ -8139,6 +9070,37 @@
         ],
         "title": "Page[LearningRecordEntry]"
       },
+      "Page_Quiz_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Quiz"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[Quiz]"
+      },
       "Page_StudentConversationSummary_": {
         "properties": {
           "items": {
@@ -8348,6 +9310,496 @@
           "count"
         ],
         "title": "PseudonymousBatchCreate"
+      },
+      "QuestionCounts": {
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "approved": {
+            "type": "integer",
+            "title": "Approved"
+          },
+          "rejected": {
+            "type": "integer",
+            "title": "Rejected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "QuestionCounts"
+      },
+      "QuestionPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherQuestion"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/QuestionCounts",
+            "description": "Questions per status, for the topic filter if given."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "counts"
+        ],
+        "title": "QuestionPage"
+      },
+      "QuestionUpdate": {
+        "properties": {
+          "statement": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statement"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          },
+          "correct_option": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3.0,
+                "minimum": 0.0,
+                "description": "Index of the option, 0-3."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct Option"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3.0,
+                "minimum": 1.0,
+                "description": "1 basic, 2 intermediate, 3 advanced."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "approved",
+                  "rejected"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "title": "QuestionUpdate"
+      },
+      "Quiz": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "question_count": {
+            "type": "integer",
+            "title": "Question Count"
+          },
+          "answered_count": {
+            "type": "integer",
+            "title": "Answered Count"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level",
+            "description": "Current difficulty level, 1-3."
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuizQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null once completed."
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuizSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set once completed."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "topic_id",
+          "topic_name",
+          "status",
+          "question_count",
+          "answered_count",
+          "level",
+          "current",
+          "summary",
+          "started_at",
+          "completed_at"
+        ],
+        "title": "Quiz"
+      },
+      "QuizAnswer": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Question Id"
+          },
+          "choice": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Choice",
+            "description": "Index of the option, 0-3."
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "choice"
+        ],
+        "title": "QuizAnswer"
+      },
+      "QuizDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "question_count": {
+            "type": "integer",
+            "title": "Question Count"
+          },
+          "answered_count": {
+            "type": "integer",
+            "title": "Answered Count"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level",
+            "description": "Current difficulty level, 1-3."
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuizQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null once completed."
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuizSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set once completed."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AnsweredItem"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "The answered questions, in order."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "topic_id",
+          "topic_name",
+          "status",
+          "question_count",
+          "answered_count",
+          "level",
+          "current",
+          "summary",
+          "started_at",
+          "completed_at",
+          "items"
+        ],
+        "title": "QuizDetail"
+      },
+      "QuizQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "The question to send back with the answer."
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "position",
+          "statement",
+          "options",
+          "difficulty",
+          "topic_name"
+        ],
+        "title": "QuizQuestion"
+      },
+      "QuizStart": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id",
+            "description": "Omit for a quiz over every topic."
+          }
+        },
+        "type": "object",
+        "title": "QuizStart"
+      },
+      "QuizSummary": {
+        "properties": {
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "final_level": {
+            "type": "integer",
+            "title": "Final Level"
+          },
+          "by_topic": {
+            "items": {
+              "$ref": "#/components/schemas/TopicScore"
+            },
+            "type": "array",
+            "title": "By Topic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "total",
+          "final_level",
+          "by_topic"
+        ],
+        "title": "QuizSummary"
       },
       "RepeatedMistake": {
         "properties": {
@@ -9334,6 +10786,125 @@
         ],
         "title": "TeacherMessage"
       },
+      "TeacherQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "topic_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "correct_option": {
+            "type": "integer",
+            "title": "Correct Option"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "ai",
+              "edited"
+            ],
+            "title": "Origin",
+            "description": "`edited` once the teacher changes an AI draft."
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "answered_count": {
+            "type": "integer",
+            "title": "Answered Count",
+            "description": "Answers given in students' quizzes."
+          },
+          "correct_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct Rate",
+            "description": "Share of those answers that were right; null before any."
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "topic_id",
+          "topic_name",
+          "statement",
+          "options",
+          "correct_option",
+          "explanation",
+          "difficulty",
+          "status",
+          "origin",
+          "citations",
+          "answered_count",
+          "correct_rate",
+          "reviewed_at",
+          "created_at"
+        ],
+        "title": "TeacherQuestion"
+      },
       "TeacherSubmission": {
         "properties": {
           "id": {
@@ -9736,6 +11307,42 @@
           "name"
         ],
         "title": "TopicRef"
+      },
+      "TopicScore": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "correct",
+          "total"
+        ],
+        "title": "TopicScore"
       },
       "TopicUpdate": {
         "properties": {

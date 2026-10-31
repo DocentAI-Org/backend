@@ -8,6 +8,7 @@ from app.routers.teacher import (
     courses,
     dashboard,
     documents,
+    quizzes,
     review,
     settings,
     topics,
@@ -24,3 +25,4 @@ router.include_router(settings.router)
 router.include_router(topics.router)
 router.include_router(review.router)
 router.include_router(dashboard.router)
+router.include_router(quizzes.router)

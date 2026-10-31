@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     # many times within this many days, counting the current one.
     repeated_mistake_count: int = 3
     repeated_mistake_days: int = 30
+    # Adaptive quizzes (specs/006, provisional): questions per quiz, starting
+    # level (1-3) and the right or wrong answers in a row that move the level.
+    quiz_length: int = 5
+    quiz_start_level: int = 2
+    quiz_streak: int = 2
     recover_interrupted_on_startup: bool = True
 
     # Study consent (specs/002): bump when the approved consent text changes.

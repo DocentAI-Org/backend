@@ -33,7 +33,9 @@ def retrieve(
     question: str,
     top_k: int,
     min_similarity: float,
+    where: tuple = (),
 ) -> list[Hit]:
+    """The top fragments for the question; `where` narrows them (e.g. to a topic)."""
     [query_vector] = llm.embed([question])
     # Without this, the HNSW index returns the nearest fragments of *all* courses
     # and the course/validation filters can leave too few (pgvector >= 0.8).
@@ -42,7 +44,7 @@ def retrieve(
     rows = session.execute(
         select(Fragment, Document.file_name, distance.label("distance"))
         .join(Document, Document.id == Fragment.document_id)
-        .where(Fragment.course_id == course_id, *retrievable_fragment_filter())
+        .where(Fragment.course_id == course_id, *retrievable_fragment_filter(), *where)
         .order_by(distance, Fragment.id)
         .limit(top_k)
     ).all()
