@@ -75,6 +75,11 @@ def validate_feedback(
     if not indexes:
         return None
     feedback = Feedback(verdict, without_fragment_refs(explanation), indexes)
+    # Every graded exercise keeps its topic, so progress can count it (spec 007 FR-005).
+    topic = data.get("topic")
+    match = _TOPIC_REF.fullmatch(topic) if isinstance(topic, str) else None
+    if match and 0 < int(match.group(1)) <= topic_count:
+        feedback.topic_index = int(match.group(1)) - 1
     if verdict == "correct":
         return feedback
     location = data.get("mistake_location")
@@ -85,10 +90,6 @@ def validate_feedback(
         feedback.error_type = error_type
     else:
         feedback.unclassified = True
-    topic = data.get("topic")
-    match = _TOPIC_REF.fullmatch(topic) if isinstance(topic, str) else None
-    if match and 0 < int(match.group(1)) <= topic_count:
-        feedback.topic_index = int(match.group(1)) - 1
     return feedback
 
 

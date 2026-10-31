@@ -25,8 +25,9 @@ Cómo corregir:
   (por ejemplo "Paso 1: 2(x - 3) se ha escrito como 2x - 3"); null si es correcta.
 - "error_type": el código del tipo del primer error, de la lista <tipos_de_error>; si dudas entre
   dos, elige el que aparece antes. null si es correcta.
-- "topic": el identificador del tema del curso al que pertenece el error, de la lista <temas>
-  (por ejemplo "T1"); null si ninguno encaja o no hay temas.
+- "topic": el identificador del tema del curso al que pertenece el ejercicio (si hay un error,
+  el tema de ese error), de la lista <temas> (por ejemplo "T1"), también si es correcto; null si
+  ninguno encaja o no hay temas.
 - "explanation": en dos a cuatro frases para el estudiante, qué está mal, por qué según el
   material y cómo corregir ese paso. Si es correcta, confírmalo en una frase. No menciones los
   identificadores de los fragmentos (F1, F2...) ni de los temas en este texto: van en "cited" y
