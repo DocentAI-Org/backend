@@ -136,7 +136,8 @@ def test_count_defaults_to_five_and_is_bounded(client, llm, teacher, student) ->
     none = generate(client, teacher, room.course_id, topic["id"], count=0)
 
     assert len(default.json()["questions"]) == 5
-    assert "5" in llm.chat_calls[0][1][-1]["content"]
+    content = llm.chat_calls[0][1][-1]["content"]
+    assert "2 de dificultad 1, 2 de dificultad 2 y 1 de dificultad 3" in content
     assert too_many.status_code == none.status_code == 422
 
 

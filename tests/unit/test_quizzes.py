@@ -1,6 +1,6 @@
 """Draft validation and the adaptive rule (spec 006 FR-003, FR-006)."""
 
-from app.services.quiz_questions import validate_drafts
+from app.services.quiz_questions import level_plan, validate_drafts
 from app.services.quizzes import Adaptation, adapt
 
 DRAFT = {
@@ -113,3 +113,11 @@ def test_the_level_moves_after_a_streak_and_stays_in_range() -> None:
     assert adapt(level=1, streak=-1, correct=False, streak_needed=2) == Adaptation(
         1, -2
     )
+
+
+def test_requests_spread_the_levels() -> None:
+    assert level_plan(5) == {1: 2, 2: 2, 3: 1}
+    assert level_plan(3) == {1: 1, 2: 1, 3: 1}
+    assert level_plan(10) == {1: 3, 2: 4, 3: 3}
+    assert level_plan(1) == {1: 0, 2: 1, 3: 0}
+    assert level_plan(2) == {1: 1, 2: 1, 3: 0}
