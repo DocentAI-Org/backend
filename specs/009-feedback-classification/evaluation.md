@@ -2,7 +2,7 @@
 
 Run with `uv run pytest -m eval -s` (Supabase + Ollama). Cases: `tests/eval/feedback_cases.json`.
 
-## Baseline (2026-10-31, before any change)
+## Baseline (2026-10-31, before any change, on main before specs 006–008 merged)
 
 Model `qwen2.5:7b`, 3 runs per case, 12 cases.
 
@@ -45,3 +45,65 @@ Model `qwen2.5:7b`, 3 runs per case, 12 cases.
 2. Topic per fragment from confirmed assignments + "topic of the wrong step" rule.
 3. Feedback temperature 0 and decision rules between types.
 4. Re-run and record here.
+
+## Baseline again after rebasing on main (2026-10-31)
+
+Main changed the prompt (spec 007 T006: topic first, also for correct answers). `qwen2.5:7b`:
+
+| Metric | Result |
+|---|---|
+| Verdict | 10/36 (28 %) |
+| Type (mistakes) | 8/27 (30 %) |
+| Topic (mistakes) | 7/27 (26 %) |
+| Consistent cases | 7/12 (58 %) |
+
+Still 12/36 `not_assessed`. Similarities of each case against the four sections of
+`ecuaciones.md` (bge-m3, statement + answer) are 0.47–0.68 for the top section, and
+"3.3 Quitar paréntesis" scores 0.40–0.47 even on bracket exercises.
+
+## After T002–T004 and T006 (2026-10-31)
+
+Exercise threshold 0.40 (US3), topic per fragment, temperature 0, topic chosen after the wrong
+step, ordered type rules.
+
+| Metric | Baseline (7b) | `qwen2.5:7b` | `qwen2.5:3b` | Target |
+|---|---|---|---|---|
+| Verdict | 28 % | 27/36 (75 %) | 30/36 (83 %) | ≥ baseline ✅ |
+| Type (mistakes) | 30 % | 12/27 (44 %) | 12/27 (44 %) | ≥ 80 % ❌ |
+| Topic (mistakes) | 26 % | 21/27 (78 %) | 21/27 (78 %) | ≥ 90 % ❌ |
+| Consistent cases | 58 % | 12/12 (100 %) | 12/12 (100 %) | ≥ 80 % ✅ |
+
+| Case | `qwen2.5:7b` | `qwen2.5:3b` |
+|---|---|---|
+| `brackets-not-distributed` | incorrect, procedural, Despejar la incógnita | incorrect, procedural, Paréntesis |
+| `minus-before-brackets` | incorrect, execution, Paréntesis | incorrect, procedural, Paréntesis |
+| `brackets-correct` | correct | correct |
+| `transpose-keeps-sign` | partially_correct, procedural, Transponer términos | incorrect, procedural, Transponer términos |
+| `transpose-negative-term` | correct ❌ | correct ❌ |
+| `transpose-correct` | not_assessed ❌ | correct |
+| `subtract-instead-of-divide` | incorrect, comprehension, Despejar la incógnita | incorrect, procedural, Transponer términos |
+| `division-inverted` | incorrect, comprehension, Despejar la incógnita | incorrect, execution, Despejar la incógnita |
+| `divide-correct` | correct | correct |
+| `slip-when-transposing` | incorrect, execution, Despejar la incógnita | partially_correct, incomplete, Transponer términos |
+| `slip-when-dividing` | incorrect, execution, Despejar la incógnita | correct ❌ |
+| `stops-halfway` | correct ❌ | incorrect, procedural, Paréntesis |
+
+All runs of a case agree in both models (shown once).
+
+### Reading
+
+- Retrieval and temperature fixed the noise: every case is stable, and verdicts went from 28 % to
+  75–83 %.
+- Type is the open gap. 7b reads a wrong operation ("subtract instead of divide", "divide the
+  wrong way round") as `comprehension`; 3b sees slips as `incomplete` or misses them. The errors
+  are wrong verdicts at least as much as wrong types (`transpose-negative-term`,
+  `slip-when-dividing`, `stops-halfway` graded `correct`).
+- `qwen2.5:3b` scores like 7b on this set and is faster; it is the local development model for
+  now (`.env` only; the default stays 7b).
+
+### Next steps
+
+1. Type: examples per type in the prompt (subject-independent) or one short worked example per
+   type; re-measure.
+2. Wrong `correct` verdicts: make the analysis check the final result by substitution explicitly.
+3. Grow the case set (only 12 cases; one case is 3 of 27 mistakes, about 11 points).
