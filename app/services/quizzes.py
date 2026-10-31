@@ -1,8 +1,9 @@
 """Adaptive quizzes over the teacher's approved questions (S6, specs/006).
 
-Answering never calls the model. The level follows a provisional rule (FR-006): a quiz
-starts at `quiz_start_level` and moves one level after `quiz_streak` right or wrong
-answers in a row.
+Answering never calls the model. The level follows a provisional rule (FR-006): it is
+the difficulty of the question shown. A quiz starts at the level nearest to
+`quiz_start_level`; `quiz_streak` right or wrong answers in a row aim one level up or
+down, and the level moves only if the next question really is at another level.
 """
 
 import uuid
@@ -42,6 +43,26 @@ def adapt(level: int, streak: int, correct: bool, streak_needed: int) -> Adaptat
     if -streak >= streak_needed and level > MIN_LEVEL:
         return Adaptation(level - 1, 0)
     return Adaptation(level, streak)
+
+
+def level_change(
+    quiz: Quiz, shown: int, target: Adaptation, correct: bool
+) -> schemas.DifficultyChange | None:
+    """Why the next question is at another level, if it is (FR-002)."""
+    if shown == quiz.level:
+        return None
+    streak_move = (
+        target.level != quiz.level
+        and (shown - quiz.level) * (target.level - quiz.level) > 0
+    )
+    return schemas.DifficultyChange(
+        from_level=quiz.level,
+        to_level=shown,
+        reason=("correct_streak" if correct else "wrong_streak")
+        if streak_move
+        else "level_exhausted",
+        streak=abs(run(quiz.streak, correct)),
+    )
 
 
 # --- Views -------------------------------------------------------------------------
@@ -158,8 +179,8 @@ def _times_answered(
     return dict(rows)  # type: ignore[arg-type]
 
 
-def _pick(session: Session, quiz: Quiz) -> QuizQuestion | None:
-    """The nearest level first, then the questions answered least (AS4, AS6)."""
+def _pick(session: Session, quiz: Quiz, target: int) -> QuizQuestion | None:
+    """The level nearest to `target` first, then the questions answered least."""
     used = {item.question_id for item in quiz.items}
     candidates = [
         q
@@ -172,7 +193,7 @@ def _pick(session: Session, quiz: Quiz) -> QuizQuestion | None:
     return min(
         candidates,
         key=lambda q: (
-            abs(q.difficulty - quiz.level),
+            abs(q.difficulty - target),
             answered.get(q.id, 0),
             q.difficulty,
             q.created_at,
@@ -241,11 +262,30 @@ def start(
     )
     session.add(quiz)
     session.flush()
-    question = _pick(session, quiz)
+    question = _pick(session, quiz, quiz.level)
     assert question is not None  # there are approved questions
+    quiz.level = question.difficulty
     _add_item(session, quiz, question)
     session.refresh(quiz)
     return quiz_view(quiz)
+
+
+def quiz_topics(session: Session, enrolment: Enrolment) -> list[schemas.QuizTopic]:
+    """The course topics a quiz can be about: those with approved questions (FR-007)."""
+    rows = session.execute(
+        select(Topic.id, Topic.name, func.count(QuizQuestion.id))
+        .join(QuizQuestion, QuizQuestion.topic_id == Topic.id)
+        .where(
+            Topic.course_id == enrolment.course_id,
+            QuizQuestion.status == "approved",
+        )
+        .group_by(Topic.id, Topic.name, Topic.position)
+        .order_by(Topic.position, Topic.name)
+    ).all()
+    return [
+        schemas.QuizTopic(topic_id=topic_id, topic_name=name, question_count=count)
+        for topic_id, name, count in rows
+    ]
 
 
 def get_quiz(session: Session, enrolment: Enrolment, quiz_id: uuid.UUID) -> Quiz:
@@ -292,30 +332,20 @@ def answer(
     item.correct = payload.choice == item.correct_option
     item.answered_at = datetime.now(UTC)
 
-    before = quiz.level
-    adaptation = adapt(quiz.level, quiz.streak, item.correct, settings.quiz_streak)
-    change = (
-        schemas.DifficultyChange(
-            from_level=before,
-            to_level=adaptation.level,
-            reason="correct_streak" if item.correct else "wrong_streak",
-            streak=abs(run(quiz.streak, item.correct)),
-        )
-        if adaptation.level != before
-        else None
-    )
-    quiz.level, quiz.streak = adaptation.level, adaptation.streak
-    session.flush()
-
+    change: schemas.DifficultyChange | None = None
     if item.position >= quiz.question_count:
         _complete(quiz)
     else:
-        question = _pick(session, quiz)
+        target = adapt(quiz.level, quiz.streak, item.correct, settings.quiz_streak)
+        question = _pick(session, quiz, target.level)
         if question is None:
             # Questions were rejected meanwhile: the quiz ends with what was answered.
             quiz.question_count = item.position
             _complete(quiz)
         else:
+            change = level_change(quiz, question.difficulty, target, item.correct)
+            quiz.streak = 0 if change else run(quiz.streak, item.correct)
+            quiz.level = question.difficulty
             _add_item(session, quiz, question)
     session.flush()
     session.refresh(quiz)

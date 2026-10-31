@@ -155,6 +155,12 @@ class QuizDetail(Quiz):
     items: list[AnsweredItem] = Field(description="The answered questions, in order.")
 
 
+class QuizTopic(BaseModel):
+    topic_id: uuid.UUID
+    topic_name: str
+    question_count: int = Field(description="Approved questions in the topic.")
+
+
 class QuizAnswer(BaseModel):
     question_id: uuid.UUID
     choice: Choice
@@ -163,8 +169,12 @@ class QuizAnswer(BaseModel):
 class DifficultyChange(BaseModel):
     from_level: int
     to_level: int
-    reason: Literal["correct_streak", "wrong_streak"]
-    streak: int = Field(description="Right or wrong answers in a row that caused it.")
+    reason: Literal["correct_streak", "wrong_streak", "level_exhausted"] = Field(
+        description="`level_exhausted`: no question left at the previous level."
+    )
+    streak: int = Field(
+        description="Right (or wrong) answers in a row, this one included."
+    )
 
 
 class AnswerResult(BaseModel):
