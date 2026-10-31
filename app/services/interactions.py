@@ -33,7 +33,7 @@ def record(
     settings: Settings,
     *,
     course_id: uuid.UUID,
-    student_id: uuid.UUID,
+    student_id: uuid.UUID | None,
     kind: str,
     question: str,
     fragment_ids: list[uuid.UUID],
@@ -47,7 +47,7 @@ def record(
 ) -> InteractionLog:
     log = InteractionLog(
         course_id=course_id,
-        student_ref=student_ref(settings, student_id),
+        student_ref=student_ref(settings, student_id) if student_id else None,
         kind=kind,
         question=question,
         retrieved_fragment_ids=fragment_ids,

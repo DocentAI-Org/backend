@@ -5,7 +5,16 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ARRAY, DateTime, ForeignKey, Numeric, Text, Uuid, func
+from sqlalchemy import (
+    ARRAY,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    SmallInteger,
+    Text,
+    Uuid,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -208,6 +217,9 @@ class Citation(Base):
     submission_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("exercise_submissions.id")
     )
+    question_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("quiz_questions.id")
+    )
     review_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("mistake_reviews.id")
     )
@@ -241,6 +253,76 @@ class MistakeReview(Base):
     citations: Mapped[list["Citation"]] = relationship(
         order_by="Citation.position", lazy="selectin"
     )
+
+
+class QuizQuestion(Base):
+    """A multiple-choice question drafted by the AI, reviewed by the teacher (006)."""
+
+    __tablename__ = "quiz_questions"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
+    topic_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("topics.id"))
+    statement: Mapped[str] = mapped_column(Text)
+    options: Mapped[list[str]] = mapped_column(ARRAY(Text))
+    correct_option: Mapped[int] = mapped_column(SmallInteger)
+    explanation: Mapped[str] = mapped_column(Text)
+    difficulty: Mapped[int] = mapped_column(SmallInteger)
+    status: Mapped[str] = mapped_column(server_default="pending")
+    origin: Mapped[str] = mapped_column(server_default="ai")
+    reviewed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
+    reviewed_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+
+    topic: Mapped[Topic] = relationship(lazy="joined")
+    citations: Mapped[list["Citation"]] = relationship(
+        order_by="Citation.position", lazy="selectin"
+    )
+
+
+class Quiz(Base):
+    __tablename__ = "quizzes"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    topic_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("topics.id"))
+    topic_name: Mapped[str | None]
+    status: Mapped[str] = mapped_column(server_default="in_progress")
+    question_count: Mapped[int] = mapped_column(SmallInteger)
+    level: Mapped[int] = mapped_column(SmallInteger)
+    streak: Mapped[int] = mapped_column(SmallInteger, server_default="0")
+    started_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+    completed_at: Mapped[datetime | None]
+
+    items: Mapped[list["QuizItem"]] = relationship(
+        order_by="QuizItem.position", lazy="selectin"
+    )
+
+
+class QuizItem(Base):
+    """A question as the student saw it, and their answer (snapshot, FR-005)."""
+
+    __tablename__ = "quiz_items"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    quiz_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("quizzes.id"))
+    question_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("quiz_questions.id")
+    )
+    position: Mapped[int] = mapped_column(SmallInteger)
+    topic_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("topics.id"))
+    topic_name: Mapped[str]
+    statement: Mapped[str] = mapped_column(Text)
+    options: Mapped[list[str]] = mapped_column(ARRAY(Text))
+    correct_option: Mapped[int] = mapped_column(SmallInteger)
+    explanation: Mapped[str] = mapped_column(Text)
+    difficulty: Mapped[int] = mapped_column(SmallInteger)
+    choice: Mapped[int | None] = mapped_column(SmallInteger)
+    correct: Mapped[bool | None]
+    answered_at: Mapped[datetime | None]
+
+    question: Mapped[QuizQuestion | None] = relationship(lazy="selectin")
 
 
 class LearningRecordEntry(Base):
@@ -309,7 +391,8 @@ class InteractionLog(Base):
 
     id: Mapped[uuid.UUID] = _uuid_pk()
     course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
-    student_ref: Mapped[str]
+    # None only for teacher actions such as generating quiz questions (specs/006).
+    student_ref: Mapped[str | None]
     kind: Mapped[str]
     question: Mapped[str] = mapped_column(Text)
     retrieved_fragment_ids: Mapped[list[uuid.UUID]] = mapped_column(ARRAY(Uuid))

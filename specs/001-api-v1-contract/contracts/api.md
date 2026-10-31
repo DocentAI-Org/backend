@@ -39,6 +39,9 @@ This document is its design: every endpoint, its role, models and error codes. F
 | 409 | `email_taken` | admin creates an account whose email already exists |
 | 503 | `auth_unavailable` | Supabase Auth admin API unreachable or failing |
 | 503 | `storage_unavailable` | Supabase Storage unreachable or failing |
+| 409 | `no_questions` | quiz started with no approved question (for that topic) (specs/006) |
+| 409 | `not_current_question` | quiz answer for a question that is not the current one |
+| 409 | `quiz_completed` | quiz answer after the last question |
 
 ## Public / self
 
@@ -156,6 +159,21 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
   [{week_start (Monday, UTC), messages, exercises}] (8 weeks, oldest first), criteria_provisional}`;
   a revoked student is never at risk.
 
+### Quiz questions (T7; specs/006)
+
+| Method | Path | Request | Response |
+|---|---|---|---|
+| POST | `/courses/{course_id}/topics/{topic_id}/questions/generate` | `GenerateQuestions {count 1–10 = 5}` | 201 `GeneratedQuestions {kind: answer\|no_source, questions: [TeacherQuestion]}`; 503 `tutor_unavailable` |
+| GET | `/courses/{course_id}/questions?status&topic_id` | — | `QuestionPage` = `Page[TeacherQuestion]` + `counts {pending, approved, rejected}` |
+| PATCH | `/courses/{course_id}/questions/{question_id}` | `QuestionUpdate {statement?, options? (4 distinct), correct_option? 0–3, explanation?, difficulty? 1–3, status?}` | `TeacherQuestion` |
+
+- `TeacherQuestion {id, topic_id, topic_name, statement, options: [4], correct_option,
+  explanation, difficulty: 1|2|3, status: pending|approved|rejected, origin: ai|edited,
+  citations, answered_count, correct_rate?, reviewed_at?, created_at}`.
+- Drafts come from the topic's confirmed material (or the material closest to its name), are
+  stored `pending`, and are logged as interactions of kind `quiz_generation` with no student
+  reference; nothing is charged to students.
+
 ## Student (`/v1/student`, role student, own data in enrolled courses only)
 
 | Method | Path | Request | Response |
@@ -175,6 +193,10 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 | GET | `/courses/{course_id}/submissions` | — | `Page[StudentSubmission]` |
 | GET | `/courses/{course_id}/submissions/{submission_id}` | — | `StudentSubmission` |
 | GET | `/courses/{course_id}/learning-record` | — | `Page[LearningRecordEntry]` |
+| POST | `/courses/{course_id}/quizzes` (specs/006; 409 `consent_required`, `no_questions`) | `QuizStart {topic_id?}` | 201 `Quiz` |
+| GET | `/courses/{course_id}/quizzes` | — | `Page[Quiz]` |
+| GET | `/courses/{course_id}/quizzes/{quiz_id}` | — | `QuizDetail` = `Quiz` + `items: [AnsweredItem]` |
+| POST | `/courses/{course_id}/quizzes/{quiz_id}/answers` | `QuizAnswer {question_id, choice 0–3}` | `AnswerResult {correct, correct_option, explanation, citations, difficulty_change?, quiz: Quiz}` |
 
 Shared models:
 
@@ -198,5 +220,12 @@ Shared models:
   counted; 200 if it existed, free; 409 `no_repeated_mistake`; 429; 503 `tutor_unavailable`),
   `GET` on the same path, and `GET /v1/teacher/courses/{course_id}/submissions/{submission_id}/review`
 - `TeacherSubmission` = `StudentSubmission` + `student_id, student_name, flag?`
+- `Quiz {id, topic_id?, topic_name?, status: in_progress|completed, question_count,
+  answered_count, level: 1|2|3, current?: {id (question), position, statement, options,
+  difficulty, topic_name}, summary?: {score, total, final_level, by_topic: [{topic_id?,
+  topic_name, correct, total}]}, started_at, completed_at?}`; the correct option is never sent
+  before the answer. `difficulty_change {from_level, to_level, reason: correct_streak|
+  wrong_streak, streak}` (provisional `QUIZ_START_LEVEL=2`, `QUIZ_STREAK=2`, `QUIZ_LENGTH=5`).
+  Quizzes never call the model and do not count toward the allowance.
 - `LearningRecordEntry {id, submission_id, error_type, topic_id?, topic_name?, topic_deleted,
   created_at}`
