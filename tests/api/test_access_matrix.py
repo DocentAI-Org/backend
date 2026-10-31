@@ -57,6 +57,20 @@ BODIES: dict[tuple[str, str], dict] = {
         "status": "approved"
     },
     ("post", "/v1/student/courses/{course_id}/quizzes"): {},
+    ("post", "/v1/teacher/courses/{course_id}/test/questions"): {
+        "topic_id": str(uuid.uuid4()),
+        "statement": "X",
+        "options": ["a", "b", "c", "d"],
+        "correct_option": 0,
+    },
+    ("post", "/v1/teacher/courses/{course_id}/test/questions/from-quiz"): {
+        "question_id": str(uuid.uuid4())
+    },
+    ("patch", "/v1/teacher/courses/{course_id}/test/questions/{question_id}"): {
+        "statement": "X"
+    },
+    ("put", "/v1/teacher/courses/{course_id}/test/phases/{phase}"): {"status": "open"},
+    ("post", "/v1/student/courses/{course_id}/test/{phase}"): {"answers": []},
     ("post", "/v1/student/courses/{course_id}/quizzes/{quiz_id}/answers"): {
         "question_id": str(uuid.uuid4()),
         "choice": 0,
@@ -75,7 +89,8 @@ def _operations(client) -> list[tuple[str, str, dict]]:
 
 
 def _call(client, method: str, path: str, operation: dict, course_id: str, headers):
-    url = path.replace("{course_id}", course_id)
+    # Enumerated path parameters need a valid value to reach the access check.
+    url = path.replace("{course_id}", course_id).replace("{phase}", "pre")
     while "{" in url:
         start = url.index("{")
         url = url[:start] + str(uuid.uuid4()) + url[url.index("}") + 1 :]

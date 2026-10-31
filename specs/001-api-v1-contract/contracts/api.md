@@ -42,6 +42,10 @@ This document is its design: every endpoint, its role, models and error codes. F
 | 409 | `no_questions` | quiz started with no approved question (for that topic) (specs/006) |
 | 409 | `not_current_question` | quiz answer for a question that is not the current one |
 | 409 | `quiz_completed` | quiz answer after the last question |
+| 409 | `test_locked` | pre/post-test questions changed after the pre-test was opened (specs/008) |
+| 409 | `test_empty` | opening a pre/post-test phase without questions |
+| 409 | `test_not_open` | reading or submitting a phase that is not open (and not done) |
+| 409 | `test_already_done` | submitting a phase twice |
 
 ## Public / self
 
@@ -175,6 +179,20 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
   stored `pending`, and are logged as interactions of kind `quiz_generation` with no student
   reference; nothing is charged to students.
 
+### Pre-test and post-test (P3; specs/008)
+
+| Method | Path | Request | Response |
+|---|---|---|---|
+| GET | `/courses/{course_id}/test` | — | `CourseTest {locked, questions: [TestQuestion], phases: [TestPhaseView]}` |
+| POST | `/courses/{course_id}/test/questions` | `TestQuestionCreate {topic_id, statement, options (4 distinct), correct_option 0–3}` | 201 `TestQuestion {id, topic_id?, topic_name, position, statement, options, correct_option}` |
+| POST | `/courses/{course_id}/test/questions/from-quiz` | `{question_id}` (approved quiz question) | 201 `TestQuestion` |
+| PATCH / DELETE | `/courses/{course_id}/test/questions/{question_id}` | `TestQuestionUpdate` (any field) | `TestQuestion` / 204 |
+| PUT | `/courses/{course_id}/test/phases/{pre\|post}` | `{status: open\|closed}` | `TestPhaseView {phase, status: not_open\|open\|closed, opened_at?, closed_at?, submitted_count}` |
+| GET | `/courses/{course_id}/test/results` | — | `TestResults {question_count, phases, students: [{student_id, display_name, pre?, post?: PhaseScore {submitted_at, right, total, by_topic: [{topic_id?, topic_name, right, total}]}}], averages: [{phase, submitted, score?, by_topic: [{topic_id?, topic_name, score}]}]}` |
+
+One test per course, the same questions for both phases; questions are frozen (`test_locked`)
+once the pre-test has been opened.
+
 ## Student (`/v1/student`, role student, own data in enrolled courses only)
 
 | Method | Path | Request | Response |
@@ -195,6 +213,9 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 | GET | `/courses/{course_id}/submissions/{submission_id}` | — | `StudentSubmission` |
 | GET | `/courses/{course_id}/learning-record` | — | `Page[LearningRecordEntry]` |
 | GET | `/courses/{course_id}/progress` (specs/007) | — | `Progress` |
+| GET | `/courses/{course_id}/test` (specs/008) | — | `[StudentTestPhase {phase, status, done, question_count}]` |
+| GET | `/courses/{course_id}/test/{pre\|post}` | — | `StudentTest {phase, status, done, submitted_at?, questions: [{id, position, statement, options, topic_name}]}` (no right option; empty once done) |
+| POST | `/courses/{course_id}/test/{pre\|post}` (409 `consent_required`, `test_not_open`, `test_already_done`) | `TestSubmission {answers: [{question_id, choice}]}` (every question once) | 201 `TestSubmitted {phase, submitted_at}` (no score) |
 | GET | `/courses/{course_id}/quiz-topics` | — | `[QuizTopic {topic_id, topic_name, question_count}]` (topics with approved questions) |
 | POST | `/courses/{course_id}/quizzes` (specs/006; 409 `consent_required`, `no_questions`) | `QuizStart {topic_id?}` | 201 `Quiz` |
 | GET | `/courses/{course_id}/quizzes` | — | `Page[Quiz]` |
