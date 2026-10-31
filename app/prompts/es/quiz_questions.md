@@ -21,8 +21,11 @@ Cómo es cada pregunta:
 - "correct": la letra de la opción correcta: "A", "B", "C" o "D". Varía la posición de la
   correcta entre preguntas.
 - "explanation": una o dos frases que expliquen por qué es correcta, según el material.
-- "difficulty": 1 (básica: recordar o aplicar un paso), 2 (intermedia: aplicar varios pasos) o
-  3 (avanzada: combinar reglas o detectar un error). Reparte las preguntas entre los niveles.
+- "difficulty": 1 (básica: recordar una regla o aplicar un solo paso), 2 (intermedia: aplicar
+  varios pasos seguidos, por ejemplo quitar un paréntesis con signo y agrupar) o 3 (avanzada:
+  combinar reglas, resolver una ecuación completa o encontrar el error en una resolución).
+  Escribe exactamente cuántas preguntas de cada nivel se piden: una pregunta de nivel 2 o 3 no
+  puede ser solo recordar una regla.
 - "cited": los fragmentos en los que se basa.
 
 No repitas preguntas ni hagas dos casi iguales.
