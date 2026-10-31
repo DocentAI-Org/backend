@@ -25,4 +25,13 @@ def test_every_route_is_versioned_and_typed() -> None:
                     continue
                 content = operation["responses"][code].get("content", {})
                 body = content.get("application/json", {}).get("schema", {})
-                assert body and body != {}, f"untyped response: {method} {path}"
+                # A file download (specs/011) is typed as binary instead.
+                files = [
+                    c.get("schema")
+                    for media, c in content.items()
+                    if media != "application/json"
+                ]
+                binary = {"type": "string", "format": "binary"}
+                assert (body and body != {}) or binary in files, (
+                    f"untyped response: {method} {path}"
+                )

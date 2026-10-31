@@ -66,6 +66,9 @@ class Settings(BaseSettings):
 
     # Privacy (research R12)
     log_pseudonym_secret: str = "change-me"
+    # Study export ids (specs/011): a different key, so the export cannot be joined
+    # with the interaction logs without it.
+    study_export_secret: str = "change-me-too"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
