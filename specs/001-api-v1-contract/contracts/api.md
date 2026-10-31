@@ -64,6 +64,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | POST | `/students/pseudonymous` | `PseudonymousBatchCreate {count 1–100}` | 201 `PseudonymousBatch {accounts: [{user_id, code, initial_password}]}` |
 | GET | `/courses` | — | `Page[AdminCourse {id, name, teacher_name, student_count, created_at}]` |
 | GET | `/evaluation-set` | — | `Page[EvaluationItem {flag_id, course_id, category, correction, question, original_answer, citations, created_at}]` |
+| GET | `/study-export?course_id` (specs/011) | — | `application/zip`: `README.md` and `students`, `topics`, `messages`, `exercises`, `quiz_items`, `tests`, `interactions` `.csv`; consenting students only, `study_ref` ids, no free text |
 
 `initial_password` is returned once and never stored in plain text by the API.
 
