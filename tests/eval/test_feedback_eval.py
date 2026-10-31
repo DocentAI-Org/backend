@@ -140,7 +140,7 @@ def test_feedback_classification(client, llm, make_user, teacher, student) -> No
             assert response.status_code == 201, response.text
             results.append(response.json())
         graded.append(grade(results, case))
-    text = report(graded, get_settings().llm_chat_model)
+    text = report(graded, get_settings().route("feedback").model)
     print("\n" + text)
     if path := os.environ.get("EVAL_REPORT"):
         Path(path).write_text(text + "\n")

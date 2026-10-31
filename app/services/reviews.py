@@ -243,6 +243,7 @@ def _create(
         result = llm.chat_json(
             build_review_prompt(settings, tutor_settings),
             build_review_messages(hits, error_type, repeated.topic_name, submission),
+            task="review",
         )
         review = validate_review(result.data, len(hits), submission.problem_statement)
 

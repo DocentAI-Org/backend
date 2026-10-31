@@ -380,7 +380,7 @@ def _ask_model(
 ) -> _ModelReply:
     system = build_system_prompt(settings, tutor_settings, request_solution, note)
     messages = build_messages(history, hits, text)
-    result = llm.chat_json(system, messages)
+    result = llm.chat_json(system, messages, task="tutor")
     outcome = _ModelReply(
         ground_reply(result.data, len(hits)),
         result.model,
@@ -398,7 +398,9 @@ def _ask_model(
     # The policy forbids a full solution here (FR-054): ask once more, then fall
     # back to a generic hint on the same cited material.
     labels = load_labels("messages", settings.tutor_language)
-    retry = llm.chat_json(f"{system}\n\n{labels['hint_reminder']}", messages)
+    retry = llm.chat_json(
+        f"{system}\n\n{labels['hint_reminder']}", messages, task="tutor"
+    )
     outcome.input_tokens += retry.input_tokens
     outcome.output_tokens += retry.output_tokens
     second = ground_reply(retry.data, len(hits))

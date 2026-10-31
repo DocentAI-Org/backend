@@ -1,6 +1,19 @@
 from functools import lru_cache
+from typing import Literal, NamedTuple
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+Provider = Literal["ollama", "openai", "anthropic"]
+Effort = Literal["low", "medium", "high", "xhigh", "max"]
+# What the model is asked to do (specs/014); each can have its own provider and model.
+Task = Literal["tutor", "feedback", "review", "questions"]
+
+
+class Route(NamedTuple):
+    provider: Provider
+    model: str
+    effort: Effort | None
 
 
 class Settings(BaseSettings):
@@ -20,13 +33,45 @@ class Settings(BaseSettings):
     signed_url_ttl_seconds: int = 300
     pseudonym_email_domain: str = "students.docentai.invalid"
 
-    # LLM layer (research R1-R3, R12)
-    llm_base_url: str = "http://localhost:11434/v1"
-    llm_api_key: str = "ollama"
-    llm_chat_model: str = "qwen2.5:7b"
+    # LLM layer (research R1-R3, R12; providers per task, specs/014). A task's own
+    # provider, model and effort override the defaults.
+    llm_provider: Provider = "ollama"
+    llm_chat_model: str = Field(
+        "qwen2.5:7b", validation_alias=AliasChoices("LLM_MODEL", "LLM_CHAT_MODEL")
+    )
+    llm_effort: Effort | None = None
+    llm_tutor_provider: Provider | None = None
+    llm_tutor_model: str | None = None
+    llm_tutor_effort: Effort | None = None
+    llm_feedback_provider: Provider | None = None
+    llm_feedback_model: str | None = None
+    llm_feedback_effort: Effort | None = None
+    llm_review_provider: Provider | None = None
+    llm_review_model: str | None = None
+    llm_review_effort: Effort | None = None
+    llm_questions_provider: Provider | None = None
+    llm_questions_model: str | None = None
+    llm_questions_effort: Effort | None = None
+    ollama_base_url: str = Field(
+        "http://localhost:11434/v1",
+        validation_alias=AliasChoices("OLLAMA_BASE_URL", "LLM_BASE_URL"),
+    )
+    ollama_api_key: str = Field(
+        "ollama", validation_alias=AliasChoices("OLLAMA_API_KEY", "LLM_API_KEY")
+    )
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+    # Server-side fallback when a Claude model declines; "" turns it off.
+    llm_anthropic_fallbacks: str = "default"
+    llm_max_tokens: int = 16000
+    # Anthropic has no embeddings API (specs/014).
+    llm_embedding_provider: Literal["ollama", "openai"] = "ollama"
     llm_embedding_model: str = "bge-m3"
     embedding_dimensions: int = 1024
     llm_timeout_seconds: float = 60.0
+    # USD per million tokens, input and output, by model; others use the fallback.
+    llm_prices: dict[str, tuple[float, float]] = {}
     llm_price_input_per_mtok: float = 0.0
     llm_price_output_per_mtok: float = 0.0
     # Exercise feedback must classify the same mistake the same way (spec 009).
@@ -71,8 +116,19 @@ class Settings(BaseSettings):
     study_export_secret: str = "change-me-too"
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        populate_by_name=True,
     )
+
+    def route(self, task: Task) -> Route:
+        """The provider, model and effort for a task: its own, or the defaults."""
+        return Route(
+            getattr(self, f"llm_{task}_provider") or self.llm_provider,
+            getattr(self, f"llm_{task}_model") or self.llm_chat_model,
+            getattr(self, f"llm_{task}_effort") or self.llm_effort,
+        )
 
     @property
     def allowed_origin_list(self) -> list[str]:
