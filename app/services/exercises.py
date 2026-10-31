@@ -102,7 +102,11 @@ def without_fragment_refs(text: str) -> str:
     return text.strip()
 
 
-def build_feedback_prompt(settings: Settings, tutor_settings: TutorSettings) -> str:
+def build_feedback_prompt(
+    settings: Settings, tutor_settings: TutorSettings, note: str | None = None
+) -> str:
+    """The note (spec 013) is one more rule, before the reply format: after it, a
+    small model drops "cited"."""
     labels = load_labels("policies", settings.tutor_language)
     rule = (
         "feedback.solution_allowed"
@@ -113,6 +117,7 @@ def build_feedback_prompt(settings: Settings, tutor_settings: TutorSettings) -> 
         level=labels[f"level.{tutor_settings.level}"],
         tone=labels[f"tone.{tutor_settings.tone}"],
         solution_rule=labels[rule],
+        adaptation=f"\n6. {note}" if note else "",
     )
 
 
@@ -336,9 +341,9 @@ def _assess(
         session, settings, enrolment.course_id, enrolment.student_id
     )
     if hits:
-        system = build_feedback_prompt(settings, tutor_settings)
-        if note := adaptation.prompt_note(session, settings, focus):
-            system = f"{system}\n\n{note}"
+        system = build_feedback_prompt(
+            settings, tutor_settings, adaptation.prompt_note(session, settings, focus)
+        )
         error_types = list(
             session.scalars(select(ErrorType).order_by(ErrorType.position))
         )
