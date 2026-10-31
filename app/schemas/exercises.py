@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.schemas.chat import Citation, Correction
+from app.schemas.chat import Adaptation, Citation, Correction
 from app.schemas.common import CleanText
 
 Verdict = Literal["correct", "partially_correct", "incorrect", "not_assessed"]
@@ -42,6 +42,9 @@ class StudentSubmission(BaseModel):
     correction: Correction | None
     repeated_mistake: RepeatedMistake | None = Field(
         description="Set when this mistake repeats a pattern (specs/005, provisional)."
+    )
+    adaptation: Adaptation | None = Field(
+        default=None, description="Set when the feedback was adapted (specs/013)."
     )
     created_at: datetime
 

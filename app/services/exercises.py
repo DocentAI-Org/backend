@@ -27,8 +27,8 @@ from app.models import (
     TutorSettings,
 )
 from app.schemas import exercises as schemas
-from app.schemas.chat import Correction
-from app.services import allowance, interactions, tutor
+from app.schemas.chat import Adaptation, Correction
+from app.services import adaptation, allowance, interactions, tutor
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -233,6 +233,9 @@ def submission_view(submission: ExerciseSubmission) -> schemas.StudentSubmission
         repeated_mistake=repeated_mistake(session, get_settings(), submission)
         if session is not None and submission.saved_to_record
         else None,
+        adaptation=Adaptation(**submission.adaptation)
+        if submission.adaptation
+        else None,
         created_at=submission.created_at,
     )
 
@@ -329,12 +332,18 @@ def _assess(
     )
     feedback: Feedback | None = None
     result: ChatResult | None = None
+    focus = adaptation.focus(
+        session, settings, enrolment.course_id, enrolment.student_id
+    )
     if hits:
+        system = build_feedback_prompt(settings, tutor_settings)
+        if note := adaptation.prompt_note(session, settings, focus):
+            system = f"{system}\n\n{note}"
         error_types = list(
             session.scalars(select(ErrorType).order_by(ErrorType.position))
         )
         result = llm.chat_json(
-            build_feedback_prompt(settings, tutor_settings),
+            system,
             build_feedback_messages(
                 hits,
                 topics,
@@ -371,6 +380,7 @@ def _assess(
         explanation_kind="answer" if feedback else "no_source",
         saved_to_record=recorded,
         is_stub=False,
+        adaptation=focus.model_dump() if focus and feedback else None,
     )
     session.add(submission)
     session.flush()
