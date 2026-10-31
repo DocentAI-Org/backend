@@ -124,5 +124,20 @@ Asking the hidden analysis in the second person made the model grade correct ans
 mistakes; only the explanation rule is kept. `qwen2.5:3b` still often writes "el estudiante";
 a stronger model is expected to follow the rule.
 
-Follow-up: give each case its own student, so the evaluation measures classification without
-the adaptation note (or measure both on purpose).
+Follow-up done: each case now has its own student, so the adaptation note never enters the
+evaluation (`EVAL_RUNS` must stay ≤ `REPEATED_MISTAKE_COUNT`).
+
+## One student per case (2026-10-31)
+
+`qwen2.5:3b`, `main` with the feedback fixes; no adaptation note in any run.
+
+| Metric | Result |
+|---|---|
+| Verdict | 33/36 (92 %) |
+| Type (mistakes) | 18/27 (67 %) |
+| Topic (mistakes) | 21/27 (78 %) |
+| Consistent cases | 12/12 (100 %) |
+
+Compared with the runs above, the adaptation note costs this model accuracy even in its right
+place (verdict 86 % with it, 92 % without). Measure it again when choosing the production model;
+if it still costs accuracy, the note could go to the chat only, or be shortened.
