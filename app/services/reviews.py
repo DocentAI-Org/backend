@@ -2,6 +2,7 @@
 example and practice statements, grounded in the course material."""
 
 import logging
+import re
 import time
 import uuid
 from dataclasses import dataclass
@@ -39,14 +40,42 @@ class Review:
     worked_example: str | None = None
 
 
+_EXPRESSION = re.compile(r"[^\n:;¿?.]*=[^\n:;¿?]*")
+
+
+def _compact(text: str) -> str:
+    return re.sub(r"\s+", "", text).lower().rstrip(".")
+
+
+def expressions(statement: str) -> set[str]:
+    """The equations in the student's statement, without spaces, e.g. "2(x-3)=4x+2"."""
+    return {
+        compact
+        for match in _EXPRESSION.findall(statement)
+        if len(compact := _compact(match)) >= 5
+    }
+
+
+def copies(text: str, own: set[str]) -> bool:
+    compact = _compact(text)
+    return any(expression in compact for expression in own)
+
+
 def _text(value: object) -> str | None:
     if isinstance(value, str) and value.strip():
         return value.strip()[:TEXT_CHARS]
     return None
 
 
-def validate_review(data: dict, fragment_count: int) -> Review | None:
-    """Accepts the review only if grounded and with something to practise (FR-004)."""
+def validate_review(
+    data: dict, fragment_count: int, statement: str = ""
+) -> Review | None:
+    """Accepts the review only if grounded and with something to practise (FR-004).
+
+    A worked example or practice item that copies the student's own equation is dropped:
+    the review must not solve the student's exercise (US2 AS4).
+    """
+    own = expressions(statement)
     explanation = _text(data.get("explanation"))
     cited = data.get("cited")
     practice = data.get("practice")
@@ -54,13 +83,17 @@ def validate_review(data: dict, fragment_count: int) -> Review | None:
         return None
     indexes = tutor.cited_fragment_indexes(cited, fragment_count)
     statements = (
-        [text for item in practice if (text := _text(item))][:PRACTICE_ITEMS]
+        [text for item in practice if (text := _text(item)) and not copies(text, own)][
+            :PRACTICE_ITEMS
+        ]
         if isinstance(practice, list)
         else []
     )
     if not indexes or not statements:
         return None
     example = _text(data.get("worked_example"))
+    if example and copies(example, own):
+        example = None
     return Review(
         explanation=exercises.without_fragment_refs(explanation),
         cited_indexes=indexes,
@@ -211,7 +244,7 @@ def _create(
             build_review_prompt(settings, tutor_settings),
             build_review_messages(hits, error_type, repeated.topic_name, submission),
         )
-        review = validate_review(result.data, len(hits))
+        review = validate_review(result.data, len(hits), submission.problem_statement)
 
     row = MistakeReview(
         submission_id=submission.id,

@@ -41,6 +41,7 @@ _REF_CLEANUP = [
     (re.compile(rf"\s*\(\s*{_REFS}\s*\)"), ""),
     (re.compile(rf"\b(?:el\s+)?(?:fragmento\s+)?{_REFS}\b"), "el material"),
 ]
+_CONTRACTIONS = re.compile(r"\b([Dd]e|[Aa]) el (?=material\b)")
 LOCATION_CHARS = 300
 
 
@@ -94,6 +95,8 @@ def validate_feedback(
 def without_fragment_refs(text: str) -> str:
     for pattern, replacement in _REF_CLEANUP:
         text = pattern.sub(replacement, text)
+    # "de F1" became "de el material": contract it as Spanish does.
+    text = _CONTRACTIONS.sub(lambda m: f"{m.group(1)}l ", text)
     return text.strip()
 
 

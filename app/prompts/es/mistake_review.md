@@ -16,10 +16,15 @@ Qué preparar:
 - "explanation": en tres a cinco frases para el estudiante, qué está pasando: en qué consiste
   este error, por qué ocurre y qué regla del material lo evita. Sin reproches. No menciones los
   identificadores de los fragmentos (F1, F2...) en este texto.
-- "worked_example": un ejemplo distinto del ejercicio del estudiante, resuelto paso a paso según
-  el material, que muestre cómo evitar el error; null si el material no permite hacerlo.
-- "practice": dos enunciados nuevos, parecidos al del estudiante, para practicar justo ese
-  paso. Solo los enunciados, sin la solución.
+- "worked_example": obligatorio. Un ejemplo distinto del ejercicio del estudiante, con los pasos
+  numerados según el material, que muestre cómo se hace bien el paso en el que se equivoca.
+  Usa otros números y otra expresión: nunca copies ni resuelvas el <enunciado> del estudiante.
+  Elige los números para que el ejemplo tenga una sola solución, y comprueba cada paso y el
+  resultado sustituyéndolo antes de escribirlo.
+  Respeta la regla 5. Escribe null solo si el material no tiene ninguna regla que aplicar.
+- "practice": dos enunciados nuevos, parecidos al del estudiante pero con otros números, para
+  practicar justo ese paso. Cada uno debe tener una sola solución (comprueba que, al quitar
+  paréntesis y agrupar, la incógnita no desaparece). Solo los enunciados, sin la solución.
 - "cited": los fragmentos en los que te basas.
 
 Devuelve solo un objeto JSON con esta forma:

@@ -189,6 +189,14 @@ Shared models:
   since specs/003; to be removed), correction?, created_at}`
 - `ErrorTaxonomy {provisional, items: [{code, label: {es, en}, description: {es, en}}]}` at
   `GET /v1/error-types` (any signed-in user; specs/003)
+- `StudentSubmission.repeated_mistake? {count, window_days, error_type, topic_name?}`: set when
+  the mistake is the Nth of the same type and topic within the window, counted up to this
+  submission (specs/005; provisional `REPEATED_MISTAKE_COUNT=3`, `REPEATED_MISTAKE_DAYS=30`)
+- `MistakeReview {id, submission_id, error_type, topic_name?, kind: answer|no_source,
+  explanation, worked_example?, practice: [str], citations, created_at}`:
+  `POST /v1/student/courses/{course_id}/submissions/{submission_id}/review` (201 created and
+  counted; 200 if it existed, free; 409 `no_repeated_mistake`; 429; 503 `tutor_unavailable`),
+  `GET` on the same path, and `GET /v1/teacher/courses/{course_id}/submissions/{submission_id}/review`
 - `TeacherSubmission` = `StudentSubmission` + `student_id, student_name, flag?`
 - `LearningRecordEntry {id, submission_id, error_type, topic_id?, topic_name?, topic_deleted,
   created_at}`

@@ -1,6 +1,6 @@
 """Validation of the model's exercise feedback (spec 003 FR-002)."""
 
-from app.services.exercises import validate_feedback
+from app.services.exercises import validate_feedback, without_fragment_refs
 
 CODES = {"procedural", "conceptual"}
 REPLY = {
@@ -63,4 +63,11 @@ def test_fragment_ids_are_removed_from_the_explanation() -> None:
     assert feedback.explanation == (
         "Según el material, el 2 multiplica a cada término. "
         "Como dice el material, quedaría 2x - 6."
+    )
+
+
+def test_replaced_references_keep_spanish_contractions() -> None:
+    assert (
+        without_fragment_refs("Sigue los pasos de F1 y vuelve a F2.")
+        == "Sigue los pasos del material y vuelve al material."
     )

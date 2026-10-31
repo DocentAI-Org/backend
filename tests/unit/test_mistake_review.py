@@ -35,3 +35,25 @@ def test_practice_needs_at_least_one_statement() -> None:
 def test_the_worked_example_is_optional() -> None:
     review = validate_review(REPLY | {"worked_example": None}, fragment_count=2)
     assert review is not None and review.worked_example is None
+
+
+STATEMENT = "Quita los paréntesis y despeja la incógnita: 2(x - 3) = 4x + 2"
+
+
+def test_a_worked_example_that_solves_the_students_exercise_is_dropped() -> None:
+    copied = REPLY | {
+        "worked_example": "Primero, en 2(x-3) = 4x+2 queda 2x - 6 = 4x + 2."
+    }
+    review = validate_review(copied, fragment_count=2, statement=STATEMENT)
+    assert review is not None and review.worked_example is None
+
+    other = validate_review(REPLY, fragment_count=2, statement=STATEMENT)
+    assert other is not None and other.worked_example == "3(x + 2) = 3x + 6."
+
+
+def test_practice_that_repeats_the_students_exercise_is_dropped() -> None:
+    reply = REPLY | {
+        "practice": ["Resuelve 2(x - 3) = 4x + 2", "Resuelve 5(x + 1) = 10"]
+    }
+    review = validate_review(reply, fragment_count=2, statement=STATEMENT)
+    assert review is not None and review.practice == ["Resuelve 5(x + 1) = 10"]
