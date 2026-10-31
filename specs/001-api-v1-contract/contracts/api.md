@@ -66,6 +66,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/courses` | — | `Page[AdminCourse {id, name, teacher_name, student_count, created_at}]` |
 | GET | `/evaluation-set` | — | `Page[EvaluationItem {flag_id, course_id, category, correction, question, original_answer, citations, created_at}]` |
 | GET | `/study-export?course_id` (specs/011) | — | `application/zip`: `README.md` and `students`, `topics`, `messages`, `exercises`, `quiz_items`, `tests`, `interactions` `.csv`; consenting students only, `study_ref` ids, no free text |
+| GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}}, provisional, updated_at}` |
 | GET / POST | `/questionnaires` (specs/012) | `QuestionnaireCreate {title, url (https), audience: student\|teacher}` | `[Questionnaire]` / 201 `Questionnaire {id, title, url, audience, status: open\|closed, created_at, updated_at}` |
 | PATCH / DELETE | `/questionnaires/{questionnaire_id}` | `QuestionnaireUpdate {title?, url?, status?}` | `Questionnaire` / 204 |
 
@@ -182,6 +183,15 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 - Drafts come from the topic's confirmed material (or the material closest to its name), are
   stored `pending`, and are logged as interactions of kind `quiz_generation` with no student
   reference; nothing is charged to students.
+
+### Pedagogical criteria (specs/015)
+
+| Method | Path | Request | Response |
+|---|---|---|---|
+| GET / PUT | `/courses/{course_id}/pedagogy-criteria` | `CourseCriteriaUpdate {inactive?, error_rate?, repeated_mistakes?, adaptation?, mastery?}` (null: the study's) | `CourseCriteria {study: Criteria, provisional, custom: {group: bool}, effective: Criteria}` |
+
+Dashboard, progress, repeated mistakes and adaptation use the course's criteria in effect;
+`GET /risk-criteria` returns the study's.
 
 ### Pre-test and post-test (P3; specs/008)
 
