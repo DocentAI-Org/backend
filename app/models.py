@@ -325,6 +325,61 @@ class QuizItem(Base):
     question: Mapped[QuizQuestion | None] = relationship(lazy="selectin")
 
 
+class TestQuestion(Base):
+    """A pre/post-test question (specs/008), frozen once the pre-test is opened."""
+
+    __tablename__ = "test_questions"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
+    topic_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("topics.id"))
+    topic_name: Mapped[str]
+    position: Mapped[int]
+    statement: Mapped[str] = mapped_column(Text)
+    options: Mapped[list[str]] = mapped_column(ARRAY(Text))
+    correct_option: Mapped[int] = mapped_column(SmallInteger)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+
+
+class TestPhase(Base):
+    __tablename__ = "test_phases"
+
+    course_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("courses.id"), primary_key=True
+    )
+    phase: Mapped[str] = mapped_column(primary_key=True)
+    status: Mapped[str] = mapped_column(server_default="not_open")
+    opened_at: Mapped[datetime | None]
+    closed_at: Mapped[datetime | None]
+
+
+class TestAttempt(Base):
+    __tablename__ = "test_attempts"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    phase: Mapped[str]
+    submitted_at: Mapped[datetime] = mapped_column(
+        server_default=func.clock_timestamp()
+    )
+
+    answers: Mapped[list["TestAnswer"]] = relationship(lazy="selectin")
+
+
+class TestAnswer(Base):
+    __tablename__ = "test_answers"
+
+    attempt_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("test_attempts.id"), primary_key=True
+    )
+    question_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("test_questions.id"), primary_key=True
+    )
+    choice: Mapped[int] = mapped_column(SmallInteger)
+    correct: Mapped[bool]
+
+
 class LearningRecordEntry(Base):
     __tablename__ = "learning_record_entries"
 
