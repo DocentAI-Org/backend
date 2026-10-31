@@ -34,6 +34,19 @@ feedback" (requirements **T7** and **S6**; frontend 001 US10 and US11).
   the model. Generating questions is a teacher action, logged with its cost but not charged to
   any student.
 
+### Session 2026-10-31 (after the real-stack walkthrough, frontend 008)
+
+- Q: The local model labelled every draft "Fácil", so a quiz "at level 2" showed easy questions
+  and could say it lowered the level while they were already easy. What is the level? → A: The
+  difficulty of the question being shown. A quiz starts at the available level nearest to
+  `QUIZ_START_LEVEL`; a streak moves the target one level, and the level changes only when the
+  next question really is at another level. With no question left at the level, the quiz moves
+  to the nearest one with reason `level_exhausted`. No change is reported after the last answer.
+- Q: How do we get questions at every level? → A: The request tells the model how many to write
+  at each level, spread evenly (5 → two at 1, two at 2, one at 3).
+- Q: Can students choose a topic before their first quiz? → A: Yes: a student route lists the
+  course topics that have approved questions, with how many.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — The teacher asks the AI for draft questions (Priority: P1) 🎯
@@ -90,14 +103,18 @@ feedback" (requirements **T7** and **S6**; frontend 001 US10 and US11).
    question; answering a question that is not the current one is `409 not_current_question`.
 4. **Given** `QUIZ_STREAK` correct (or wrong) answers in a row, **Then** the answer carries
    `difficulty_change {from, to, reason, streak}` and the next question is one level up (down),
-   within 1–3. With no question left at a level, the nearest level is used.
+   within 1–3, if the course has one. With no question left at a level, the nearest level is
+   used and the change says `level_exhausted`. Without questions at another level, nothing
+   changes and no change is reported.
 5. **Given** the last answer, **Then** the quiz is `completed` and carries a summary: score,
    score by topic, and the final level.
 6. **Given** a question the student has seen in an earlier quiz, **Then** unseen questions are
    preferred.
 7. **Given** a question the teacher edits or rejects after the quiz started, **Then** the quiz
    keeps the version the student saw.
-8. **Given** a student without study consent, **Then** `409 consent_required`, as for the tutor.
+8. **Given** approved questions in some topics, **When** the student lists the quiz topics,
+   **Then** they get those topics with their number of approved questions, in course order.
+9. **Given** a student without study consent, **Then** `409 consent_required`, as for the tutor.
    Another student's quiz is 404.
 
 ## Requirements *(mandatory)*
@@ -118,7 +135,10 @@ feedback" (requirements **T7** and **S6**; frontend 001 US10 and US11).
 - **FR-005**: Each quiz item stores a snapshot of the question as shown (statement, options,
   correct option, explanation, difficulty, topic) and the answer, so later edits do not change
   past quizzes or the study data.
-- **FR-006**: The adaptive rule (start level, streak, length) is provisional configuration.
+- **FR-006**: The adaptive rule (start level, streak, length) is provisional configuration. The
+  quiz level is the difficulty of the current question.
+- **FR-007**: `GET /v1/student/courses/{course_id}/quiz-topics` →
+  `[{topic_id, topic_name, question_count}]`, approved questions only.
 
 ## Success Criteria *(mandatory)*
 
