@@ -12,4 +12,4 @@ feedback.solution_allowed: puedes mostrar cómo queda el paso corregido si ayuda
 feedback.no_solution: explica el error y cómo corregir ese paso, pero no escribas la solución completa del ejercicio.
 review.solution_allowed: puedes resolver un ejemplo parecido paso a paso; no resuelvas el ejercicio del estudiante y no des la solución de los ejercicios de práctica.
 review.no_solution: muestra el procedimiento con un ejemplo distinto, sin el resultado final; no resuelvas el ejercicio del estudiante y no des la solución de los ejercicios de práctica.
-adaptation: este estudiante ha cometido {count} veces en los últimos {days} días errores de tipo «{label}» ({description}). Al explicar, presta especial atención a ese tipo de error y a cómo evitarlo, dentro de las reglas anteriores. No menciones este dato.
+adaptation: Este estudiante ha cometido {count} veces en los últimos {days} días errores de tipo «{label}» ({description}). Al explicar, presta especial atención a ese tipo de error y a cómo evitarlo, dentro de las reglas anteriores. No menciones este dato.

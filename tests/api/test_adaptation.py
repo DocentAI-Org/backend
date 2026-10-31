@@ -1,5 +1,7 @@
 """US1–US2 (spec 013) — explanations adapted to recurring mistakes, with their basis."""
 
+from sqlalchemy import text
+
 from app.core.config import get_settings
 from tests.api.helpers import (
     COVERED_QUESTION,
@@ -114,3 +116,36 @@ def test_the_teacher_sees_the_same_basis(client, db, llm, teacher, student) -> N
     assert tutor[-1]["adaptation"] == exchange["tutor_message"]["adaptation"]
     assert reviewed["adaptation"] == submission["adaptation"]
     assert reviewed["adaptation"] is not None
+
+
+def test_the_note_comes_before_the_reply_format(
+    client, db, llm, teacher, student
+) -> None:
+    # After the format, a small model forgot "cited" and every adapted exercise came
+    # back not_assessed (found in the end-to-end review).
+    room = classroom(client, teacher, student)
+    mistakes(db, room.course_id, student, 1, 3, "procedural")
+    chat(client, student, room.course_id)
+    llm.reply = MISTAKE
+    submit(client, student, room.course_id)
+
+    for system, _ in llm.chat_calls:
+        note = system.lower().index(NOTE)
+        assert note < system.index("Devuelve solo un objeto JSON"), system[-400:]
+
+
+def test_without_adaptation_the_column_is_sql_null(client, db, llm, teacher, student):
+    room = classroom(client, teacher, student)
+    llm.reply = MISTAKE
+    submitted = submit(client, student, room.course_id).json()
+    chat(client, student, room.course_id)
+
+    rows = db.execute(
+        text(
+            "select (select adaptation is null from exercise_submissions"
+            " where id = :s), bool_and(adaptation is null) from messages m"
+            " join conversations c on c.id = m.conversation_id where c.course_id = :c"
+        ),
+        {"s": submitted["id"], "c": room.course_id},
+    ).one()
+    assert rows == (True, True)

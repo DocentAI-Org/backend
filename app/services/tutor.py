@@ -128,8 +128,12 @@ def no_source_text(settings: Settings) -> str:
 
 
 def build_system_prompt(
-    settings: Settings, tutor_settings: TutorSettings, request_solution: bool
+    settings: Settings,
+    tutor_settings: TutorSettings,
+    request_solution: bool,
+    note: str | None = None,
 ) -> str:
+    """The adaptation note (spec 013) is one more rule, before the reply format."""
     labels = load_labels("policies", settings.tutor_language)
     policy = labels[f"policy.{tutor_settings.solution_policy}"]
     if request_solution and tutor_settings.solution_policy != "hints_only":
@@ -138,6 +142,7 @@ def build_system_prompt(
         level=labels[f"level.{tutor_settings.level}"],
         tone=labels[f"tone.{tutor_settings.tone}"],
         policy=policy,
+        adaptation=f"\n7. {note}" if note else "",
     )
 
 
@@ -373,9 +378,7 @@ def _ask_model(
     text: str,
     note: str | None = None,
 ) -> _ModelReply:
-    system = build_system_prompt(settings, tutor_settings, request_solution)
-    if note:
-        system = f"{system}\n\n{note}"
+    system = build_system_prompt(settings, tutor_settings, request_solution, note)
     messages = build_messages(history, hits, text)
     result = llm.chat_json(system, messages)
     outcome = _ModelReply(

@@ -176,7 +176,7 @@ class Message(Base):
     hint_number: Mapped[int | None]
     counts_toward_limit: Mapped[bool] = mapped_column(server_default="false")
     # {error_type, count, window_days} when the answer was adapted (specs/013).
-    adaptation: Mapped[dict | None] = mapped_column(JSONB)
+    adaptation: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
 
     citations: Mapped[list["Citation"]] = relationship(
@@ -202,7 +202,7 @@ class ExerciseSubmission(Base):
     explanation_kind: Mapped[str]
     saved_to_record: Mapped[bool] = mapped_column(server_default="false")
     is_stub: Mapped[bool] = mapped_column(server_default="false")
-    adaptation: Mapped[dict | None] = mapped_column(JSONB)
+    adaptation: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
 
     student: Mapped[Profile] = relationship(lazy="joined")
