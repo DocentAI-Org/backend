@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     daily_reset_timezone: str = "Europe/Madrid"
     max_upload_mb: int = 20
     tutor_language: str = "es"
+    # A repeated mistake (specs/005, provisional): the same error type and topic this
+    # many times within this many days, counting the current one.
+    repeated_mistake_count: int = 3
+    repeated_mistake_days: int = 30
     recover_interrupted_on_startup: bool = True
 
     # Study consent (specs/002): bump when the approved consent text changes.

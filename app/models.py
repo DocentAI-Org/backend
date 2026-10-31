@@ -208,12 +208,39 @@ class Citation(Base):
     submission_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("exercise_submissions.id")
     )
+    review_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("mistake_reviews.id")
+    )
     fragment_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("fragments.id"))
     document_name: Mapped[str]
     location_label: Mapped[str]
     position: Mapped[int]
 
     fragment: Mapped[Fragment | None] = relationship(lazy="selectin")
+
+
+class MistakeReview(Base):
+    """A targeted review of a repeated mistake (specs/005), one per submission."""
+
+    __tablename__ = "mistake_reviews"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    submission_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("exercise_submissions.id")
+    )
+    course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    error_type: Mapped[str]
+    topic_name: Mapped[str | None]
+    kind: Mapped[str]
+    explanation: Mapped[str] = mapped_column(Text)
+    worked_example: Mapped[str | None] = mapped_column(Text)
+    practice: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+
+    citations: Mapped[list["Citation"]] = relationship(
+        order_by="Citation.position", lazy="selectin"
+    )
 
 
 class LearningRecordEntry(Base):
