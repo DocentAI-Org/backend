@@ -27,5 +27,5 @@
 
 ## Phase 5: Polish
 
-- [ ] T007 Contract note in `specs/001-api-v1-contract/contracts/api.md`; validation against the
+- [x] T007 Contract note in `specs/001-api-v1-contract/contracts/api.md`; validation against the
   local model (SC-002) in `validation.md`
