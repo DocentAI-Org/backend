@@ -10570,7 +10570,7 @@
           },
           "by_topic": {
             "items": {
-              "$ref": "#/components/schemas/app__schemas__course_tests__TopicScore"
+              "$ref": "#/components/schemas/TestTopicScore"
             },
             "type": "array",
             "title": "By Topic"
@@ -11256,7 +11256,7 @@
           },
           "by_topic": {
             "items": {
-              "$ref": "#/components/schemas/app__schemas__quizzes__TopicScore"
+              "$ref": "#/components/schemas/TopicScore"
             },
             "type": "array",
             "title": "By Topic"
@@ -13039,6 +13039,42 @@
         ],
         "title": "TestSubmitted"
       },
+      "TestTopicScore": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "right": {
+            "type": "integer",
+            "title": "Right"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "right",
+          "total"
+        ],
+        "title": "TestTopicScore"
+      },
       "Topic": {
         "properties": {
           "id": {
@@ -13437,6 +13473,42 @@
         ],
         "title": "TopicRef"
       },
+      "TopicScore": {
+        "properties": {
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic_id",
+          "topic_name",
+          "correct",
+          "total"
+        ],
+        "title": "TopicScore"
+      },
       "TopicUpdate": {
         "properties": {
           "name": {
@@ -13680,78 +13752,6 @@
           "score"
         ],
         "title": "WeekScore"
-      },
-      "app__schemas__course_tests__TopicScore": {
-        "properties": {
-          "topic_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Topic Id"
-          },
-          "topic_name": {
-            "type": "string",
-            "title": "Topic Name"
-          },
-          "right": {
-            "type": "integer",
-            "title": "Right"
-          },
-          "total": {
-            "type": "integer",
-            "title": "Total"
-          }
-        },
-        "type": "object",
-        "required": [
-          "topic_id",
-          "topic_name",
-          "right",
-          "total"
-        ],
-        "title": "TopicScore"
-      },
-      "app__schemas__quizzes__TopicScore": {
-        "properties": {
-          "topic_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Topic Id"
-          },
-          "topic_name": {
-            "type": "string",
-            "title": "Topic Name"
-          },
-          "correct": {
-            "type": "integer",
-            "title": "Correct"
-          },
-          "total": {
-            "type": "integer",
-            "title": "Total"
-          }
-        },
-        "type": "object",
-        "required": [
-          "topic_id",
-          "topic_name",
-          "correct",
-          "total"
-        ],
-        "title": "TopicScore"
       }
     },
     "securitySchemes": {

@@ -240,7 +240,7 @@ def _score(
         score[0] += int(answer.correct)
         score[1] += 1
     scores = [
-        schemas.TopicScore(topic_id=tid, topic_name=name, right=r, total=t)
+        schemas.TestTopicScore(topic_id=tid, topic_name=name, right=r, total=t)
         for (tid, name), (r, t) in by_topic.items()
         if t
     ]

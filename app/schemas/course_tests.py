@@ -64,7 +64,7 @@ class CourseTest(BaseModel):
     phases: list[TestPhaseView]
 
 
-class TopicScore(BaseModel):
+class TestTopicScore(BaseModel):
     topic_id: uuid.UUID | None
     topic_name: str
     right: int
@@ -75,7 +75,7 @@ class PhaseScore(BaseModel):
     submitted_at: datetime
     right: int
     total: int
-    by_topic: list[TopicScore]
+    by_topic: list[TestTopicScore]
 
 
 class StudentResult(BaseModel):
