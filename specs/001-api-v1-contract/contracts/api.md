@@ -54,6 +54,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/v1/health` | public | — | `Health {status, service, version, database: ok\|error, llm: ok\|error}` |
 | GET | `/v1/me` | any | — | `Me {id, role, display_name, email?, is_pseudonymous, preferred_language}` |
 | PATCH | `/v1/me` | any | `MeUpdate {preferred_language}` | `Me` |
+| GET | `/v1/me/questionnaires` (specs/012) | student, teacher | — | `[MyQuestionnaire {id, title, url}]`: open ones for the caller's role; students only with consent; `{study_ref}` in the link resolved |
 
 ## Admin (`/v1/admin`, role admin)
 
@@ -65,6 +66,8 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/courses` | — | `Page[AdminCourse {id, name, teacher_name, student_count, created_at}]` |
 | GET | `/evaluation-set` | — | `Page[EvaluationItem {flag_id, course_id, category, correction, question, original_answer, citations, created_at}]` |
 | GET | `/study-export?course_id` (specs/011) | — | `application/zip`: `README.md` and `students`, `topics`, `messages`, `exercises`, `quiz_items`, `tests`, `interactions` `.csv`; consenting students only, `study_ref` ids, no free text |
+| GET / POST | `/questionnaires` (specs/012) | `QuestionnaireCreate {title, url (https), audience: student\|teacher}` | `[Questionnaire]` / 201 `Questionnaire {id, title, url, audience, status: open\|closed, created_at, updated_at}` |
+| PATCH / DELETE | `/questionnaires/{questionnaire_id}` | `QuestionnaireUpdate {title?, url?, status?}` | `Questionnaire` / 204 |
 
 `initial_password` is returned once and never stored in plain text by the API.
 

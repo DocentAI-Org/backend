@@ -485,3 +485,17 @@ class ConsentEvent(Base):
     action: Mapped[str]
     version: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+
+
+class Questionnaire(Base):
+    """A study questionnaire in an external tool (specs/012)."""
+
+    __tablename__ = "questionnaires"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    title: Mapped[str]
+    url: Mapped[str]
+    audience: Mapped[str]
+    status: Mapped[str] = mapped_column(server_default="open")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
