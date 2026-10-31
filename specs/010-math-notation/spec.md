@@ -34,12 +34,14 @@ algebra, arithmetic, physics, prices in dollars, history):
    `\( … \)` or `\[ … \]`, **Then** the command is restored, not turned into a control character.
 3. **Given** a reply with real line breaks or tabs outside math delimiters, **Then** they are
    kept as they are.
+4. **Given** a reply with `\frac` or `\beta` unescaped and without delimiters, **Then** the
+   command is still restored: form feed and backspace never appear in real text.
 
 ## Requirements *(mandatory)*
 
 - **FR-001**: `chat_json` MUST parse replies through one function that doubles backslashes that
   do not start a valid JSON escape, and restores `\b \f \n \r \t` followed by a letter inside
-  math delimiters. It applies to every subject and every prompt.
+  math delimiters (`\b \f` also outside them). It applies to every subject and prompt.
 - **FR-002**: Math delimiters are `\( … \)` (inline) and `\[ … \]` (display) only, never `$`,
   which is common in prices.
 - **FR-003**: The prompts do **not** ask the model to write LaTeX yet. The rule is added when
