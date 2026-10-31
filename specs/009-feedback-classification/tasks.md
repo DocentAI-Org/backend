@@ -11,3 +11,6 @@
 - [x] T005 Re-run the evaluation; record before/after in `evaluation.md`
 - [ ] T007 *(deferred)* Type ≥ 80 % and topic ≥ 90 % (SC-001b) when choosing the production
   model: evaluation.md, next steps
+- [x] T008 From the end-to-end review: the explanation (feedback and mistake review) speaks to
+  the student ("tú"); the hidden analysis stays as it was (asking it in "tú" lowered verdict
+  accuracy). See evaluation.md, "End-to-end review"
