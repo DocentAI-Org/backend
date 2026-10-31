@@ -27,7 +27,13 @@ def main() -> int:
 
     current = render()
     if args.check:
-        if not OPENAPI_PATH.exists() or OPENAPI_PATH.read_text() != current:
+        # A Windows checkout with core.autocrlf has CRLF; Git stores LF.
+        committed = (
+            OPENAPI_PATH.read_bytes().replace(b"\r\n", b"\n")
+            if OPENAPI_PATH.exists()
+            else None
+        )
+        if committed != current.encode():
             print(
                 "openapi.json is out of date. Run "
                 "`uv run python scripts/export_openapi.py` and commit it.",
@@ -36,7 +42,8 @@ def main() -> int:
             return 1
         print("openapi.json is up to date.")
         return 0
-    OPENAPI_PATH.write_text(current)
+    # Bytes: the same file on every OS (no locale encoding, no CRLF).
+    OPENAPI_PATH.write_bytes(current.encode())
     print(f"Wrote {OPENAPI_PATH.name}")
     return 0
 
