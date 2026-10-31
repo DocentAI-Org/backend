@@ -288,7 +288,7 @@ def _assess(
         enrolment.course_id,
         f"{problem_statement}\n{worked_answer}",
         settings.retrieval_top_k,
-        settings.retrieval_min_similarity,
+        settings.retrieval_min_similarity_exercises,
     )
     topics = list(
         session.scalars(

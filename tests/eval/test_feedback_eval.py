@@ -28,6 +28,7 @@ pytestmark = [pytest.mark.eval, pytest.mark.db]
 def llm():
     # The real model and the production thresholds, not the test ones.
     os.environ["RETRIEVAL_MIN_SIMILARITY"] = "0.55"
+    os.environ["RETRIEVAL_MIN_SIMILARITY_EXERCISES"] = "0.40"
     os.environ["DAILY_MESSAGE_LIMIT"] = "1000"
     get_settings.cache_clear()
     yield get_llm()

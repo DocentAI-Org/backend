@@ -15,6 +15,7 @@ os.environ["DAILY_MESSAGE_LIMIT"] = "5"
 # The app must not touch rows of a dev server sharing the local database.
 os.environ["RECOVER_INTERRUPTED_ON_STARTUP"] = "false"
 os.environ["RETRIEVAL_MIN_SIMILARITY"] = "0.2"
+os.environ["RETRIEVAL_MIN_SIMILARITY_EXERCISES"] = "0.2"
 os.environ["DATABASE_URL"] = os.environ.get(
     "TEST_DATABASE_URL",
     "postgresql+psycopg://postgres:postgres@127.0.0.1:54322/postgres",

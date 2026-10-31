@@ -37,6 +37,15 @@ splits one mistake across topics.
 3. **Given** a mistake between two types, **Then** the prompt's decision rules (subject-
    independent) say which one applies.
 
+### User Story 3 — Exercises reach the material (Priority: P1)
+
+Measured (evaluation.md): exercise statements and answers score 0.47–0.68 against the sections
+that cover them, so `RETRIEVAL_MIN_SIMILARITY=0.55` left 12–16 of 36 answers `not_assessed`.
+
+1. **Given** an exercise on covered material, **When** it is submitted, **Then** retrieval uses
+   the exercise threshold (`RETRIEVAL_MIN_SIMILARITY_EXERCISES`, default 0.40), not the chat one.
+2. **Given** an exercise unrelated to the material, **Then** it is still `not_assessed`.
+
 ## Requirements *(mandatory)*
 
 - **FR-001**: The evaluation cases MUST be data (`tests/eval/feedback_cases.json`): statement,
@@ -47,6 +56,9 @@ splits one mistake across topics.
 - **FR-003**: The temperature for feedback MUST be configurable (`LLM_FEEDBACK_TEMPERATURE`,
   default 0); the chat keeps 0.2.
 - **FR-004**: No API or database change.
+- **FR-005**: Exercise retrieval MUST use its own similarity threshold
+  (`RETRIEVAL_MIN_SIMILARITY_EXERCISES`, default 0.40); the chat keeps
+  `RETRIEVAL_MIN_SIMILARITY`.
 
 ## Success Criteria *(mandatory)*
 

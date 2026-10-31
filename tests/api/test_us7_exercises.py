@@ -2,6 +2,7 @@
 
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.models import InteractionLog
 from tests.api.helpers import classroom
 from tests.api.test_us6_topics import create_topic
@@ -310,3 +311,28 @@ def test_submission_endpoint_is_no_longer_a_stub(client) -> None:
     ]["post"]
 
     assert "x-stub" not in operation
+
+
+def with_thresholds(monkeypatch, chat: str, exercises: str) -> None:
+    monkeypatch.setenv("RETRIEVAL_MIN_SIMILARITY", chat)
+    monkeypatch.setenv("RETRIEVAL_MIN_SIMILARITY_EXERCISES", exercises)
+    get_settings.cache_clear()
+
+
+def test_exercises_use_their_own_retrieval_threshold(
+    client, llm, teacher, student, monkeypatch
+) -> None:
+    # Short statements sit below the chat threshold (spec 009 US3).
+    room = classroom(client, teacher, student)
+    llm.reply = MISTAKE
+    with_thresholds(monkeypatch, chat="0.99", exercises="0.0")
+    try:
+        assessed = submit(client, student, room.course_id).json()
+        with_thresholds(monkeypatch, chat="0.0", exercises="0.99")
+        uncovered = submit(client, student, room.course_id).json()
+    finally:
+        monkeypatch.undo()
+        get_settings.cache_clear()
+
+    assert assessed["verdict"] == "incorrect"
+    assert uncovered["verdict"] == "not_assessed"

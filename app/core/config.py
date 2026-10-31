@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # Retrieval and context (research R5)
     retrieval_top_k: int = 4
     retrieval_min_similarity: float = 0.55
+    # Exercise statements are short and symbolic: lower similarity (spec 009 US3).
+    retrieval_min_similarity_exercises: float = 0.40
     history_max_messages: int = 6
 
     # Limits (research R10, R11)
