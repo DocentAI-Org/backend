@@ -15,6 +15,7 @@ from app.models import (
     ExerciseSubmission,
     LearningRecordEntry,
     Message,
+    Quiz,
     Topic,
 )
 from app.schemas.dashboard import (
@@ -276,11 +277,21 @@ def weekly_activity(
         ):
             day = created_at.astimezone(UTC).date()
             counts[day - timedelta(days=day.weekday())][kind] += 1
+    for (completed_at,) in session.execute(
+        select(Quiz.completed_at).where(
+            Quiz.course_id == course.id,
+            Quiz.student_id == student_id,
+            Quiz.completed_at >= start,
+        )
+    ):
+        day = completed_at.astimezone(UTC).date()
+        counts[day - timedelta(days=day.weekday())]["quizzes"] += 1
     return [
         WeekActivity(
             week_start=week,
             messages=counts[week]["messages"],
             exercises=counts[week]["exercises"],
+            quizzes=counts[week]["quizzes"],
         )
         for week in weeks
     ]

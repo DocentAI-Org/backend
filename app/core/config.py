@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     quiz_length: int = 5
     quiz_start_level: int = 2
     quiz_streak: int = 2
+    # Progress by topic (specs/007, provisional): the latest graded items that count,
+    # the items needed for a score, and the scores for "progressing" and "mastered".
+    progress_window: int = 10
+    progress_min_items: int = 3
+    progress_progressing: float = 0.5
+    progress_mastered: float = 0.8
     recover_interrupted_on_startup: bool = True
 
     # Study consent (specs/002): bump when the approved consent text changes.
