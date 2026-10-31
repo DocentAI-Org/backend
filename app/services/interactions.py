@@ -20,10 +20,25 @@ def student_ref(settings: Settings, student_id: uuid.UUID | str) -> str:
     ).hexdigest()
 
 
-def estimate_cost(settings: Settings, input_tokens: int, output_tokens: int) -> Decimal:
+# Anthropic list prices (USD per million tokens, input and output), 2026-10;
+# LLM_PRICES overrides them and adds other models (specs/014).
+KNOWN_PRICES: dict[str, tuple[float, float]] = {
+    "claude-fable-5-1": (10.0, 50.0),
+    "claude-opus-5-5": (4.0, 20.0),
+    "claude-sonnet-5-5": (2.0, 10.0),
+    "claude-haiku-5-5": (0.10, 0.50),
+}
+
+
+def estimate_cost(
+    settings: Settings, input_tokens: int, output_tokens: int, model: str | None = None
+) -> Decimal:
+    price_in, price_out = {**KNOWN_PRICES, **settings.llm_prices}.get(
+        model or "",
+        (settings.llm_price_input_per_mtok, settings.llm_price_output_per_mtok),
+    )
     cost = (
-        Decimal(str(settings.llm_price_input_per_mtok)) * input_tokens
-        + Decimal(str(settings.llm_price_output_per_mtok)) * output_tokens
+        Decimal(str(price_in)) * input_tokens + Decimal(str(price_out)) * output_tokens
     ) / Decimal(1_000_000)
     return cost
 
@@ -56,7 +71,7 @@ def record(
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         latency_ms=latency_ms,
-        estimated_cost_usd=estimate_cost(settings, input_tokens, output_tokens),
+        estimated_cost_usd=estimate_cost(settings, input_tokens, output_tokens, model),
         outcome=outcome,
         error_code=error_code,
     )

@@ -358,6 +358,7 @@ def _assess(
                 fragment_topic_refs(session, hits, topics),
             ),
             temperature=settings.llm_feedback_temperature,
+            task="feedback",
         )
         feedback = validate_feedback(
             result.data, len(hits), len(topics), {t.code for t in error_types}

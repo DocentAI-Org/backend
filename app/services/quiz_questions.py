@@ -326,7 +326,9 @@ def _generate(
         tutor_settings = session.get(TutorSettings, course.id)
         assert tutor_settings is not None
         result = llm.chat_json(
-            build_prompt(settings, tutor_settings), build_messages(hits, topic, count)
+            build_prompt(settings, tutor_settings),
+            build_messages(hits, topic, count),
+            task="questions",
         )
         existing = {
             statement_key(s)

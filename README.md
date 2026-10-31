@@ -12,8 +12,8 @@ teacher has validated, and cites it.
 ## Stack
 
 Python + FastAPI, SQLAlchemy over Supabase Postgres + pgvector, Supabase Auth and Storage, and
-one OpenAI-compatible LLM client: Ollama locally, any compatible provider (open or closed models)
-in production, chosen only through `.env`.
+one LLM entry point (`app/llm/`) with three providers: Ollama locally, OpenAI or any
+OpenAI-compatible API, and Anthropic. The provider and model are chosen per task through `.env`.
 
 ## Local development
 
@@ -62,16 +62,24 @@ Tests never call a model provider: they use a deterministic fake (`tests/fakes.p
 
 ## Changing the model provider
 
-Edit `.env` only, e.g. for Mistral:
+Edit `.env` only (specs/014). A default provider and model, and optionally one per task
+(`TUTOR`, `FEEDBACK`, `REVIEW`, `QUESTIONS`), e.g. a cheap model for the chat and a stronger
+one for exercise feedback, with embeddings kept on local Ollama:
 
 ```env
-LLM_BASE_URL=https://api.mistral.ai/v1
-LLM_API_KEY=…
-LLM_CHAT_MODEL=mistral-small-latest
-LLM_EMBEDDING_MODEL=mistral-embed
-LLM_PRICE_INPUT_PER_MTOK=0.1
-LLM_PRICE_OUTPUT_PER_MTOK=0.3
+LLM_PROVIDER=anthropic
+LLM_MODEL=claude-haiku-5-5
+ANTHROPIC_API_KEY=…
+LLM_FEEDBACK_MODEL=claude-sonnet-5-5
+LLM_FEEDBACK_EFFORT=low
+LLM_EMBEDDING_PROVIDER=ollama
 ```
+
+Any OpenAI-compatible API (OpenAI, Mistral, vLLM…) is `openai` with its `OPENAI_BASE_URL`.
+Anthropic takes no temperature (`LLM_FEEDBACK_TEMPERATURE` only applies to the others) and
+has no embeddings. Costs in the interaction log use `LLM_PRICES` per model (current Claude
+models are built in). Compare models with the evaluation: `LLM_FEEDBACK_PROVIDER=…
+LLM_FEEDBACK_MODEL=… uv run pytest -m eval -s`.
 
 Embeddings must stay 1024-dimensional (`EMBEDDING_DIMENSIONS`); a different size needs a
 migration and re-processing the material. Re-tune `RETRIEVAL_MIN_SIMILARITY` and
