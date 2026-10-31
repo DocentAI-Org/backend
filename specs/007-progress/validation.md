@@ -29,3 +29,9 @@ incógnita" and "Paréntesis"; four exercises, each sent twice through the API.
   debatable, and both runs agreed.
 - The bracket mistake now lands in "Paréntesis" every time, which helps the repeated-mistake
   pattern of spec 005 (its validation saw it split across topics).
+
+## Later run (frontend 009 walkthrough)
+
+In a course whose topics were also assigned to the sections of the material, two bracket mistakes
+were filed under "Despejar la incógnita", not "Paréntesis". So the topic of a mistake is still
+unstable across courses and runs; the consistency above held for one setup only.
