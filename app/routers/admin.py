@@ -19,8 +19,13 @@ from app.schemas.admin import (
 from app.schemas.admin import (
     AdminUser as AdminUserOut,
 )
+from app.schemas.questionnaires import (
+    Questionnaire,
+    QuestionnaireCreate,
+    QuestionnaireUpdate,
+)
 from app.schemas.review import EvaluationItem
-from app.services import accounts, review, study_export
+from app.services import accounts, questionnaires, review, study_export
 
 router = APIRouter(
     prefix="/admin",
@@ -123,3 +128,48 @@ def export_study_data(
             "Content-Disposition": 'attachment; filename="docentai-study-export.zip"'
         },
     )
+
+
+@router.get(
+    "/questionnaires",
+    response_model=list[Questionnaire],
+    summary="Study questionnaires (P4, specs/012)",
+)
+def list_questionnaires(session: DbSession) -> list[Questionnaire]:
+    return [Questionnaire.model_validate(q) for q in questionnaires.list_all(session)]
+
+
+@router.post(
+    "/questionnaires",
+    status_code=201,
+    response_model=Questionnaire,
+    responses=error_responses(422),
+)
+def create_questionnaire(
+    payload: QuestionnaireCreate, session: DbSession
+) -> Questionnaire:
+    return Questionnaire.model_validate(questionnaires.create(session, payload))
+
+
+@router.patch(
+    "/questionnaires/{questionnaire_id}",
+    response_model=Questionnaire,
+    responses=error_responses(404, 422),
+)
+def update_questionnaire(
+    questionnaire_id: uuid.UUID, payload: QuestionnaireUpdate, session: DbSession
+) -> Questionnaire:
+    return Questionnaire.model_validate(
+        questionnaires.update(session, questionnaire_id, payload)
+    )
+
+
+@router.delete(
+    "/questionnaires/{questionnaire_id}",
+    status_code=204,
+    response_class=Response,
+    responses=error_responses(404),
+)
+def delete_questionnaire(questionnaire_id: uuid.UUID, session: DbSession) -> Response:
+    questionnaires.delete(session, questionnaire_id)
+    return Response(status_code=204)

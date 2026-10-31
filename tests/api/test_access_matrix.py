@@ -12,6 +12,12 @@ BODIES: dict[tuple[str, str], dict] = {
     ("patch", "/v1/me"): {"preferred_language": "es"},
     ("post", "/v1/admin/teachers"): {"email": "x@example.org", "display_name": "X"},
     ("post", "/v1/admin/students/pseudonymous"): {"count": 1},
+    ("post", "/v1/admin/questionnaires"): {
+        "title": "X",
+        "url": "https://example.org",
+        "audience": "student",
+    },
+    ("patch", "/v1/admin/questionnaires/{questionnaire_id}"): {"status": "closed"},
     ("post", "/v1/teacher/courses"): {"name": "X"},
     ("patch", "/v1/teacher/courses/{course_id}"): {"name": "X"},
     ("patch", "/v1/teacher/courses/{course_id}/class-code"): {"active": False},
