@@ -1,6 +1,7 @@
+import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
 from app.core.config import get_settings
 from app.core.db import DbSession
@@ -19,7 +20,7 @@ from app.schemas.admin import (
     AdminUser as AdminUserOut,
 )
 from app.schemas.review import EvaluationItem
-from app.services import accounts, review
+from app.services import accounts, review, study_export
 
 router = APIRouter(
     prefix="/admin",
@@ -96,4 +97,29 @@ def evaluation_set(session: DbSession, page: Pagination) -> Page[EvaluationItem]
     items, total = review.evaluation_set(session, page.limit, page.offset)
     return Page[EvaluationItem](
         items=items, total=total, limit=page.limit, offset=page.offset
+    )
+
+
+@router.get(
+    "/study-export",
+    response_class=Response,
+    responses={
+        200: {
+            "content": {
+                "application/zip": {"schema": {"type": "string", "format": "binary"}}
+            }
+        }
+    },
+    summary="Pseudonymised study data of consenting students, as a ZIP of CSV files",
+)
+def export_study_data(
+    session: DbSession, course_id: uuid.UUID | None = None
+) -> Response:
+    content = study_export.build(session, get_settings(), course_id)
+    return Response(
+        content,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": 'attachment; filename="docentai-study-export.zip"'
+        },
     )
