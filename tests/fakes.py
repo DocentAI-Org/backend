@@ -52,9 +52,13 @@ class FakeLLM:
         self.fail_embed = False
         self.reachable = True
         self.chat_calls: list[tuple[str, list[dict[str, str]]]] = []
+        self.temperatures: list[float] = []
 
-    def chat_json(self, system: str, messages: list[dict[str, str]]) -> ChatResult:
+    def chat_json(
+        self, system: str, messages: list[dict[str, str]], temperature: float = 0.2
+    ) -> ChatResult:
         self.chat_calls.append((system, messages))
+        self.temperatures.append(temperature)
         if self.fail_chat:
             raise LLMError("fake provider failure")
         data = (

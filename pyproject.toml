@@ -38,4 +38,8 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-markers = ["db: needs the local Supabase database (npx supabase start)"]
+markers = [
+    "db: needs the local Supabase database (npx supabase start)",
+    "eval: runs the real model on the evaluation sets; `uv run pytest -m eval -s`",
+]
+addopts = "-m 'not eval'"

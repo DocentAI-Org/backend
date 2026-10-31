@@ -26,7 +26,9 @@ class LLMClient(Protocol):
     @property
     def chat_model(self) -> str: ...
 
-    def chat_json(self, system: str, messages: list[dict[str, str]]) -> ChatResult: ...
+    def chat_json(
+        self, system: str, messages: list[dict[str, str]], temperature: float = 0.2
+    ) -> ChatResult: ...
 
     def embed(self, texts: list[str]) -> list[list[float]]: ...
 
@@ -49,13 +51,15 @@ class OpenAICompatClient:
     def chat_model(self) -> str:
         return self._settings.llm_chat_model
 
-    def chat_json(self, system: str, messages: list[dict[str, str]]) -> ChatResult:
+    def chat_json(
+        self, system: str, messages: list[dict[str, str]], temperature: float = 0.2
+    ) -> ChatResult:
         try:
             response = self._client.chat.completions.create(
                 model=self._settings.llm_chat_model,
                 messages=[{"role": "system", "content": system}, *messages],
                 response_format={"type": "json_object"},
-                temperature=0.2,
+                temperature=temperature,
             )
         except OpenAIError as exc:
             raise LLMError(str(exc)) from exc

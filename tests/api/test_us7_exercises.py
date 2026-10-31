@@ -2,6 +2,7 @@
 
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.models import InteractionLog
 from tests.api.helpers import classroom
 from tests.api.test_us6_topics import create_topic
@@ -310,3 +311,72 @@ def test_submission_endpoint_is_no_longer_a_stub(client) -> None:
     ]["post"]
 
     assert "x-stub" not in operation
+
+
+def with_thresholds(monkeypatch, chat: str, exercises: str) -> None:
+    monkeypatch.setenv("RETRIEVAL_MIN_SIMILARITY", chat)
+    monkeypatch.setenv("RETRIEVAL_MIN_SIMILARITY_EXERCISES", exercises)
+    get_settings.cache_clear()
+
+
+def test_exercises_use_their_own_retrieval_threshold(
+    client, llm, teacher, student, monkeypatch
+) -> None:
+    # Short statements sit below the chat threshold (spec 009 US3).
+    room = classroom(client, teacher, student)
+    llm.reply = MISTAKE
+    with_thresholds(monkeypatch, chat="0.99", exercises="0.0")
+    try:
+        assessed = submit(client, student, room.course_id).json()
+        with_thresholds(monkeypatch, chat="0.0", exercises="0.99")
+        uncovered = submit(client, student, room.course_id).json()
+    finally:
+        monkeypatch.undo()
+        get_settings.cache_clear()
+
+    assert assessed["verdict"] == "incorrect"
+    assert uncovered["verdict"] == "not_assessed"
+
+
+def test_each_fragment_tells_the_model_its_confirmed_topic(
+    client, llm, teacher, student
+) -> None:
+    # The topic of the mistake is the one of the material it breaks (spec 009 FR-002).
+    room = classroom(client, teacher, student)
+    create_topic(client, teacher, room.course_id, "Despejar la incógnita")
+    parens = create_topic(client, teacher, room.course_id, "Paréntesis").json()
+    fragments = client.get(
+        f"/v1/teacher/courses/{room.course_id}/documents/"
+        f"{room.document['id']}/fragments",
+        headers=teacher.headers,
+    ).json()["items"]
+    section = next(f["section"] for f in fragments if "paréntesis" in f["section"])
+    client.post(
+        f"/v1/teacher/courses/{room.course_id}/topic-assignments",
+        headers=teacher.headers,
+        json={
+            "topic_id": parens["id"],
+            "document_id": room.document["id"],
+            "section": section,
+        },
+    )
+    llm.reply = MISTAKE
+
+    submit(client, student, room.course_id)
+
+    _, messages = llm.chat_calls[-1]
+    fragments_sent = messages[0]["content"].split("<fragmento ")[1:]
+    with_topic = [f for f in fragments_sent if 'tema="T2"' in f]
+    assert len(with_topic) == 1 and "Quitar paréntesis" in with_topic[0]
+    assert all("tema=" not in f for f in fragments_sent if f not in with_topic)
+
+
+def test_feedback_is_asked_with_the_feedback_temperature(
+    client, llm, teacher, student
+) -> None:
+    room = classroom(client, teacher, student)
+    llm.reply = MISTAKE
+
+    submit(client, student, room.course_id)
+
+    assert llm.temperatures[-1] == 0.0
