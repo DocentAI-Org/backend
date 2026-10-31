@@ -4,10 +4,14 @@
 
 ## Phase 1: Tests first
 
-- [ ] T001 [P] API tests: US1 AS1–AS7, US2 AS1–AS3 in `tests/api/test_progress.py`
-- [ ] T002 [P] Unit tests: score, levels and history in `tests/unit/test_progress.py`
+- [ ] T001 [P] API tests: US1 AS1–AS8, US2 AS1–AS3 in `tests/api/test_progress.py`; correct
+  exercises with a topic in `tests/api/test_us7_exercises.py`
+- [ ] T002 [P] Unit tests: score, levels and history in `tests/unit/test_progress.py`; topic of
+  correct feedback in `tests/unit/test_exercise_feedback.py`
 
 ## Phase 2: US1–US2
+
+- [ ] T006 Exercise feedback classifies the topic of correct exercises (FR-005)
 
 - [ ] T003 Settings `PROGRESS_WINDOW`, `PROGRESS_MIN_ITEMS`, `PROGRESS_PROGRESSING`,
   `PROGRESS_MASTERED`; `app/services/progress.py`; schemas; student and teacher routes

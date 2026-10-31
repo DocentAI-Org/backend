@@ -29,6 +29,10 @@ mastery level and their most frequent mistakes; the teacher sees the same on the
   dashboard), computed with the items up to then; null where there were too few.
 - Q: Which activity has a topic? → A: Exercises classified into a course topic and quiz answers
   (their question's topic). Graded activity without a topic is shown apart as "Sin tema".
+- Q: Exercise feedback (spec 003) only gave a topic to mistakes, so correct exercises could not
+  count toward a topic. → A: The feedback classifies the topic of every graded exercise, correct
+  ones included (prompt and validation). Correct exercises from before have no topic and count as
+  `unassigned`. The learning record still holds mistakes only.
 - Q: What does the teacher see? → A: Exactly what the student sees (same basis, constitution I),
   plus completed quizzes in the weekly activity of the student's page.
 
@@ -52,9 +56,11 @@ mastery level and their most frequent mistakes; the teacher sees the same on the
    null where there were too few items by then.
 5. **Given** classified mistakes in a topic, **Then** the topic lists its three most frequent
    error types with their count and the latest submission of each.
-6. **Given** graded exercises without a topic, **Then** they appear in `unassigned`; not
+6. **Given** a correct exercise of a topic, **Then** its feedback carries that topic and it
+   counts toward the topic's mastery.
+7. **Given** graded exercises without a topic, **Then** they appear in `unassigned`; not
    assessed exercises never count.
-7. **Given** no activity, **Then** every topic is `not_started` and `updated_at` is null.
+8. **Given** no activity, **Then** every topic is `not_started` and `updated_at` is null.
 
 ### User Story 2 — The teacher sees the same progress (Priority: P1)
 
@@ -80,6 +86,8 @@ mastery level and their most frequent mistakes; the teacher sees the same on the
   the items in the window, so it explains the score.
 - **FR-003**: `WeekActivity` gains `quizzes` (completed that week). Additive.
 - **FR-004**: Computed on read from existing data; no new tables; no model calls.
+- **FR-005**: Exercise feedback MUST classify the course topic of correct exercises too (spec 003
+  change).
 
 ## Success Criteria *(mandatory)*
 
