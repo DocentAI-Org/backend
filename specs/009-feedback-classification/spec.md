@@ -1,6 +1,6 @@
 # Feature Specification: Stable Classification of Exercise Mistakes
 
-**Feature Branch**: `006-feedback-classification`
+**Feature Branch**: `009-feedback-classification`
 
 **Created**: 2026-10-31
 

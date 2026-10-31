@@ -1,4 +1,4 @@
-"""Classification of exercise mistakes against the local model (spec 006).
+"""Classification of exercise mistakes against the local model (spec 009).
 
 Not part of the normal suite: `uv run pytest -m eval -s`. Needs Supabase and Ollama
 with the configured models. Each case is graded RUNS times in a rolled-back transaction;
