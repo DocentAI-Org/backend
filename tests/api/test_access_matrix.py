@@ -18,6 +18,8 @@ CRITERIA = {
 
 BODIES: dict[tuple[str, str], dict] = {
     ("patch", "/v1/me"): {"preferred_language": "es"},
+    ("post", "/v1/me/course-tags"): {"name": "Repaso", "color": "green"},
+    ("patch", "/v1/me/course-tags/{tag_id}"): {"name": "Repaso"},
     ("post", "/v1/admin/teachers"): {"email": "x@example.org", "display_name": "X"},
     ("post", "/v1/admin/students/pseudonymous"): {"count": 1},
     ("put", "/v1/admin/pedagogy-criteria"): {
