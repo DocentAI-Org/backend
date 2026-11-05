@@ -8,4 +8,4 @@
 - [x] T002 Migration (`course_favorites`, `unaccent`), model, search helper
 - [x] T003 [US1] [US2] `q` and `sort` on the eight lists
 - [x] T004 [US3] Favourite endpoints; `is_favorite` and favourites first in both course lists
-- [ ] T005 Contract note and `openapi.json`
+- [x] T005 Contract note and `openapi.json`

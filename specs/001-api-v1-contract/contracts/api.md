@@ -14,6 +14,21 @@ This document is its design: every endpoint, its role, models and error codes. F
 - **Stubs**: endpoints marked *stub* have `x-stub: true` in OpenAPI (none since specs/003).
 - **Not found vs forbidden**: another user's resource → `404 not_found`; wrong role for a router →
   `403 forbidden`.
+- **Search and sort** (specs/016): course, student, conversation, document, question, user and
+  admin course lists accept `q` (each word must appear in one of the list's text fields,
+  ignoring case and accents; blank means none) and `sort` (today's order by default; an unknown
+  value is 422). `total` counts the matches.
+
+| List | `q` searches | `sort` (default first) |
+|---|---|---|
+| `GET /v1/teacher/courses` | name, description | `recent`, `name` |
+| `GET /v1/student/courses` | name, description, teacher's name | `recent`, `name` |
+| `GET /v1/teacher/courses/{id}/students` | display name | `joined`, `name` |
+| `GET /v1/teacher/courses/{id}/conversations` | student's name, message text | `recent`, `oldest` |
+| `GET /v1/teacher/courses/{id}/documents` | file name | `recent`, `name` |
+| `GET /v1/teacher/courses/{id}/questions` | statement, topic name | `default`, `recent` |
+| `GET /v1/admin/users` | display name, email | `recent`, `name` |
+| `GET /v1/admin/courses` | name, teacher's name | `recent`, `name` |
 
 ## Error codes
 
@@ -55,6 +70,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/v1/me` | any | — | `Me {id, role, display_name, email?, is_pseudonymous, preferred_language}` |
 | PATCH | `/v1/me` | any | `MeUpdate {preferred_language}` | `Me` |
 | GET | `/v1/me/questionnaires` (specs/012) | student, teacher | — | `[MyQuestionnaire {id, title, url}]`: open ones for the caller's role; students only with consent; `{study_ref}` in the link resolved |
+| PUT / DELETE | `/v1/me/favorite-courses/{course_id}` (specs/016) | teacher, student | — | `204`; a course the caller teaches or is actively in, else 404; both idempotent. Starred courses come first in the caller's course list, with `is_favorite: true` on `TeacherCourse` and `StudentCourse` |
 
 ## Admin (`/v1/admin`, role admin)
 
