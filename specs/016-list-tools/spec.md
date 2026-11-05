@@ -85,8 +85,8 @@ shows them all, so a list longer than that is cut without notice.
 3. **Given** a student, **Then** the same works for the courses they are in.
 4. **Given** a course the user does not teach or is not in, **Then** 404, and starring the same
    course twice is not an error.
-5. **Given** a student who stars a course and later leaves it, **Then** it is not listed, and if
-   they join again it is a favourite again.
+5. **Given** a student who stars a course and is then removed by the teacher, **Then** the
+   course is no longer listed and starring it is 404.
 6. **Given** another user, **Then** they do not see the first user's favourites.
 
 ## Requirements *(mandatory)*
