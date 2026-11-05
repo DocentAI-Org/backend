@@ -8,12 +8,14 @@ import time
 import uuid
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import Literal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, object_session
 
 from app.core.config import Settings, get_settings
 from app.core.errors import ApiError, not_found
+from app.core.search import matches
 from app.llm.client import ChatResult, LLMClient, LLMError
 from app.llm.prompts import load_labels, load_prompt
 from app.models import (
@@ -22,6 +24,7 @@ from app.models import (
     ErrorType,
     ExerciseSubmission,
     LearningRecordEntry,
+    Profile,
     Topic,
     TopicAssignment,
     TutorSettings,
@@ -448,6 +451,9 @@ def get_submission(
     return submission
 
 
+SubmissionSort = Literal["recent", "oldest"]
+
+
 def list_submissions(
     session: Session,
     course_id: uuid.UUID,
@@ -456,8 +462,22 @@ def list_submissions(
     offset: int,
     created_from=None,
     created_to=None,
+    q: str | None = None,
+    sort: SubmissionSort = "recent",
 ) -> tuple[list[ExerciseSubmission], int]:
-    query = select(ExerciseSubmission).where(ExerciseSubmission.course_id == course_id)
+    student_name = select(Profile.display_name).where(
+        Profile.id == ExerciseSubmission.student_id
+    )
+    query = select(ExerciseSubmission).where(
+        ExerciseSubmission.course_id == course_id,
+        matches(
+            q,
+            student_name.scalar_subquery(),
+            ExerciseSubmission.problem_statement,
+            ExerciseSubmission.worked_answer,
+            ExerciseSubmission.topic_name,
+        ),
+    )
     if student_id:
         query = query.where(ExerciseSubmission.student_id == student_id)
     if created_from:
@@ -465,8 +485,11 @@ def list_submissions(
     if created_to:
         query = query.where(ExerciseSubmission.created_at <= created_to)
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    created = ExerciseSubmission.created_at
     rows = session.scalars(
-        query.order_by(ExerciseSubmission.created_at.desc(), ExerciseSubmission.id)
+        query.order_by(
+            created if sort == "oldest" else created.desc(), ExerciseSubmission.id
+        )
         .limit(limit)
         .offset(offset)
     ).all()

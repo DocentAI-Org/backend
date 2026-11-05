@@ -71,6 +71,43 @@ class Enrolment(Base):
     student: Mapped[Profile] = relationship(lazy="joined")
 
 
+class CourseFavorite(Base):
+    """A course a teacher or student starred (specs/016); listed first."""
+
+    __tablename__ = "course_favorites"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("profiles.id"), primary_key=True
+    )
+    course_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("courses.id"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class CourseTag(Base):
+    """A user's own tag for their courses (specs/016 US4)."""
+
+    __tablename__ = "course_tags"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    name: Mapped[str]
+    color: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class CourseTagLink(Base):
+    __tablename__ = "course_tag_links"
+
+    tag_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("course_tags.id"), primary_key=True
+    )
+    course_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("courses.id"), primary_key=True
+    )
+
+
 class TutorSettings(Base):
     __tablename__ = "tutor_settings"
 

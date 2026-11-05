@@ -7,6 +7,7 @@ from app.core.config import get_settings
 from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
+from app.core.search import Search
 from app.core.security import AdminUser as AdminProfile
 from app.core.security import require_role
 from app.integrations.auth_admin import AuthAdminClient, get_auth_admin
@@ -45,8 +46,12 @@ def list_users(
     page: Pagination,
     role: Annotated[Literal["admin", "teacher", "student"] | None, Query()] = None,
     status: Annotated[Literal["active", "disabled"] | None, Query()] = None,
+    q: Search = None,
+    sort: accounts.AdminSort = "recent",
 ) -> Page[AdminUserOut]:
-    rows, total = accounts.list_users(session, role, status, page.limit, page.offset)
+    rows, total = accounts.list_users(
+        session, role, status, page.limit, page.offset, q, sort
+    )
     return Page[AdminUserOut](
         items=[AdminUserOut.from_profile(p) for p in rows],
         total=total,
@@ -88,8 +93,13 @@ def create_pseudonymous_students(
 
 
 @router.get("/courses", response_model=Page[AdminCourse])
-def list_courses(session: DbSession, page: Pagination) -> Page[AdminCourse]:
-    items, total = accounts.list_courses(session, page.limit, page.offset)
+def list_courses(
+    session: DbSession,
+    page: Pagination,
+    q: Search = None,
+    sort: accounts.AdminSort = "recent",
+) -> Page[AdminCourse]:
+    items, total = accounts.list_courses(session, page.limit, page.offset, q, sort)
     return Page[AdminCourse](
         items=items, total=total, limit=page.limit, offset=page.offset
     )

@@ -7,6 +7,7 @@ from app.core.config import get_settings
 from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Pagination
+from app.core.search import Search
 from app.core.security import TeacherUser
 from app.llm.client import LLMClient, get_llm
 from app.schemas.quizzes import (
@@ -61,10 +62,12 @@ def list_questions(
     page: Pagination,
     status: Annotated[QuestionStatus | None, Query()] = None,
     topic_id: Annotated[uuid.UUID | None, Query()] = None,
+    q: Search = None,
+    sort: quiz_questions.QuestionSort = "default",
 ) -> QuestionPage:
     course = courses.get_owned_course(session, course_id, teacher)
     return quiz_questions.list_questions(
-        session, course, status, topic_id, page.limit, page.offset
+        session, course, status, topic_id, page.limit, page.offset, q, sort
     )
 
 

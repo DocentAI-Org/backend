@@ -7,6 +7,7 @@ from app.core.config import get_settings
 from app.core.db import DbSession, SessionFactoryDep
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
+from app.core.search import Search
 from app.core.security import TeacherUser
 from app.integrations.storage import StorageClient, get_storage
 from app.llm.client import LLMClient, get_llm
@@ -61,10 +62,17 @@ def upload_document(
 
 @router.get("", response_model=Page[Document], responses=error_responses(404))
 def list_documents(
-    course_id: uuid.UUID, teacher: TeacherUser, session: DbSession, page: Pagination
+    course_id: uuid.UUID,
+    teacher: TeacherUser,
+    session: DbSession,
+    page: Pagination,
+    q: Search = None,
+    sort: documents.DocumentSort = "recent",
 ) -> Page[Document]:
     course = courses.get_owned_course(session, course_id, teacher)
-    rows, total = documents.list_documents(session, course, page.limit, page.offset)
+    rows, total = documents.list_documents(
+        session, course, page.limit, page.offset, q, sort
+    )
     return Page[Document](
         items=[documents.to_schema(session, d) for d in rows],
         total=total,

@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query, Response
 from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
+from app.core.search import Search
 from app.core.security import TeacherUser
 from app.schemas.exercises import LearningRecordEntry, MistakeReview
 from app.schemas.review import (
@@ -40,6 +41,8 @@ def list_conversations(
     created_to: To = None,
     has_no_source: Annotated[bool | None, Query()] = None,
     has_correction: Annotated[bool | None, Query()] = None,
+    q: Search = None,
+    sort: review.ConversationSort = "recent",
 ) -> Page[ConversationSummary]:
     course = courses.get_owned_course(session, course_id, teacher)
     items, total = review.list_conversations(
@@ -52,6 +55,8 @@ def list_conversations(
         created_to=created_to,
         has_no_source=has_no_source,
         has_correction=has_correction,
+        q=q,
+        sort=sort,
     )
     return Page[ConversationSummary](
         items=items, total=total, limit=page.limit, offset=page.offset
@@ -86,6 +91,8 @@ def list_submissions(
     student_id: Annotated[uuid.UUID | None, Query()] = None,
     created_from: From = None,
     created_to: To = None,
+    q: Search = None,
+    sort: exercises.SubmissionSort = "recent",
 ) -> Page[TeacherSubmission]:
     course = courses.get_owned_course(session, course_id, teacher)
     rows, total = exercises.list_submissions(
@@ -96,6 +103,8 @@ def list_submissions(
         page.offset,
         created_from=created_from,
         created_to=created_to,
+        q=q,
+        sort=sort,
     )
     return Page[TeacherSubmission](
         items=[review.submission_view(s) for s in rows],

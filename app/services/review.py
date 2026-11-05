@@ -2,11 +2,13 @@
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
-from sqlalchemy import Select, exists, func, select
+from sqlalchemy import Select, exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, not_found
+from app.core.search import contains, words
 from app.models import (
     Conversation,
     Course,
@@ -45,6 +47,9 @@ def submission_view(submission: ExerciseSubmission) -> schemas.TeacherSubmission
         student_name=submission.student.display_name,
         flag=flag_view(submission.flag),
     )
+
+
+ConversationSort = Literal["recent", "oldest"]
 
 
 def _has_no_source():
@@ -98,8 +103,24 @@ def list_conversations(
     created_to: datetime | None = None,
     has_no_source: bool | None = None,
     has_correction: bool | None = None,
+    q: str | None = None,
+    sort: ConversationSort = "recent",
 ) -> tuple[list[schemas.ConversationSummary], int]:
     query = _summary_query(course)
+    for word in words(q):
+        # Each word in the student's name or in any of its messages (specs/016).
+        student = select(Profile.display_name).where(
+            Profile.id == Conversation.student_id
+        )
+        query = query.where(
+            or_(
+                contains(student.scalar_subquery(), word),
+                exists().where(
+                    Message.conversation_id == Conversation.id,
+                    contains(Message.text, word),
+                ),
+            )
+        )
     if student_id:
         query = query.where(Conversation.student_id == student_id)
     if created_from:
@@ -113,8 +134,9 @@ def list_conversations(
         condition = _has_correction()
         query = query.where(condition if has_correction else ~condition)
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    last = Conversation.last_message_at
     rows = session.execute(
-        query.order_by(Conversation.last_message_at.desc(), Conversation.id)
+        query.order_by(last if sort == "oldest" else last.desc(), Conversation.id)
         .limit(limit)
         .offset(offset)
     ).all()

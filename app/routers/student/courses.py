@@ -1,10 +1,12 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
+from app.core.search import Search
 from app.core.security import StudentUser
 from app.models import TutorSettings
 from app.schemas.courses import JoinCourse, StudentCourse
@@ -23,18 +25,28 @@ def join_course(
     payload: JoinCourse, student: StudentUser, session: DbSession
 ) -> StudentCourse:
     enrolment = courses.join_course(session, student, payload.class_code)
-    return courses.to_student_course(enrolment)
+    return courses.to_student_course(session, enrolment)
 
 
 @router.get("/courses", response_model=Page[StudentCourse])
 def list_courses(
-    student: StudentUser, session: DbSession, page: Pagination
+    student: StudentUser,
+    session: DbSession,
+    page: Pagination,
+    q: Search = None,
+    sort: courses.CourseSort = "recent",
+    favorite: Annotated[
+        bool | None, Query(description="Only starred courses, or only the others.")
+    ] = None,
+    tag: Annotated[
+        uuid.UUID | None, Query(description="Only the courses with this tag of yours.")
+    ] = None,
 ) -> Page[StudentCourse]:
     rows, total = courses.list_student_enrolments(
-        session, student, page.limit, page.offset
+        session, student, page.limit, page.offset, q, sort, favorite, tag
     )
     return Page[StudentCourse](
-        items=[courses.to_student_course(e) for e in rows],
+        items=[courses.to_student_course(session, e) for e in rows],
         total=total,
         limit=page.limit,
         offset=page.offset,
@@ -50,7 +62,7 @@ def read_course(
     course_id: uuid.UUID, student: StudentUser, session: DbSession
 ) -> StudentCourse:
     enrolment = courses.get_active_enrolment(session, course_id, student)
-    return courses.to_student_course(enrolment)
+    return courses.to_student_course(session, enrolment)
 
 
 @router.post(
@@ -64,7 +76,7 @@ def acknowledge_disclosure(
 ) -> StudentCourse:
     enrolment = courses.get_active_enrolment(session, course_id, student)
     courses.acknowledge_disclosure(session, enrolment)
-    return courses.to_student_course(enrolment)
+    return courses.to_student_course(session, enrolment)
 
 
 @router.get(
