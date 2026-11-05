@@ -93,6 +93,22 @@ shows them all, so a list longer than that is cut without notice.
 7. **Given** `favorite=true`, **Then** both course lists show only the user's starred courses
    (and `favorite=false` only the others), with `total` counting them, for a "Favourites" filter.
 
+### User Story 4 — Organise my courses with my own tags (Priority: P2)
+
+Like Overleaf's project tags (decided 2026-11-05, "phase 2").
+
+1. **Given** a teacher or a student, **When** they create a tag with a name and one of the
+   palette colours (`violet`, `green`, `blue`, `amber`, `red`, `gray`), **Then** it is listed
+   with how many of their courses carry it.
+2. **Given** a tag, **When** they put it on courses they teach or are in, **Then** those courses
+   list it under `tags`, and `tag=<id>` lists only them; a course can carry several tags.
+3. **When** they rename a tag or change its colour, **Then** every course shows the change; when
+   they delete it, it disappears from the courses, which stay.
+4. **Given** a name they already use (ignoring case), an empty name or one over 40 characters, or
+   another colour, **Then** 422.
+5. **Given** another user's tag or a course they do not teach or are not in, **Then** 404; an
+   admin gets 403. Nobody sees anybody else's tags.
+
 ## Requirements *(mandatory)*
 
 - **FR-001**: `q` and `sort` on the nine list endpoints; the response shape does not change
@@ -103,6 +119,10 @@ shows them all, so a list longer than that is cut without notice.
   deleted with the user or the course; RLS on, no client access. The `unaccent` extension for
   accent-insensitive search.
 - **FR-004**: One helper builds the search condition for every list.
+- **FR-005**: `GET/POST /v1/me/course-tags`, `PATCH/DELETE /v1/me/course-tags/{tag_id}`,
+  `PUT/DELETE /v1/me/course-tags/{tag_id}/courses/{course_id}` (204, idempotent). Migration:
+  `course_tags (id, user_id, name, color, created_at)` unique per user and lower(name), and
+  `course_tag_links (tag_id, course_id)`; cascades; RLS on, no client access.
 
 ## Success Criteria *(mandatory)*
 
