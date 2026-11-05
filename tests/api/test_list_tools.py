@@ -344,6 +344,24 @@ def test_a_removed_student_loses_the_course_and_its_star(
     assert star(client, student, course["id"]).status_code == 404
 
 
+def test_lists_can_show_only_favourites(client, teacher, student) -> None:
+    first = create_course(client, teacher, "Primero")
+    second = create_course(client, teacher, "Segundo")
+    join(client, student, first)
+    join(client, student, second)
+    star(client, teacher, second["id"])
+    star(client, student, first["id"])
+
+    teachers = client.get("/v1/teacher/courses?favorite=true", headers=teacher.headers)
+    students = client.get("/v1/student/courses?favorite=true", headers=student.headers)
+    others = client.get("/v1/student/courses?favorite=false", headers=student.headers)
+
+    assert names(teachers) == ["Segundo"]
+    assert teachers.json()["total"] == 1
+    assert names(students) == ["Primero"]
+    assert names(others) == ["Segundo"]
+
+
 def test_admins_have_no_favourites(client, admin, teacher) -> None:
     course = create_course(client, teacher)
 

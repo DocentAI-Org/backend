@@ -1,6 +1,7 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Query, Response
 
 from app.core.db import DbSession
 from app.core.errors import error_responses
@@ -36,9 +37,12 @@ def list_courses(
     page: Pagination,
     q: Search = None,
     sort: courses.CourseSort = "recent",
+    favorite: Annotated[
+        bool | None, Query(description="Only starred courses, or only the others.")
+    ] = None,
 ) -> Page[TeacherCourse]:
     rows, total = courses.list_teacher_courses(
-        session, teacher, page.limit, page.offset, q, sort
+        session, teacher, page.limit, page.offset, q, sort, favorite
     )
     return Page[TeacherCourse](
         items=[courses.to_teacher_course(session, c) for c in rows],

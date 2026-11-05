@@ -90,6 +90,8 @@ shows them all, so a list longer than that is cut without notice.
 5. **Given** a student who stars a course and is then removed by the teacher, **Then** the
    course is no longer listed and starring it is 404.
 6. **Given** another user, **Then** they do not see the first user's favourites.
+7. **Given** `favorite=true`, **Then** both course lists show only the user's starred courses
+   (and `favorite=false` only the others), with `total` counting them, for a "Favourites" filter.
 
 ## Requirements *(mandatory)*
 

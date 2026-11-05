@@ -11,3 +11,4 @@
 - [x] T005 Contract note and `openapi.json`
 - [x] T006 [US1] [US2] Exercise submissions too: the teacher's review page lists them with the
   conversations, so a search must reach both
+- [x] T007 [US3] `favorite=true|false` on both course lists, for the "Favoritos" filter

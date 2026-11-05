@@ -71,7 +71,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/v1/me` | any | — | `Me {id, role, display_name, email?, is_pseudonymous, preferred_language}` |
 | PATCH | `/v1/me` | any | `MeUpdate {preferred_language}` | `Me` |
 | GET | `/v1/me/questionnaires` (specs/012) | student, teacher | — | `[MyQuestionnaire {id, title, url}]`: open ones for the caller's role; students only with consent; `{study_ref}` in the link resolved |
-| PUT / DELETE | `/v1/me/favorite-courses/{course_id}` (specs/016) | teacher, student | — | `204`; a course the caller teaches or is actively in, else 404; both idempotent. Starred courses come first in the caller's course list, with `is_favorite: true` on `TeacherCourse` and `StudentCourse` |
+| PUT / DELETE | `/v1/me/favorite-courses/{course_id}` (specs/016) | teacher, student | — | `204`; a course the caller teaches or is actively in, else 404; both idempotent. Starred courses come first in the caller's course list, with `is_favorite: true` on `TeacherCourse` and `StudentCourse`; both course lists take `favorite=true` (only starred) or `false` (only the others) |
 
 ## Admin (`/v1/admin`, role admin)
 

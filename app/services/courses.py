@@ -5,7 +5,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Literal
 
-from sqlalchemy import case, delete, exists, func, select
+from sqlalchemy import case, delete, exists, func, select, true
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -71,6 +71,13 @@ def _starred(user_id: uuid.UUID):
     )
 
 
+def _favorite_filter(user_id: uuid.UUID, favorite: bool | None):
+    """Only starred courses (True), only the others (False) or all (None)."""
+    if favorite is None:
+        return true()
+    return _starred(user_id) if favorite else ~_starred(user_id)
+
+
 def _is_favorite(session: Session, user_id: uuid.UUID, course_id: uuid.UUID) -> bool:
     return session.get(CourseFavorite, (user_id, course_id)) is not None
 
@@ -134,9 +141,12 @@ def list_teacher_courses(
     offset: int,
     q: str | None = None,
     sort: CourseSort = "recent",
+    favorite: bool | None = None,
 ) -> tuple[list[Course], int]:
     query = select(Course).where(
-        Course.teacher_id == teacher.id, matches(q, Course.name, Course.description)
+        Course.teacher_id == teacher.id,
+        matches(q, Course.name, Course.description),
+        _favorite_filter(teacher.id, favorite),
     )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     rows = session.scalars(
@@ -238,6 +248,7 @@ def list_student_enrolments(
     offset: int,
     q: str | None = None,
     sort: CourseSort = "recent",
+    favorite: bool | None = None,
 ) -> tuple[list[Enrolment], int]:
     teacher = Profile.__table__.alias("teacher")
     query = (
@@ -248,6 +259,7 @@ def list_student_enrolments(
             Enrolment.student_id == student.id,
             Enrolment.status == "active",
             matches(q, Course.name, Course.description, teacher.c.display_name),
+            _favorite_filter(student.id, favorite),
         )
     )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
