@@ -14,7 +14,7 @@ every list, search and favourites on the server, a "Show more" button for long l
 
 ## Today
 
-Eight list endpoints page with `limit`/`offset` and return `total`, but none can search or
+Nine list endpoints page with `limit`/`offset` and return `total`, but none can search or
 sort, and nothing can be marked as a favourite. The frontend asks for the first 100 items and
 shows them all, so a list longer than that is cut without notice.
 
@@ -24,6 +24,7 @@ shows them all, so a list longer than that is cut without notice.
 | `GET /v1/student/courses` | last joined first |
 | `GET /v1/teacher/courses/{id}/students` | first joined first |
 | `GET /v1/teacher/courses/{id}/conversations` | last message first |
+| `GET /v1/teacher/courses/{id}/submissions` | newest first |
 | `GET /v1/teacher/courses/{id}/documents` | last uploaded first |
 | `GET /v1/teacher/courses/{id}/questions` | pending first, then newest |
 | `GET /v1/admin/users` | newest first |
@@ -47,6 +48,7 @@ shows them all, so a list longer than that is cut without notice.
 | Student courses | name, description, teacher's name | `recent`, `name` |
 | Course students | display name | `joined`, `name` |
 | Conversations | student's name, message text | `recent`, `oldest` |
+| Exercise submissions | student's name, statement, answer, topic | `recent`, `oldest` |
 | Documents | file name | `recent`, `name` |
 | Questions | statement, topic name | `default` (pending first), `recent` |
 | Admin users | display name, email | `recent`, `name` |
@@ -91,7 +93,7 @@ shows them all, so a list longer than that is cut without notice.
 
 ## Requirements *(mandatory)*
 
-- **FR-001**: `q` and `sort` on the eight list endpoints; the response shape does not change
+- **FR-001**: `q` and `sort` on the nine list endpoints; the response shape does not change
   except for `is_favorite` on teacher and student courses. No breaking change.
 - **FR-002**: `PUT` and `DELETE /v1/me/favorite-courses/{course_id}` (204), for teachers and
   students; 404 when the course is not theirs.

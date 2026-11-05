@@ -91,6 +91,8 @@ def list_submissions(
     student_id: Annotated[uuid.UUID | None, Query()] = None,
     created_from: From = None,
     created_to: To = None,
+    q: Search = None,
+    sort: exercises.SubmissionSort = "recent",
 ) -> Page[TeacherSubmission]:
     course = courses.get_owned_course(session, course_id, teacher)
     rows, total = exercises.list_submissions(
@@ -101,6 +103,8 @@ def list_submissions(
         page.offset,
         created_from=created_from,
         created_to=created_to,
+        q=q,
+        sort=sort,
     )
     return Page[TeacherSubmission](
         items=[review.submission_view(s) for s in rows],

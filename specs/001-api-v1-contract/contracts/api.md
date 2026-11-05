@@ -14,8 +14,8 @@ This document is its design: every endpoint, its role, models and error codes. F
 - **Stubs**: endpoints marked *stub* have `x-stub: true` in OpenAPI (none since specs/003).
 - **Not found vs forbidden**: another user's resource → `404 not_found`; wrong role for a router →
   `403 forbidden`.
-- **Search and sort** (specs/016): course, student, conversation, document, question, user and
-  admin course lists accept `q` (each word must appear in one of the list's text fields,
+- **Search and sort** (specs/016): course, student, conversation, submission, document, question,
+  user and admin course lists accept `q` (each word must appear in one of the list's text fields,
   ignoring case and accents; blank means none) and `sort` (today's order by default; an unknown
   value is 422). `total` counts the matches.
 
@@ -25,6 +25,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | `GET /v1/student/courses` | name, description, teacher's name | `recent`, `name` |
 | `GET /v1/teacher/courses/{id}/students` | display name | `joined`, `name` |
 | `GET /v1/teacher/courses/{id}/conversations` | student's name, message text | `recent`, `oldest` |
+| `GET /v1/teacher/courses/{id}/submissions` | student's name, statement, answer, topic | `recent`, `oldest` |
 | `GET /v1/teacher/courses/{id}/documents` | file name | `recent`, `name` |
 | `GET /v1/teacher/courses/{id}/questions` | statement, topic name | `default`, `recent` |
 | `GET /v1/admin/users` | display name, email | `recent`, `name` |

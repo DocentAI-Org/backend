@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from sqlalchemy import update
 
-from app.models import Conversation, Course, Enrolment, Profile
+from app.models import Conversation, Course, Enrolment, ExerciseSubmission, Profile
 from tests.api.helpers import (
     COVERED_QUESTION,
     UNCOVERED_QUESTION,
@@ -17,6 +17,7 @@ from tests.api.helpers import (
 from tests.api.test_quiz_questions import generated, questions_path
 from tests.api.test_us2_courses import create_course
 from tests.api.test_us3_material import MARKDOWN, upload
+from tests.api.test_us7_exercises import EXERCISE, submit
 
 
 def names(response) -> list[str]:
@@ -121,6 +122,24 @@ def test_conversations_are_found_by_message_text_and_keep_filters(
     assert [c["id"] for c in by_text["items"]] == [theirs["id"]]
     assert [c["id"] for c in by_name["items"]] == [mine["id"]]
     assert filtered["total"] == 0
+
+
+def test_submissions_are_found_by_text_and_sorted(client, db, teacher, student) -> None:
+    room = classroom(client, teacher, student)
+    first = submit(client, student, room.course_id).json()
+    other = {**EXERCISE, "problem_statement": "Calcula el área de un triángulo"}
+    second = submit(client, student, room.course_id, other).json()
+    at(db, ExerciseSubmission, 2, "created_at", id=first["id"])
+    at(db, ExerciseSubmission, 1, "created_at", id=second["id"])
+    base = f"/v1/teacher/courses/{room.course_id}/submissions"
+
+    by_text = client.get(f"{base}?q=triangulo", headers=teacher.headers).json()
+    by_name = client.get(f"{base}?q=herrera", headers=teacher.headers).json()
+    oldest = client.get(f"{base}?sort=oldest", headers=teacher.headers).json()
+
+    assert [s["id"] for s in by_text["items"]] == [second["id"]]
+    assert by_name["total"] == 2
+    assert [s["id"] for s in oldest["items"]] == [first["id"], second["id"]]
 
 
 def test_documents_are_found_by_file_name(client, teacher) -> None:
