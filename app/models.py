@@ -71,6 +71,20 @@ class Enrolment(Base):
     student: Mapped[Profile] = relationship(lazy="joined")
 
 
+class CourseFavorite(Base):
+    """A course a teacher or student starred (specs/016); listed first."""
+
+    __tablename__ = "course_favorites"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("profiles.id"), primary_key=True
+    )
+    course_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("courses.id"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
 class TutorSettings(Base):
     __tablename__ = "tutor_settings"
 

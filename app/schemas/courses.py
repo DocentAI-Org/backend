@@ -30,6 +30,9 @@ class TeacherCourse(BaseModel):
     invitation_path: str = Field(description="Frontend path; prefix with its origin.")
     student_count: int
     created_at: datetime
+    is_favorite: bool = Field(
+        default=False, description="Starred by the caller; listed first (specs/016)."
+    )
 
 
 class CourseStudent(BaseModel):
@@ -50,3 +53,6 @@ class StudentCourse(BaseModel):
     teacher_name: str
     joined_at: datetime
     disclosure_acknowledged: bool
+    is_favorite: bool = Field(
+        default=False, description="Starred by the caller; listed first (specs/016)."
+    )

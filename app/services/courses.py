@@ -3,12 +3,15 @@ course-scoped endpoint relies on (constitution II)."""
 
 import uuid
 from datetime import UTC, datetime
+from typing import Literal
 
-from sqlalchemy import func, select
+from sqlalchemy import case, delete, exists, func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from app.core.errors import ApiError, not_found
-from app.models import Course, Enrolment, Profile, TutorSettings
+from app.core.errors import ApiError, forbidden, not_found
+from app.core.search import matches
+from app.models import Course, CourseFavorite, Enrolment, Profile, TutorSettings
 from app.schemas.courses import CourseStudent, StudentCourse, TeacherCourse
 from app.services.accounts import random_code
 
@@ -57,6 +60,21 @@ def _student_count(session: Session, course_id: uuid.UUID) -> int:
     )
 
 
+CourseSort = Literal["recent", "name"]
+StudentSort = Literal["joined", "name"]
+
+
+def _starred(user_id: uuid.UUID):
+    """True for the courses `user_id` starred (specs/016)."""
+    return exists().where(
+        CourseFavorite.user_id == user_id, CourseFavorite.course_id == Course.id
+    )
+
+
+def _is_favorite(session: Session, user_id: uuid.UUID, course_id: uuid.UUID) -> bool:
+    return session.get(CourseFavorite, (user_id, course_id)) is not None
+
+
 def to_teacher_course(session: Session, course: Course) -> TeacherCourse:
     return TeacherCourse(
         id=course.id,
@@ -67,10 +85,11 @@ def to_teacher_course(session: Session, course: Course) -> TeacherCourse:
         invitation_path=f"/join/{course.class_code}",
         student_count=_student_count(session, course.id),
         created_at=course.created_at,
+        is_favorite=_is_favorite(session, course.teacher_id, course.id),
     )
 
 
-def to_student_course(enrolment: Enrolment) -> StudentCourse:
+def to_student_course(session: Session, enrolment: Enrolment) -> StudentCourse:
     course = enrolment.course
     return StudentCourse(
         id=course.id,
@@ -79,6 +98,7 @@ def to_student_course(enrolment: Enrolment) -> StudentCourse:
         teacher_name=course.teacher.display_name,
         joined_at=enrolment.joined_at,
         disclosure_acknowledged=enrolment.disclosure_acknowledged_at is not None,
+        is_favorite=_is_favorite(session, enrolment.student_id, course.id),
     )
 
 
@@ -99,13 +119,30 @@ def create_course(
     return course
 
 
+def _course_order(user_id: uuid.UUID, sort: CourseSort, recent):
+    """Starred courses first, then the chosen order (specs/016)."""
+    starred_first = case((_starred(user_id), 0), else_=1)
+    if sort == "name":
+        return starred_first, func.lower(Course.name), Course.id
+    return starred_first, recent.desc(), Course.id
+
+
 def list_teacher_courses(
-    session: Session, teacher: Profile, limit: int, offset: int
+    session: Session,
+    teacher: Profile,
+    limit: int,
+    offset: int,
+    q: str | None = None,
+    sort: CourseSort = "recent",
 ) -> tuple[list[Course], int]:
-    query = select(Course).where(Course.teacher_id == teacher.id)
+    query = select(Course).where(
+        Course.teacher_id == teacher.id, matches(q, Course.name, Course.description)
+    )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     rows = session.scalars(
-        query.order_by(Course.created_at.desc(), Course.id).limit(limit).offset(offset)
+        query.order_by(*_course_order(teacher.id, sort, Course.created_at))
+        .limit(limit)
+        .offset(offset)
     ).all()
     return list(rows), total
 
@@ -118,13 +155,25 @@ def regenerate_code(session: Session, course: Course) -> Course:
 
 
 def list_students(
-    session: Session, course: Course, limit: int, offset: int
+    session: Session,
+    course: Course,
+    limit: int,
+    offset: int,
+    q: str | None = None,
+    sort: StudentSort = "joined",
 ) -> tuple[list[CourseStudent], int]:
-    query = select(Enrolment).where(Enrolment.course_id == course.id)
+    query = (
+        select(Enrolment)
+        .join(Profile, Profile.id == Enrolment.student_id)
+        .where(Enrolment.course_id == course.id, matches(q, Profile.display_name))
+    )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
-    rows = session.scalars(
-        query.order_by(Enrolment.joined_at, Enrolment.id).limit(limit).offset(offset)
-    ).all()
+    order = (
+        (func.lower(Profile.display_name), Enrolment.id)
+        if sort == "name"
+        else (Enrolment.joined_at, Enrolment.id)
+    )
+    rows = session.scalars(query.order_by(*order).limit(limit).offset(offset)).all()
     items = [
         CourseStudent(
             student_id=e.student_id,
@@ -183,18 +232,71 @@ def join_course(session: Session, student: Profile, class_code: str) -> Enrolmen
 
 
 def list_student_enrolments(
-    session: Session, student: Profile, limit: int, offset: int
+    session: Session,
+    student: Profile,
+    limit: int,
+    offset: int,
+    q: str | None = None,
+    sort: CourseSort = "recent",
 ) -> tuple[list[Enrolment], int]:
-    query = select(Enrolment).where(
-        Enrolment.student_id == student.id, Enrolment.status == "active"
+    teacher = Profile.__table__.alias("teacher")
+    query = (
+        select(Enrolment)
+        .join(Course, Course.id == Enrolment.course_id)
+        .join(teacher, teacher.c.id == Course.teacher_id)
+        .where(
+            Enrolment.student_id == student.id,
+            Enrolment.status == "active",
+            matches(q, Course.name, Course.description, teacher.c.display_name),
+        )
     )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     rows = session.scalars(
-        query.order_by(Enrolment.joined_at.desc(), Enrolment.id)
+        query.order_by(*_course_order(student.id, sort, Enrolment.joined_at))
         .limit(limit)
         .offset(offset)
     ).all()
     return list(rows), total
+
+
+def _visible_course(session: Session, user: Profile, course_id: uuid.UUID) -> Course:
+    """A course the user teaches or is actively in; others are 404 (specs/016)."""
+    course = session.get(Course, course_id)
+    if course is not None and user.role == "teacher" and course.teacher_id == user.id:
+        return course
+    if course is not None and user.role == "student":
+        active = session.scalar(
+            select(Enrolment.id).where(
+                Enrolment.course_id == course_id,
+                Enrolment.student_id == user.id,
+                Enrolment.status == "active",
+            )
+        )
+        if active is not None:
+            return course
+    raise not_found("Course")
+
+
+def star_course(session: Session, user: Profile, course_id: uuid.UUID) -> None:
+    if user.role not in ("teacher", "student"):
+        raise forbidden()
+    _visible_course(session, user, course_id)
+    session.execute(
+        insert(CourseFavorite)
+        .values(user_id=user.id, course_id=course_id)
+        .on_conflict_do_nothing()
+    )
+
+
+def unstar_course(session: Session, user: Profile, course_id: uuid.UUID) -> None:
+    if user.role not in ("teacher", "student"):
+        raise forbidden()
+    _visible_course(session, user, course_id)
+    session.execute(
+        delete(CourseFavorite).where(
+            CourseFavorite.user_id == user.id, CourseFavorite.course_id == course_id
+        )
+    )
 
 
 def acknowledge_disclosure(session: Session, enrolment: Enrolment) -> Enrolment:

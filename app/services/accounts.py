@@ -2,12 +2,14 @@
 
 import secrets
 import uuid
+from typing import Literal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.core.errors import ApiError
+from app.core.search import matches
 from app.integrations.auth_admin import AuthAdminClient
 from app.models import Course, Enrolment, Profile
 from app.schemas.admin import AdminCourse, PseudonymousAccount
@@ -77,27 +79,43 @@ def _unused_pseudonym_code(session: Session) -> str:
             return code
 
 
+AdminSort = Literal["recent", "name"]
+
+
 def list_users(
-    session: Session, role: str | None, status: str | None, limit: int, offset: int
+    session: Session,
+    role: str | None,
+    status: str | None,
+    limit: int,
+    offset: int,
+    q: str | None = None,
+    sort: AdminSort = "recent",
 ) -> tuple[list[Profile], int]:
-    query = select(Profile)
+    query = select(Profile).where(matches(q, Profile.display_name, Profile.email))
     if role:
         query = query.where(Profile.role == role)
     if status:
         query = query.where(Profile.status == status)
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
-    rows = session.scalars(
-        query.order_by(Profile.created_at.desc(), Profile.id)
-        .limit(limit)
-        .offset(offset)
-    ).all()
+    order = (
+        (func.lower(Profile.display_name), Profile.id)
+        if sort == "name"
+        else (Profile.created_at.desc(), Profile.id)
+    )
+    rows = session.scalars(query.order_by(*order).limit(limit).offset(offset)).all()
     return list(rows), total
 
 
 def list_courses(
-    session: Session, limit: int, offset: int
+    session: Session,
+    limit: int,
+    offset: int,
+    q: str | None = None,
+    sort: AdminSort = "recent",
 ) -> tuple[list[AdminCourse], int]:
-    total = session.scalar(select(func.count(Course.id))) or 0
+    teacher_name = select(Profile.display_name).where(Profile.id == Course.teacher_id)
+    found = matches(q, Course.name, teacher_name.scalar_subquery())
+    total = session.scalar(select(func.count(Course.id)).where(found)) or 0
     student_count = (
         select(func.count(Enrolment.id))
         .where(Enrolment.course_id == Course.id, Enrolment.status == "active")
@@ -105,7 +123,14 @@ def list_courses(
     )
     rows = session.execute(
         select(Course, student_count)
-        .order_by(Course.created_at.desc(), Course.id)
+        .where(found)
+        .order_by(
+            *(
+                (func.lower(Course.name), Course.id)
+                if sort == "name"
+                else (Course.created_at.desc(), Course.id)
+            )
+        )
         .limit(limit)
         .offset(offset)
     ).all()

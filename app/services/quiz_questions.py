@@ -7,12 +7,14 @@ import time
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Literal
 
 from sqlalchemy import and_, case, func, or_, select, true
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.core.errors import ApiError, not_found
+from app.core.search import matches
 from app.llm.client import ChatResult, LLMClient, LLMError
 from app.llm.prompts import load_labels, load_prompt
 from app.models import (
@@ -402,6 +404,9 @@ def get_question(
     return question
 
 
+QuestionSort = Literal["default", "recent"]
+
+
 def list_questions(
     session: Session,
     course: Course,
@@ -409,19 +414,23 @@ def list_questions(
     topic_id: uuid.UUID | None,
     limit: int,
     offset: int,
+    q: str | None = None,
+    sort: QuestionSort = "default",
 ) -> schemas.QuestionPage:
-    scope = select(QuizQuestion).where(QuizQuestion.course_id == course.id)
+    topic_name = select(Topic.name).where(Topic.id == QuizQuestion.topic_id)
+    scope = select(QuizQuestion).where(
+        QuizQuestion.course_id == course.id,
+        matches(q, QuizQuestion.statement, topic_name.scalar_subquery()),
+    )
     if topic_id:
         scope = scope.where(QuizQuestion.topic_id == topic_id)
     counted = _counts(session, scope)
     query = scope.where(QuizQuestion.status == status) if status else scope
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    pending_first = case((QuizQuestion.status == "pending", 0), else_=1)
+    order = (QuizQuestion.created_at.desc(), QuizQuestion.id)
     rows = session.scalars(
-        query.order_by(
-            case((QuizQuestion.status == "pending", 0), else_=1),
-            QuizQuestion.created_at.desc(),
-            QuizQuestion.id,
-        )
+        query.order_by(*((pending_first, *order) if sort == "default" else order))
         .limit(limit)
         .offset(offset)
     ).all()

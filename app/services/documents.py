@@ -4,6 +4,7 @@ import logging
 import uuid
 from datetime import UTC, datetime
 from pathlib import PurePath
+from typing import Literal
 
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.config import Settings
 from app.core.db import SessionFactory
 from app.core.errors import ApiError, not_found
+from app.core.search import matches
 from app.integrations.storage import StorageClient, StorageError
 from app.llm.client import LLMClient, LLMError
 from app.models import Course, Document, Fragment, Profile, TopicAssignment
@@ -233,16 +235,27 @@ def delete(session: Session, storage: StorageClient, document: Document) -> None
         logger.warning("Could not delete stored file for document %s", document.id)
 
 
+DocumentSort = Literal["recent", "name"]
+
+
 def list_documents(
-    session: Session, course: Course, limit: int, offset: int
+    session: Session,
+    course: Course,
+    limit: int,
+    offset: int,
+    q: str | None = None,
+    sort: DocumentSort = "recent",
 ) -> tuple[list[Document], int]:
-    query = select(Document).where(Document.course_id == course.id)
+    query = select(Document).where(
+        Document.course_id == course.id, matches(q, Document.file_name)
+    )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
-    rows = session.scalars(
-        query.order_by(Document.uploaded_at.desc(), Document.id)
-        .limit(limit)
-        .offset(offset)
-    ).all()
+    order = (
+        (func.lower(Document.file_name), Document.id)
+        if sort == "name"
+        else (Document.uploaded_at.desc(), Document.id)
+    )
+    rows = session.scalars(query.order_by(*order).limit(limit).offset(offset)).all()
     return list(rows), total
 
 

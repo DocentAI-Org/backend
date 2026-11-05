@@ -1,8 +1,11 @@
 """Spec 016 — search, sort and favourites in the lists."""
 
-import pytest
+from datetime import UTC, datetime, timedelta
 
-from app.models import Profile
+import pytest
+from sqlalchemy import update
+
+from app.models import Conversation, Course, Enrolment, Profile
 from tests.api.helpers import (
     COVERED_QUESTION,
     UNCOVERED_QUESTION,
@@ -28,6 +31,14 @@ def join(client, student, course: dict) -> None:
         json={"class_code": course["class_code"]},
     )
     assert response.status_code in (200, 201), response.text
+
+
+def at(db, model, minutes_ago: int, column: str, **where) -> None:
+    """Sets a timestamp: in a test everything shares one transaction, so now() ties."""
+    moment = datetime.now(UTC) - timedelta(minutes=minutes_ago)
+    conditions = [getattr(model, key) == value for key, value in where.items()]
+    db.execute(update(model).where(*conditions).values({column: moment}))
+    db.commit()
 
 
 def star(client, user, course_id: str):
@@ -153,12 +164,14 @@ def test_admin_finds_users_by_email_and_keeps_filters(
 
 
 def test_admin_finds_courses_by_teacher_name(
-    client, admin, teacher, other_teacher
+    client, admin, make_user, other_teacher
 ) -> None:
+    # A name of its own: the local database also holds the development data.
+    teacher = make_user("teacher", "Prof. Íñigo Zubizarreta")
     create_course(client, teacher, "Álgebra")
     create_course(client, other_teacher, "Historia")
 
-    found = client.get("/v1/admin/courses?q=ruiz", headers=admin.headers)
+    found = client.get("/v1/admin/courses?q=inigo zubi", headers=admin.headers)
 
     assert names(found) == ["Álgebra"]
 
@@ -166,9 +179,10 @@ def test_admin_finds_courses_by_teacher_name(
 # --- US2 sort -------------------------------------------------------------------
 
 
-def test_sort_by_name_and_default_order(client, teacher) -> None:
-    for name in ("B", "a", "C"):
-        create_course(client, teacher, name)
+def test_sort_by_name_and_default_order(client, db, teacher) -> None:
+    for minutes, name in ((3, "B"), (2, "a"), (1, "C")):
+        course = create_course(client, teacher, name)
+        at(db, Course, minutes, "created_at", id=course["id"])
 
     by_name = client.get("/v1/teacher/courses?sort=name", headers=teacher.headers)
     recent = client.get("/v1/teacher/courses?sort=recent", headers=teacher.headers)
@@ -196,10 +210,12 @@ def test_unknown_sort_is_rejected(client, admin, teacher, student, path) -> None
     assert response.status_code == 422
 
 
-def test_students_sort_by_name(client, teacher, make_user) -> None:
+def test_students_sort_by_name(client, db, teacher, make_user) -> None:
     course = create_course(client, teacher)
-    for name in ("Zoe", "ana"):
-        join(client, make_user("student", name), course)
+    for minutes, name in ((2, "Zoe"), (1, "ana")):
+        student = make_user("student", name)
+        join(client, student, course)
+        at(db, Enrolment, minutes, "joined_at", student_id=student.id)
     path = f"/v1/teacher/courses/{course['id']}/students"
 
     joined = client.get(path, headers=teacher.headers).json()
@@ -209,12 +225,14 @@ def test_students_sort_by_name(client, teacher, make_user) -> None:
     assert [s["display_name"] for s in by_name["items"]] == ["ana", "Zoe"]
 
 
-def test_conversations_sort_oldest_first(client, teacher, student) -> None:
+def test_conversations_sort_oldest_first(client, db, teacher, student) -> None:
     room = classroom(client, teacher, student)
     first = open_conversation(client, student, room.course_id)
     ask(client, student, room.course_id, first["id"], COVERED_QUESTION)
     second = open_conversation(client, student, room.course_id)
     ask(client, student, room.course_id, second["id"], COVERED_QUESTION)
+    at(db, Conversation, 2, "last_message_at", id=first["id"])
+    at(db, Conversation, 1, "last_message_at", id=second["id"])
     base = f"/v1/teacher/courses/{room.course_id}/conversations"
 
     oldest = client.get(f"{base}?sort=oldest", headers=teacher.headers).json()
@@ -225,10 +243,11 @@ def test_conversations_sort_oldest_first(client, teacher, student) -> None:
 # --- US3 favourites --------------------------------------------------------------
 
 
-def test_a_starred_course_comes_first_until_unstarred(client, teacher) -> None:
+def test_a_starred_course_comes_first_until_unstarred(client, db, teacher) -> None:
     oldest = create_course(client, teacher, "Primero")
-    create_course(client, teacher, "Segundo")
-    create_course(client, teacher, "Tercero")
+    for minutes, name in ((3, "Primero"), (2, "Segundo"), (1, "Tercero")):
+        course = oldest if name == "Primero" else create_course(client, teacher, name)
+        at(db, Course, minutes, "created_at", id=course["id"])
 
     assert star(client, teacher, oldest["id"]).status_code == 204
     starred = client.get("/v1/teacher/courses", headers=teacher.headers).json()

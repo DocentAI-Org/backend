@@ -5,6 +5,7 @@ from fastapi import APIRouter, Response
 from app.core.db import DbSession
 from app.core.errors import error_responses
 from app.core.pagination import Page, Pagination
+from app.core.search import Search
 from app.core.security import TeacherUser
 from app.schemas.courses import (
     ClassCodeUpdate,
@@ -30,10 +31,14 @@ def create_course(
 
 @router.get("", response_model=Page[TeacherCourse])
 def list_courses(
-    teacher: TeacherUser, session: DbSession, page: Pagination
+    teacher: TeacherUser,
+    session: DbSession,
+    page: Pagination,
+    q: Search = None,
+    sort: courses.CourseSort = "recent",
 ) -> Page[TeacherCourse]:
     rows, total = courses.list_teacher_courses(
-        session, teacher, page.limit, page.offset
+        session, teacher, page.limit, page.offset, q, sort
     )
     return Page[TeacherCourse](
         items=[courses.to_teacher_course(session, c) for c in rows],
@@ -107,10 +112,17 @@ def update_class_code(
     responses=error_responses(404),
 )
 def list_students(
-    course_id: uuid.UUID, teacher: TeacherUser, session: DbSession, page: Pagination
+    course_id: uuid.UUID,
+    teacher: TeacherUser,
+    session: DbSession,
+    page: Pagination,
+    q: Search = None,
+    sort: courses.StudentSort = "joined",
 ) -> Page[CourseStudent]:
     course = courses.get_owned_course(session, course_id, teacher)
-    items, total = courses.list_students(session, course, page.limit, page.offset)
+    items, total = courses.list_students(
+        session, course, page.limit, page.offset, q, sort
+    )
     return Page[CourseStudent](
         items=items, total=total, limit=page.limit, offset=page.offset
     )
