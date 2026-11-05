@@ -104,8 +104,8 @@ Like Overleaf's project tags (decided 2026-11-05, "phase 2").
    list it under `tags`, and `tag=<id>` lists only them; a course can carry several tags.
 3. **When** they rename a tag or change its colour, **Then** every course shows the change; when
    they delete it, it disappears from the courses, which stay.
-4. **Given** a name they already use (ignoring case), an empty name or one over 40 characters, or
-   another colour, **Then** 422.
+4. **Given** a name they already use (ignoring case), **Then** 409 `tag_name_taken`; an empty
+   name, one over 40 characters or another colour is 422.
 5. **Given** another user's tag or a course they do not teach or are not in, **Then** 404; an
    admin gets 403. Nobody sees anybody else's tags.
 

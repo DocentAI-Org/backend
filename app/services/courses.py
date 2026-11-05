@@ -11,8 +11,21 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import ApiError, forbidden, not_found
 from app.core.search import matches
-from app.models import Course, CourseFavorite, Enrolment, Profile, TutorSettings
-from app.schemas.courses import CourseStudent, StudentCourse, TeacherCourse
+from app.models import (
+    Course,
+    CourseFavorite,
+    CourseTag,
+    CourseTagLink,
+    Enrolment,
+    Profile,
+    TutorSettings,
+)
+from app.schemas.courses import (
+    CourseStudent,
+    CourseTagRef,
+    StudentCourse,
+    TeacherCourse,
+)
 from app.services.accounts import random_code
 
 
@@ -78,6 +91,30 @@ def _favorite_filter(user_id: uuid.UUID, favorite: bool | None):
     return _starred(user_id) if favorite else ~_starred(user_id)
 
 
+def _tag_filter(user_id: uuid.UUID, tag_id: uuid.UUID | None):
+    """Only the courses carrying the user's tag `tag_id` (specs/016 US4)."""
+    if tag_id is None:
+        return true()
+    return exists().where(
+        CourseTagLink.course_id == Course.id,
+        CourseTagLink.tag_id == tag_id,
+        CourseTag.id == CourseTagLink.tag_id,
+        CourseTag.user_id == user_id,
+    )
+
+
+def _tags(
+    session: Session, user_id: uuid.UUID, course_id: uuid.UUID
+) -> list[CourseTagRef]:
+    rows = session.scalars(
+        select(CourseTag)
+        .join(CourseTagLink, CourseTagLink.tag_id == CourseTag.id)
+        .where(CourseTag.user_id == user_id, CourseTagLink.course_id == course_id)
+        .order_by(func.lower(CourseTag.name), CourseTag.id)
+    ).all()
+    return [CourseTagRef(id=t.id, name=t.name, color=t.color) for t in rows]  # type: ignore[arg-type]
+
+
 def _is_favorite(session: Session, user_id: uuid.UUID, course_id: uuid.UUID) -> bool:
     return session.get(CourseFavorite, (user_id, course_id)) is not None
 
@@ -93,6 +130,7 @@ def to_teacher_course(session: Session, course: Course) -> TeacherCourse:
         student_count=_student_count(session, course.id),
         created_at=course.created_at,
         is_favorite=_is_favorite(session, course.teacher_id, course.id),
+        tags=_tags(session, course.teacher_id, course.id),
     )
 
 
@@ -106,6 +144,7 @@ def to_student_course(session: Session, enrolment: Enrolment) -> StudentCourse:
         joined_at=enrolment.joined_at,
         disclosure_acknowledged=enrolment.disclosure_acknowledged_at is not None,
         is_favorite=_is_favorite(session, enrolment.student_id, course.id),
+        tags=_tags(session, enrolment.student_id, course.id),
     )
 
 
@@ -142,11 +181,13 @@ def list_teacher_courses(
     q: str | None = None,
     sort: CourseSort = "recent",
     favorite: bool | None = None,
+    tag: uuid.UUID | None = None,
 ) -> tuple[list[Course], int]:
     query = select(Course).where(
         Course.teacher_id == teacher.id,
         matches(q, Course.name, Course.description),
         _favorite_filter(teacher.id, favorite),
+        _tag_filter(teacher.id, tag),
     )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     rows = session.scalars(
@@ -249,6 +290,7 @@ def list_student_enrolments(
     q: str | None = None,
     sort: CourseSort = "recent",
     favorite: bool | None = None,
+    tag: uuid.UUID | None = None,
 ) -> tuple[list[Enrolment], int]:
     teacher = Profile.__table__.alias("teacher")
     query = (
@@ -260,6 +302,7 @@ def list_student_enrolments(
             Enrolment.status == "active",
             matches(q, Course.name, Course.description, teacher.c.display_name),
             _favorite_filter(student.id, favorite),
+            _tag_filter(student.id, tag),
         )
     )
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
@@ -271,7 +314,7 @@ def list_student_enrolments(
     return list(rows), total
 
 
-def _visible_course(session: Session, user: Profile, course_id: uuid.UUID) -> Course:
+def visible_course(session: Session, user: Profile, course_id: uuid.UUID) -> Course:
     """A course the user teaches or is actively in; others are 404 (specs/016)."""
     course = session.get(Course, course_id)
     if course is not None and user.role == "teacher" and course.teacher_id == user.id:
@@ -292,7 +335,7 @@ def _visible_course(session: Session, user: Profile, course_id: uuid.UUID) -> Co
 def star_course(session: Session, user: Profile, course_id: uuid.UUID) -> None:
     if user.role not in ("teacher", "student"):
         raise forbidden()
-    _visible_course(session, user, course_id)
+    visible_course(session, user, course_id)
     session.execute(
         insert(CourseFavorite)
         .values(user_id=user.id, course_id=course_id)
@@ -303,7 +346,7 @@ def star_course(session: Session, user: Profile, course_id: uuid.UUID) -> None:
 def unstar_course(session: Session, user: Profile, course_id: uuid.UUID) -> None:
     if user.role not in ("teacher", "student"):
         raise forbidden()
-    _visible_course(session, user, course_id)
+    visible_course(session, user, course_id)
     session.execute(
         delete(CourseFavorite).where(
             CourseFavorite.user_id == user.id, CourseFavorite.course_id == course_id

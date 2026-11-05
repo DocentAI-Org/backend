@@ -47,6 +47,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | 413 | `file_too_large` | over `MAX_UPLOAD_MB` |
 | 409 | `document_not_ready` | validate/exclude a document that is not `ready` |
 | 409 | `topic_name_taken` | duplicate topic name in the course |
+| 409 | `tag_name_taken` | a user names two of their course tags alike, ignoring case (specs/016) |
 | 409 | `disclosure_not_acknowledged` | student messages before acknowledging the AI disclosure |
 | 429 | `daily_limit_reached` | `details.resets_at` |
 | 409 | `solution_not_allowed` | `request_solution` with policy `hints_only` |
@@ -72,6 +73,9 @@ This document is its design: every endpoint, its role, models and error codes. F
 | PATCH | `/v1/me` | any | `MeUpdate {preferred_language}` | `Me` |
 | GET | `/v1/me/questionnaires` (specs/012) | student, teacher | — | `[MyQuestionnaire {id, title, url}]`: open ones for the caller's role; students only with consent; `{study_ref}` in the link resolved |
 | PUT / DELETE | `/v1/me/favorite-courses/{course_id}` (specs/016) | teacher, student | — | `204`; a course the caller teaches or is actively in, else 404; both idempotent. Starred courses come first in the caller's course list, with `is_favorite: true` on `TeacherCourse` and `StudentCourse`; both course lists take `favorite=true` (only starred) or `false` (only the others) |
+| GET / POST | `/v1/me/course-tags` (specs/016 US4) | teacher, student | `CourseTagCreate {name (1–40), color: violet\|green\|blue\|amber\|red\|gray}` | `[CourseTag {id, name, color, course_count}]` / 201 `CourseTag`; 409 `tag_name_taken` |
+| PATCH / DELETE | `/v1/me/course-tags/{tag_id}` | teacher, student | `CourseTagUpdate {name?, color?}` | `CourseTag` / 204; another user's tag is 404 |
+| PUT / DELETE | `/v1/me/course-tags/{tag_id}/courses/{course_id}` | teacher, student | — | `204`, idempotent; the course must be one the caller teaches or is in. Courses list the caller's tags in `tags: [{id, name, color}]`, and both course lists take `tag=<id>` |
 
 ## Admin (`/v1/admin`, role admin)
 

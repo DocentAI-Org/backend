@@ -112,9 +112,12 @@ def test_renaming_recolouring_and_deleting(client, teacher) -> None:
 def test_names_and_colours_are_validated(client, teacher) -> None:
     new_tag(client, teacher, "Repaso")
 
+    taken = new_tag(client, teacher, "repaso", "green")
+    assert taken.status_code == 409
+    assert taken.json()["error"]["code"] == "tag_name_taken"
     for name, color in (
-        ("repaso", "green"),
         ("", "green"),
+        ("   ", "green"),
         ("x" * 41, "green"),
         ("Otra", "pink"),
     ):
@@ -123,7 +126,7 @@ def test_names_and_colours_are_validated(client, teacher) -> None:
     clash = client.patch(
         f"{TAGS}/{other['id']}", headers=teacher.headers, json={"name": "REPASO"}
     )
-    assert clash.status_code == 422
+    assert clash.status_code == 409
 
 
 def test_tags_are_private_and_courses_must_be_yours(

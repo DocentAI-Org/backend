@@ -38,9 +38,12 @@ def list_courses(
     favorite: Annotated[
         bool | None, Query(description="Only starred courses, or only the others.")
     ] = None,
+    tag: Annotated[
+        uuid.UUID | None, Query(description="Only the courses with this tag of yours.")
+    ] = None,
 ) -> Page[StudentCourse]:
     rows, total = courses.list_student_enrolments(
-        session, student, page.limit, page.offset, q, sort, favorite
+        session, student, page.limit, page.offset, q, sort, favorite, tag
     )
     return Page[StudentCourse](
         items=[courses.to_student_course(session, e) for e in rows],
