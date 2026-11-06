@@ -5,7 +5,8 @@ from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Provider = Literal["ollama", "openai", "anthropic"]
-Effort = Literal["low", "medium", "high", "xhigh", "max"]
+# "none" turns thinking off on OpenAI-compatible models (specs/017).
+Effort = Literal["none", "low", "medium", "high", "xhigh", "max"]
 # What the model is asked to do (specs/014); each can have its own provider and model.
 Task = Literal["tutor", "feedback", "review", "questions"]
 

@@ -99,6 +99,10 @@ class ChatProvider(Protocol):
     def is_reachable(self, model: str) -> bool: ...
 
 
+# OpenAI-compatible APIs stop at "high" (specs/017).
+_REASONING = {"xhigh": "high", "max": "high"}
+
+
 class OpenAICompatProvider:
     """Ollama, OpenAI or any OpenAI-compatible API (Mistral, vLLM...)."""
 
@@ -114,13 +118,15 @@ class OpenAICompatProvider:
         temperature: float,
         effort: Effort | None = None,
     ) -> ChatResult:
-        # `effort` is Anthropic's; these models get the temperature instead.
+        # Without an effort the request is unchanged; Ollama thinking models then think.
+        extra = {"reasoning_effort": _REASONING.get(effort, effort)} if effort else {}
         try:
             response = self._client.chat.completions.create(
                 model=model,
                 messages=[{"role": "system", "content": system}, *messages],
                 response_format={"type": "json_object"},
                 temperature=temperature,
+                **extra,
             )
         except OpenAIError as exc:
             raise LLMError(str(exc)) from exc
@@ -184,7 +190,7 @@ class AnthropicProvider:
             "system": system,
             "messages": messages,
         }
-        if effort:
+        if effort and effort != "none":
             request["output_config"] = {"effort": effort}
         try:
             if self._fallbacks and model in _FALLBACK_MODELS:
