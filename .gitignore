@@ -7,3 +7,4 @@ dist
 build
 *.egg-info
 tests/eval/corpus/.cache/
+tests/eval/results/
