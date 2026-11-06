@@ -167,6 +167,21 @@ def test_anthropic_gets_the_system_prompt_and_no_temperature() -> None:
     )
 
 
+def test_anthropic_takes_no_effort_for_none() -> None:
+    client = fake_anthropic(message('{"a": 1}'))
+    provider = AnthropicProvider(client=client, max_tokens=16000, fallbacks="")
+
+    provider.complete_json(
+        model="claude-haiku-5-5",
+        system="s",
+        messages=[],
+        temperature=0.0,
+        effort="none",
+    )
+
+    assert "output_config" not in client.messages.calls[0]
+
+
 def test_anthropic_refusals_and_errors_are_llm_errors() -> None:
     refused = AnthropicProvider(
         client=fake_anthropic(message("", stop_reason="refusal")),
@@ -213,14 +228,42 @@ def test_openai_compatible_keeps_json_mode_and_temperature() -> None:
     provider = OpenAICompatProvider(client=client)
 
     result = provider.complete_json(
-        model="gpt-test", system="s", messages=[], temperature=0.0, effort="low"
+        model="gpt-test", system="s", messages=[], temperature=0.0
     )
 
     [call] = completions.calls
     assert call["temperature"] == 0.0
     assert call["response_format"] == {"type": "json_object"}
     assert call["messages"][0] == {"role": "system", "content": "s"}
+    assert "reasoning_effort" not in call
     assert result == ChatResult({"a": 1}, "gpt-test", 10, 2)
+
+
+@pytest.mark.parametrize(
+    ("effort", "sent"),
+    [
+        ("none", "none"),
+        ("low", "low"),
+        ("high", "high"),
+        ("xhigh", "high"),
+        ("max", "high"),
+    ],
+)
+def test_openai_compatible_sends_the_effort_as_reasoning_effort(effort, sent) -> None:
+    # Ollama thinking models (qwen3, gemma4...) think unless told "none" (spec 017).
+    reply = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))],
+        model="qwen3:8b",
+        usage=None,
+    )
+    completions = FakeMessages(reply)
+    client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+
+    OpenAICompatProvider(client=client).complete_json(
+        model="qwen3:8b", system="s", messages=[], temperature=0.0, effort=effort
+    )
+
+    assert completions.calls[0]["reasoning_effort"] == sent
 
 
 # --- Replies and cost --------------------------------------------------------------
