@@ -1,0 +1,434 @@
+{
+ "model": "qwen3:8b (effort none)",
+ "latency": {
+  "calls": 21,
+  "median_ms": 6948,
+  "unusable_replies": 0
+ },
+ "overall": {
+  "kind": 0.706,
+  "citation": 0.944,
+  "off_material": 1.0,
+  "exercise_hint": 0.4,
+  "counts": {
+   "kind": "24/34 (71 %)",
+   "citation": "17/18 (94 %)",
+   "off_material": "10/10 (100 %)",
+   "exercise_hint": "2/5 (40 %)"
+  }
+ },
+ "by_subject": {
+  "estadistica": {
+   "kind": 0.857,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 1.0,
+   "counts": {
+    "kind": "6/7 (86 %)",
+    "citation": "5/5 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "1/1 (100 %)"
+   }
+  },
+  "historia": {
+   "kind": 0.714,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 1.0,
+   "counts": {
+    "kind": "5/7 (71 %)",
+    "citation": "3/3 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "1/1 (100 %)"
+   }
+  },
+  "lengua": {
+   "kind": 0.571,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 0.0,
+   "counts": {
+    "kind": "4/7 (57 %)",
+    "citation": "3/3 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "0/1 (0 %)"
+   }
+  },
+  "matematicas": {
+   "kind": 0.5,
+   "citation": 0.5,
+   "off_material": 1.0,
+   "exercise_hint": 0.0,
+   "counts": {
+    "kind": "3/6 (50 %)",
+    "citation": "1/2 (50 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "0/1 (0 %)"
+   }
+  },
+  "quimica": {
+   "kind": 0.857,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 0.0,
+   "counts": {
+    "kind": "6/7 (86 %)",
+    "citation": "5/5 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "0/1 (0 %)"
+   }
+  }
+ },
+ "replies": {
+  "estadistica": [
+   {
+    "id": "iqr",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "El rango intercuartil (IQR) es un número que indica la dispersión de la mitad central o del 50 % central de los datos. Es la diferencia entre el tercer cuartil (Q3) y el primer cuartil (Q1). IQR = Q3 – Q1"
+   },
+   {
+    "id": "median-or-mean",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": true,
+    "text": "La mediana es más resistente a los valores atípicos. Cuando hay un valor extremo que puede distorsionar la media, la mediana suele ser una mejor medida del centro."
+   },
+   {
+    "id": "whiskers",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Los bigotes de un diagrama de caja representan la extensión de los datos desde el primer cuartil hasta el valor mínimo y desde el tercer cuartil hasta el valor máximo."
+   },
+   {
+    "id": "n-minus-one",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "En la varianza de una muestra se divide entre n − 1 porque esta división proporciona una mejor estimación de la varianza de la población. Al dividir entre n − 1, se ajusta la varianza de la muestra para que sea una estimación más precisa de la varianza de la población, ya que los datos son una muestra y no la población completa."
+   },
+   {
+    "id": "sd-exercise",
+    "expect": [
+     "hint"
+    ],
+    "kind": "hint",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Primero, calcula la media de los datos. Luego, resta la media de cada dato y eleva al cuadrado el resultado. Multiplica cada resultado por la frecuencia de ese dato. Suma todos los resultados y divide entre el tamaño de la muestra menos uno (n – 1). Finalmente, toma la raíz cuadrada del resultado."
+   },
+   {
+    "id": "binomial-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "historia": [
+   {
+    "id": "why-britain",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "La Revolución Industrial empezó en Gran Bretaña debido a varias causas, como la revolución agraria, la revolución demográfica, la disponibilidad de recursos naturales y un sistema político favorable a los negocios. Estas condiciones crearon un entorno propicio para la industrialización."
+   },
+   {
+    "id": "chartism",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "factory-system",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "coke",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "El coque se usaba en la siderurgia para fundir hierro."
+   },
+   {
+    "id": "compare-classes",
+    "expect": [
+     "hint"
+    ],
+    "kind": "hint",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Para comparar la burguesía y el proletariado, puedes empezar por definir cada uno y luego analizar sus características principales como posición en la sociedad, forma de obtener el poder, condiciones de vida y trabajo."
+   },
+   {
+    "id": "french-revolution-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "lengua": [
+   {
+    "id": "find-subject",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Para saber cuál es el sujeto de una oración, puedes preguntar al verbo «¿quién?» o «¿qué?»."
+   },
+   {
+    "id": "paroxytone-accent",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Las palabras llanas llevan tilde cuando NO terminan en vocal, en «n» o en «s»."
+   },
+   {
+    "id": "el-or-el",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "direct-or-indirect",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": true,
+    "text": "Para distinguir el complemento directo de persona del complemento indirecto, puedes usar la prueba de sustitución. El complemento directo se sustituye por los pronombres 'lo', 'la', 'los' o 'las', mientras que el complemento indirecto se sustituye por 'le' o 'les'. Además, el complemento directo de persona lleva la preposición 'a', que se puede omitir al sustituirlo por el pronombre 'la'."
+   },
+   {
+    "id": "analyse-sentence",
+    "expect": [
+     "hint"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "subordinate-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "matematicas": [
+   {
+    "id": "what-is-transposing",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "minus-before-brackets",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Si hay un menos delante de un paréntesis, se cambia el signo de todos los términos de dentro."
+   },
+   {
+    "id": "check-solution",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": false,
+    "text": "Puedes sustituir el valor obtenido en la incógnita de la ecuación y ver si ambos lados son iguales."
+   },
+   {
+    "id": "solve-exercise",
+    "expect": [
+     "hint"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "quadratic-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "quimica": [
+   {
+    "id": "why-not-subscripts",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "No se pueden cambiar los subíndices para balancear una ecuación química porque los subíndices definen la identidad de la sustancia. Cambiarlos alteraría el significado cualitativo de la ecuación química. Por ejemplo, si se cambia la fórmula del reactivo de H2O a H2O2, se balancea el número de átomos, pero al hacerlo también cambia la identidad del reactivo (ahora es peróxido de hidrógeno y no agua)."
+   },
+   {
+    "id": "limiting-reagent",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "El reactivo limitante es el reactivo que se consume completamente en una reacción química y limita la cantidad de producto que puede formarse."
+   },
+   {
+    "id": "titration",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Una titulación consiste en el uso de una bureta para realizar adiciones incrementales de una solución que contiene una concentración conocida de alguna sustancia (el titulante) a una solución de muestra que contiene la sustancia cuya concentración se va a medir (el analito). La reacción química de estequiometría conocida entre el titulante y el analito permite calcular la concentración del analito al medir el volumen de solución titulante necesario para la reacción completa con el analito (el punto de equivalencia de la titulación)."
+   },
+   {
+    "id": "precipitation",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Una reacción de precipitación es aquella en la que las sustancias disueltas reaccionan para formar uno (o varios) productos sólidos."
+   },
+   {
+    "id": "yield-exercise",
+    "expect": [
+     "hint"
+    ],
+    "kind": "answer",
+    "kind_ok": false,
+    "cite_ok": true,
+    "text": "El porcentaje de rendimiento se calcula mediante la fórmula: (Rendimiento real / Rendimiento teórico) × 100. Sustituyendo los valores dados: (12,5 g / 25,9 g) × 100 = 48,26%. Por lo tanto, el porcentaje de rendimiento es 48,26%."
+   },
+   {
+    "id": "ideal-gas-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ]
+ }
+}
