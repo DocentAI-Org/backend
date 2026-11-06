@@ -78,9 +78,29 @@ LLM_EMBEDDING_PROVIDER=ollama
 Any OpenAI-compatible API (OpenAI, Mistral, vLLM…) is `openai` with its `OPENAI_BASE_URL`.
 Anthropic takes no temperature (`LLM_FEEDBACK_TEMPERATURE` only applies to the others) and
 has no embeddings. Costs in the interaction log use `LLM_PRICES` per model (current Claude
-models are built in). Compare models with the evaluation: `LLM_FEEDBACK_PROVIDER=…
-LLM_FEEDBACK_MODEL=… uv run pytest -m eval -s`.
+models are built in). Thinking models on Ollama (qwen3, gemma4…) think unless their effort
+is `none` (`LLM_EFFORT=none`), which is much faster.
 
 Embeddings must stay 1024-dimensional (`EMBEDDING_DIMENSIONS`); a different size needs a
 migration and re-processing the material. Re-tune `RETRIEVAL_MIN_SIMILARITY` and
 `RETRIEVAL_MIN_SIMILARITY_EXERCISES` for a new embedding model.
+
+## Evaluating models (specs/009, 017)
+
+The evaluation runs the real models on a corpus of five subjects and levels
+(`tests/eval/corpus/`: maths, Spanish, history, chemistry, statistics), outside the normal
+suite. It needs Supabase and Ollama:
+
+```bash
+uv run python scripts/eval_corpus.py              # once: fetches the OpenStax chapters
+uv run pytest -m eval -s                          # every task with the .env models
+uv run pytest -m eval -s tests/eval/test_retrieval_eval.py   # retrieval only, fast
+uv run python scripts/eval_models.py qwen2.5:7b qwen3:8b@none   # compare models
+```
+
+Each task (retrieval, exercise feedback, tutor, quiz drafts) prints a report by subject.
+`EVAL_SUBJECTS=lengua,quimica` limits the subjects, `EVAL_RUNS` the feedback runs per case,
+`EVAL_JUDGE_MODEL` the model that checks quiz keys. `scripts/eval_models.py` writes each
+model's JSON and `comparison.md` to `tests/eval/results/`. A subject is a folder with a
+`subject.json` (material, topics, cases); adding one needs no code. Results so far:
+`specs/017-eval-subjects/evaluation.md`.
