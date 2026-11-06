@@ -1,0 +1,277 @@
+{
+  "name": "Matemáticas: ecuaciones de primer grado",
+  "level": "ESO",
+  "material": {
+    "file": "ecuaciones.md",
+    "fixture": true
+  },
+  "topics": [
+    {
+      "name": "Transponer términos",
+      "sections": [
+        "3.1 Transponer términos"
+      ]
+    },
+    {
+      "name": "Despejar la incógnita",
+      "sections": [
+        "3.2 Despejar la incógnita"
+      ]
+    },
+    {
+      "name": "Paréntesis",
+      "sections": [
+        "3.3 Quitar paréntesis"
+      ]
+    }
+  ],
+  "feedback": [
+    {
+      "id": "brackets-not-distributed",
+      "statement": "Quita los paréntesis y despeja la incógnita: 2(x - 3) = 4x + 2",
+      "answer": "2x - 3 = 4x + 2\n-2x = 5\nx = -5/2",
+      "verdicts": [
+        "incorrect",
+        "partially_correct"
+      ],
+      "types": [
+        "procedural",
+        "conceptual"
+      ],
+      "topics": [
+        "Paréntesis"
+      ]
+    },
+    {
+      "id": "minus-before-brackets",
+      "statement": "Resuelve: -(x - 4) = 2x + 1",
+      "answer": "-x - 4 = 2x + 1\n-3x = 5\nx = -5/3",
+      "verdicts": [
+        "incorrect",
+        "partially_correct"
+      ],
+      "types": [
+        "conceptual",
+        "procedural"
+      ],
+      "topics": [
+        "Paréntesis"
+      ]
+    },
+    {
+      "id": "brackets-correct",
+      "statement": "Resuelve: 3(x + 2) = 15",
+      "answer": "3x + 6 = 15\n3x = 9\nx = 3",
+      "verdicts": [
+        "correct"
+      ],
+      "types": [],
+      "topics": []
+    },
+    {
+      "id": "transpose-keeps-sign",
+      "statement": "Resuelve: 2x + 3 = 7",
+      "answer": "2x = 7 + 3\n2x = 10\nx = 5",
+      "verdicts": [
+        "incorrect",
+        "partially_correct"
+      ],
+      "types": [
+        "procedural",
+        "conceptual"
+      ],
+      "topics": [
+        "Transponer términos"
+      ]
+    },
+    {
+      "id": "transpose-negative-term",
+      "statement": "Resuelve: 5x - 2 = 3x + 6",
+      "answer": "5x - 3x = 6 - 2\n2x = 4\nx = 2",
+      "verdicts": [
+        "incorrect",
+        "partially_correct"
+      ],
+      "types": [
+        "procedural",
+        "conceptual"
+      ],
+      "topics": [
+        "Transponer términos"
+      ]
+    },
+    {
+      "id": "transpose-correct",
+      "statement": "Resuelve: x + 5 = 12",
+      "answer": "x = 12 - 5\nx = 7",
+      "verdicts": [
+        "correct"
+      ],
+      "types": [],
+      "topics": []
+    },
+    {
+      "id": "subtract-instead-of-divide",
+      "statement": "Despeja la incógnita: 3x = 12",
+      "answer": "x = 12 - 3\nx = 9",
+      "verdicts": [
+        "incorrect"
+      ],
+      "types": [
+        "conceptual",
+        "procedural"
+      ],
+      "topics": [
+        "Despejar la incógnita"
+      ]
+    },
+    {
+      "id": "division-inverted",
+      "statement": "Despeja la incógnita: 4x = 10",
+      "answer": "x = 4 / 10\nx = 0,4",
+      "verdicts": [
+        "incorrect"
+      ],
+      "types": [
+        "procedural",
+        "conceptual"
+      ],
+      "topics": [
+        "Despejar la incógnita"
+      ]
+    },
+    {
+      "id": "divide-correct",
+      "statement": "Despeja la incógnita: 6x = 18",
+      "answer": "x = 18 / 6\nx = 3",
+      "verdicts": [
+        "correct"
+      ],
+      "types": [],
+      "topics": []
+    },
+    {
+      "id": "slip-when-transposing",
+      "statement": "Resuelve: 2x + 3 = 11",
+      "answer": "2x = 11 - 3\n2x = 9\nx = 4,5",
+      "verdicts": [
+        "incorrect",
+        "partially_correct"
+      ],
+      "types": [
+        "execution"
+      ],
+      "topics": [
+        "Transponer términos"
+      ]
+    },
+    {
+      "id": "slip-when-dividing",
+      "statement": "Despeja la incógnita: 5x = 35",
+      "answer": "x = 35 / 5\nx = 6",
+      "verdicts": [
+        "incorrect",
+        "partially_correct"
+      ],
+      "types": [
+        "execution"
+      ],
+      "topics": [
+        "Despejar la incógnita"
+      ]
+    },
+    {
+      "id": "stops-halfway",
+      "statement": "Resuelve: 3(x + 1) = 2x + 7",
+      "answer": "3x + 3 = 2x + 7\n3x - 2x = 7 - 3",
+      "verdicts": [
+        "partially_correct",
+        "incorrect"
+      ],
+      "types": [
+        "incomplete"
+      ],
+      "topics": [
+        "Transponer términos",
+        "Despejar la incógnita"
+      ]
+    }
+  ],
+  "tutor": [
+    {
+      "id": "what-is-transposing",
+      "question": "¿Qué significa transponer un término en una ecuación?",
+      "expect": [
+        "answer"
+      ],
+      "topics": [
+        "Transponer términos"
+      ]
+    },
+    {
+      "id": "minus-before-brackets",
+      "question": "¿Qué pasa con los signos si hay un menos delante de un paréntesis?",
+      "expect": [
+        "answer"
+      ],
+      "topics": [
+        "Paréntesis"
+      ]
+    },
+    {
+      "id": "check-solution",
+      "question": "¿Cómo puedo comprobar si la solución de una ecuación está bien?",
+      "expect": [
+        "answer"
+      ],
+      "topics": [
+        "Despejar la incógnita"
+      ]
+    },
+    {
+      "id": "solve-exercise",
+      "question": "Resuelve: 4x - 5 = 11",
+      "expect": [
+        "hint"
+      ],
+      "topics": [
+        "Transponer términos",
+        "Despejar la incógnita"
+      ]
+    },
+    {
+      "id": "quadratic-not-covered",
+      "question": "¿Cómo se resuelve una ecuación de segundo grado con la fórmula general?",
+      "expect": [
+        "no_source"
+      ],
+      "topics": []
+    },
+    {
+      "id": "off-subject",
+      "question": "¿Qué fue el cartismo?",
+      "expect": [
+        "no_source"
+      ],
+      "topics": []
+    }
+  ],
+  "retrieval": [
+    {
+      "query": "un término que suma pasa al otro miembro restando",
+      "topics": [
+        "Transponer términos"
+      ]
+    },
+    {
+      "query": "multiplicar el número de fuera por cada término de dentro",
+      "topics": [
+        "Paréntesis"
+      ]
+    }
+  ],
+  "questions": [
+    "Paréntesis",
+    "Despejar la incógnita"
+  ]
+}

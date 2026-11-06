@@ -1,0 +1,89 @@
+{
+  "name": "Lengua castellana: la oración simple y la acentuación",
+  "level": "ESO",
+  "material": {"file": "lengua.md"},
+  "topics": [
+    {"name": "Sujeto y predicado", "sections": ["5.1 La oración: sujeto y predicado", "5.2 La concordancia entre sujeto y verbo"]},
+    {"name": "Complemento directo e indirecto", "sections": ["5.3 El complemento directo", "5.4 El complemento indirecto"]},
+    {"name": "Complementos circunstanciales", "sections": ["5.5 Los complementos circunstanciales"]},
+    {"name": "Reglas generales de acentuación", "sections": ["5.6 Reglas generales de acentuación"]},
+    {"name": "Diptongos, hiatos y tilde diacrítica", "sections": ["5.7 Diptongos, hiatos y tilde diacrítica"]}
+  ],
+  "feedback": [
+    {
+      "id": "subject-correct",
+      "statement": "Señala el sujeto y el predicado de la oración: «Los alumnos leen una novela».",
+      "answer": "Sujeto: Los alumnos. Predicado: leen una novela.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "subject-is-me",
+      "statement": "Señala el sujeto de la oración: «Me gustan las películas de terror».",
+      "answer": "El sujeto es «me», porque es la persona a la que le gustan.",
+      "verdicts": ["incorrect"], "types": ["conceptual", "procedural"], "topics": ["Sujeto y predicado"]
+    },
+    {
+      "id": "direct-object-as-indirect",
+      "statement": "Sustituye el complemento por un pronombre e indica qué complemento es: «Saludé a Marta».",
+      "answer": "Le saludé. «A Marta» es complemento indirecto porque lleva la preposición «a».",
+      "verdicts": ["incorrect"], "types": ["conceptual", "procedural"], "topics": ["Complemento directo e indirecto"]
+    },
+    {
+      "id": "direct-object-correct",
+      "statement": "Indica el complemento directo de «Compré un libro» y demuéstralo con la sustitución por un pronombre.",
+      "answer": "«Un libro» es el complemento directo, porque se puede decir «Lo compré».",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "stops-after-direct-object",
+      "statement": "Analiza la oración «Di un regalo a mi madre»: indica el sujeto, el complemento directo y el complemento indirecto.",
+      "answer": "Sujeto omitido: yo. Complemento directo: un regalo.",
+      "verdicts": ["partially_correct", "incorrect"], "types": ["incomplete"], "topics": ["Complemento directo e indirecto"]
+    },
+    {
+      "id": "time-phrase-as-direct-object",
+      "statement": "Indica qué función tiene «esta tarde» en la oración «Esta tarde jugaremos al fútbol».",
+      "answer": "Es el complemento directo, porque es un grupo nominal sin preposición.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Complementos circunstanciales"]
+    },
+    {
+      "id": "spelling-slip",
+      "statement": "Escribe una oración con un complemento circunstancial de lugar y otro de tiempo, y señálalos.",
+      "answer": "Mañana estudiaré en la bibloteca. CC de tiempo: mañana. CC de lugar: en la bibloteca.",
+      "verdicts": ["partially_correct", "correct"], "types": ["execution", "expression"], "topics": ["Complementos circunstanciales"]
+    },
+    {
+      "id": "acute-rule-wrong",
+      "statement": "Escribe con tilde las palabras que la necesiten y explica por qué: arbol, cafe, mesa.",
+      "answer": "árbol: llana terminada en l, lleva tilde. cafe: aguda terminada en vocal, no lleva tilde. mesa: llana terminada en vocal, no lleva tilde.",
+      "verdicts": ["partially_correct", "incorrect"], "types": ["conceptual"], "topics": ["Reglas generales de acentuación"]
+    },
+    {
+      "id": "hiatus-as-diphthong",
+      "statement": "Separa en sílabas y pon la tilde si hace falta: dia, pais.",
+      "answer": "dia: una sílaba, no lleva tilde porque es monosílabo. pais: una sílaba, no lleva tilde porque es monosílabo.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Diptongos, hiatos y tilde diacrítica"]
+    },
+    {
+      "id": "diacritic-correct",
+      "statement": "Explica por qué lleva tilde «tú» en «Tú tienes razón» y no la lleva «tu» en «tu libro».",
+      "answer": "«Tú» es un pronombre personal y lleva tilde diacrítica; «tu» es un posesivo y no la lleva.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    }
+  ],
+  "tutor": [
+    {"id": "find-subject", "question": "¿Cómo puedo saber cuál es el sujeto de una oración?", "expect": ["answer"], "topics": ["Sujeto y predicado"]},
+    {"id": "paroxytone-accent", "question": "¿Cuándo llevan tilde las palabras llanas?", "expect": ["answer"], "topics": ["Reglas generales de acentuación"]},
+    {"id": "el-or-el", "question": "¿Qué diferencia hay entre «el» y «él»?", "expect": ["answer"], "topics": ["Diptongos, hiatos y tilde diacrítica"]},
+    {"id": "direct-or-indirect", "question": "¿Cómo distingo el complemento directo de persona del complemento indirecto?", "expect": ["answer"], "topics": ["Complemento directo e indirecto"]},
+    {"id": "analyse-sentence", "question": "Analiza sintácticamente esta oración: «Mi hermano me prestó su bicicleta ayer».", "expect": ["hint"], "topics": ["Sujeto y predicado", "Complemento directo e indirecto", "Complementos circunstanciales"]},
+    {"id": "subordinate-not-covered", "question": "¿Qué es una oración subordinada adjetiva?", "expect": ["no_source"], "topics": []},
+    {"id": "off-subject", "question": "¿Cómo se calcula el reactivo limitante de una reacción?", "expect": ["no_source"], "topics": []}
+  ],
+  "retrieval": [
+    {"query": "si cambio el número del sujeto también cambia el verbo", "topics": ["Sujeto y predicado"]},
+    {"query": "sustituir por lo, la, los o las", "topics": ["Complemento directo e indirecto"]},
+    {"query": "palabras con la sílaba tónica en la antepenúltima", "topics": ["Reglas generales de acentuación"]}
+  ],
+  "questions": ["Complemento directo e indirecto", "Reglas generales de acentuación"]
+}

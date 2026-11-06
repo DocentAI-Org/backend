@@ -1,0 +1,93 @@
+{
+  "name": "Química: estequiometría de las reacciones",
+  "level": "bachillerato / universidad",
+  "material": {
+    "file": "quimica-estequiometria.pdf",
+    "source": {
+      "url": "https://assets.openstax.org/oscms-prodcms/media/documents/Quimica-2ed-WEB.pdf",
+      "sha256": "5becff52627822c8ed1ed67a766ce8fbb8d90bfefbc08b7a95e15ca82a4eacda",
+      "pages": [172, 209],
+      "licence": "CC BY 4.0",
+      "attribution": "OpenStax, Química 2ed, capítulo 4 (secciones 4.1–4.5). https://openstax.org/details/books/química-2ed"
+    }
+  },
+  "topics": [
+    {"name": "Balance de ecuaciones químicas", "pages": [172, 177]},
+    {"name": "Clasificación de las reacciones químicas", "pages": [178, 192]},
+    {"name": "Estequiometría de la reacción", "pages": [193, 197]},
+    {"name": "Rendimiento y reactivo limitante", "pages": [198, 203]},
+    {"name": "Análisis químico cuantitativo", "pages": [204, 209]}
+  ],
+  "feedback": [
+    {
+      "id": "balance-correct",
+      "statement": "Balancea la ecuación: H2 + O2 → H2O",
+      "answer": "2 H2 + O2 → 2 H2O. Hay 4 átomos de H y 2 de O a cada lado.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "balance-by-subscript",
+      "statement": "Balancea la ecuación: H2 + O2 → H2O",
+      "answer": "H2 + O2 → H2O2. Así hay 2 átomos de H y 2 de O a cada lado.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Balance de ecuaciones químicas"]
+    },
+    {
+      "id": "mole-ratio-inverted",
+      "statement": "¿Cuántos moles de O2 se necesitan para quemar 2 mol de CH4? CH4 + 2 O2 → CO2 + 2 H2O",
+      "answer": "2 mol de CH4 × (1 mol de O2 / 2 mol de CH4) = 1 mol de O2.",
+      "verdicts": ["incorrect"], "types": ["procedural", "conceptual"], "topics": ["Estequiometría de la reacción"]
+    },
+    {
+      "id": "mass-ratio-as-mole-ratio",
+      "statement": "¿Qué masa de agua se forma al reaccionar 4,0 g de H2 con oxígeno en exceso? 2 H2 + O2 → 2 H2O (H2: 2,0 g/mol; H2O: 18,0 g/mol)",
+      "answer": "Como la relación entre H2 y H2O es 2:2, se forman 4,0 g de agua.",
+      "verdicts": ["incorrect"], "types": ["procedural", "conceptual"], "topics": ["Estequiometría de la reacción"]
+    },
+    {
+      "id": "mass-correct",
+      "statement": "¿Qué masa de agua se forma al reaccionar 4,0 g de H2 con oxígeno en exceso? 2 H2 + O2 → 2 H2O (H2: 2,0 g/mol; H2O: 18,0 g/mol)",
+      "answer": "4,0 g / 2,0 g/mol = 2,0 mol de H2. La relación H2:H2O es 2:2, así que se forman 2,0 mol de H2O. 2,0 mol × 18,0 g/mol = 36 g de agua.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "limiting-by-grams",
+      "statement": "¿Cuál es el reactivo limitante cuando reaccionan 5,00 g de H2 y 10,0 g de O2 para formar agua? 2 H2 + O2 → 2 H2O (H2: 2,016 g/mol; O2: 32,00 g/mol)",
+      "answer": "El limitante es el H2, porque hay menos gramos de H2 que de O2.",
+      "verdicts": ["incorrect"], "types": ["conceptual", "procedural"], "topics": ["Rendimiento y reactivo limitante"]
+    },
+    {
+      "id": "yield-slip",
+      "statement": "Una reacción tiene un rendimiento teórico de 25,0 g y se obtienen 20,0 g de producto. ¿Cuál es el porcentaje de rendimiento?",
+      "answer": "Porcentaje de rendimiento = rendimiento real / rendimiento teórico × 100 = 20,0 / 25,0 × 100 = 75 %.",
+      "verdicts": ["incorrect", "partially_correct"], "types": ["execution"], "topics": ["Rendimiento y reactivo limitante"]
+    },
+    {
+      "id": "yield-inverted",
+      "statement": "Una reacción tiene un rendimiento teórico de 25,0 g y se obtienen 20,0 g de producto. ¿Cuál es el porcentaje de rendimiento?",
+      "answer": "Porcentaje de rendimiento = rendimiento teórico / rendimiento real × 100 = 25,0 / 20,0 × 100 = 125 %.",
+      "verdicts": ["incorrect"], "types": ["procedural", "conceptual"], "topics": ["Rendimiento y reactivo limitante"]
+    },
+    {
+      "id": "stops-at-moles",
+      "statement": "Calcula los moles de O2 necesarios para quemar 702 g de octano, C8H18 (114,2 g/mol): 2 C8H18 + 25 O2 → 16 CO2 + 18 H2O",
+      "answer": "702 g / 114,2 g/mol = 6,15 mol de C8H18.",
+      "verdicts": ["partially_correct", "incorrect"], "types": ["incomplete"], "topics": ["Estequiometría de la reacción"]
+    }
+  ],
+  "tutor": [
+    {"id": "why-not-subscripts", "question": "¿Por qué no se pueden cambiar los subíndices para balancear una ecuación química?", "expect": ["answer"], "topics": ["Balance de ecuaciones químicas"]},
+    {"id": "limiting-reagent", "question": "¿Qué es el reactivo limitante?", "expect": ["answer"], "topics": ["Rendimiento y reactivo limitante"]},
+    {"id": "titration", "question": "¿En qué consiste una titulación?", "expect": ["answer"], "topics": ["Análisis químico cuantitativo"]},
+    {"id": "precipitation", "question": "¿Qué es una reacción de precipitación?", "expect": ["answer"], "topics": ["Clasificación de las reacciones químicas"]},
+    {"id": "yield-exercise", "question": "Calcula el porcentaje de rendimiento si se obtienen 12,5 g de producto y el rendimiento teórico es 25,9 g.", "expect": ["hint"], "topics": ["Rendimiento y reactivo limitante"]},
+    {"id": "ideal-gas-not-covered", "question": "¿Qué dice la ley de los gases ideales?", "expect": ["no_source"], "topics": []},
+    {"id": "off-subject", "question": "¿Quién inventó la lanzadera volante?", "expect": ["no_source"], "topics": []}
+  ],
+  "retrieval": [
+    {"query": "ecuación iónica neta y iones espectadores", "topics": ["Balance de ecuaciones químicas", "Clasificación de las reacciones químicas"]},
+    {"query": "número de oxidación, oxidante y reductor", "topics": ["Clasificación de las reacciones químicas"]},
+    {"query": "economía atómica y química sostenible", "topics": ["Rendimiento y reactivo limitante"]},
+    {"query": "análisis gravimétrico con un precipitado", "topics": ["Análisis químico cuantitativo"]}
+  ],
+  "questions": ["Estequiometría de la reacción", "Rendimiento y reactivo limitante"]
+}

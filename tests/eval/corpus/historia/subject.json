@@ -1,0 +1,85 @@
+{
+  "name": "Historia: la Revolución Industrial",
+  "level": "ESO / bachillerato",
+  "material": {"file": "historia.docx", "from_markdown": "historia.md"},
+  "topics": [
+    {"name": "Causas de la industrialización", "sections": ["2.1 Las causas: por qué en Gran Bretaña"]},
+    {"name": "Industria textil", "sections": ["2.2 La industria textil algodonera"]},
+    {"name": "Máquina de vapor y siderurgia", "sections": ["2.3 La máquina de vapor y la siderurgia"]},
+    {"name": "Revolución de los transportes", "sections": ["2.4 La revolución de los transportes"]},
+    {"name": "Sociedad de clases", "sections": ["2.5 Las consecuencias sociales"]},
+    {"name": "Movimiento obrero", "sections": ["2.6 El movimiento obrero"]},
+    {"name": "Industrialización en España", "sections": ["2.7 La industrialización en España"]}
+  ],
+  "feedback": [
+    {
+      "id": "watt-correct",
+      "statement": "Explica qué aportó James Watt a la máquina de vapor.",
+      "answer": "Perfeccionó la máquina de Newcomen con un condensador separado (patente de 1769) y la adaptó para producir un movimiento giratorio, así que pudo mover las máquinas de las fábricas.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "watt-first-engine",
+      "statement": "¿Quién construyó la primera máquina de vapor y para qué se usaba?",
+      "answer": "La construyó James Watt en 1769 para mover los telares de las fábricas.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Máquina de vapor y siderurgia"]
+    },
+    {
+      "id": "luddism-as-chartism",
+      "statement": "¿Qué fue el ludismo?",
+      "answer": "Fue el movimiento obrero que pedía el sufragio universal masculino con la Carta del Pueblo.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Movimiento obrero"]
+    },
+    {
+      "id": "one-cause-of-three",
+      "statement": "Explica tres causas de que la Revolución Industrial empezara en Gran Bretaña.",
+      "answer": "La revolución agraria, porque con los cercamientos y la rotación de cultivos se produjeron más alimentos.",
+      "verdicts": ["partially_correct", "incorrect"], "types": ["incomplete"], "topics": ["Causas de la industrialización"]
+    },
+    {
+      "id": "railway-wrong-date",
+      "statement": "¿Cuándo se inauguró la línea de ferrocarril de Stephenson entre Stockton y Darlington?",
+      "answer": "En 1852.",
+      "verdicts": ["incorrect"], "types": ["conceptual", "execution"], "topics": ["Revolución de los transportes"]
+    },
+    {
+      "id": "spain-railway-correct",
+      "statement": "¿Cuál fue el primer ferrocarril de la península y cuándo se inauguró?",
+      "answer": "La línea Barcelona–Mataró, en 1848.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "social-answered-with-technology",
+      "statement": "Explica las consecuencias sociales de la Revolución Industrial.",
+      "answer": "Las fábricas empezaron a usar máquinas de vapor que funcionaban con carbón, y el ferrocarril unió los mercados de todo el país.",
+      "verdicts": ["incorrect"], "types": ["comprehension"], "topics": ["Sociedad de clases"]
+    },
+    {
+      "id": "proletariat-poorly-written",
+      "statement": "Define proletariado.",
+      "answer": "pues los proletarios eran los q trabajaban en las fabricas y cobraban un salario y tal xq no tenian nada mas",
+      "verdicts": ["partially_correct", "correct"], "types": ["expression"], "topics": ["Sociedad de clases"]
+    },
+    {
+      "id": "textile-wrong-order",
+      "statement": "Ordena cronológicamente estos inventos: telar mecánico, lanzadera volante, spinning jenny.",
+      "answer": "Spinning jenny, lanzadera volante, telar mecánico.",
+      "verdicts": ["incorrect", "partially_correct"], "types": ["conceptual", "procedural"], "topics": ["Industria textil"]
+    }
+  ],
+  "tutor": [
+    {"id": "why-britain", "question": "¿Por qué la Revolución Industrial empezó en Gran Bretaña?", "expect": ["answer"], "topics": ["Causas de la industrialización"]},
+    {"id": "chartism", "question": "¿Qué fue el cartismo?", "expect": ["answer"], "topics": ["Movimiento obrero"]},
+    {"id": "factory-system", "question": "¿Qué era el factory system?", "expect": ["answer"], "topics": ["Industria textil"]},
+    {"id": "coke", "question": "¿Para qué se usaba el coque en la siderurgia?", "expect": ["answer"], "topics": ["Máquina de vapor y siderurgia"]},
+    {"id": "compare-classes", "question": "Tengo que hacer esta actividad: compara la burguesía y el proletariado. ¿Me la haces?", "expect": ["hint"], "topics": ["Sociedad de clases"]},
+    {"id": "french-revolution-not-covered", "question": "¿Cuáles fueron las causas de la Revolución Francesa?", "expect": ["no_source"], "topics": []},
+    {"id": "off-subject", "question": "¿Cuándo lleva tilde una palabra aguda?", "expect": ["no_source"], "topics": []}
+  ],
+  "retrieval": [
+    {"query": "obreros que rompían las máquinas", "topics": ["Movimiento obrero"]},
+    {"query": "Stephenson y la locomotora Rocket", "topics": ["Revolución de los transportes"]},
+    {"query": "por qué España se industrializó tarde", "topics": ["Industrialización en España"]}
+  ],
+  "questions": ["Industria textil", "Movimiento obrero"]
+}

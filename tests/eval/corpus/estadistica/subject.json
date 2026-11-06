@@ -1,0 +1,92 @@
+{
+  "name": "Estadística descriptiva",
+  "level": "universidad",
+  "material": {
+    "file": "estadistica-descriptiva.pdf",
+    "source": {
+      "url": "https://assets.openstax.org/oscms-prodcms/media/documents/Introduccion_al_la_estadistica_-_WEB.pdf",
+      "sha256": "4518c261e4cbc8729710d0de55da9a950b530510d7a4a024a672ca9b377b0a63",
+      "pages": [103, 134],
+      "licence": "CC BY 4.0",
+      "attribution": "OpenStax, Introducción a la estadística, capítulo 2 (secciones 2.3–2.7). https://openstax.org/details/books/introducción-estadística"
+    }
+  },
+  "topics": [
+    {"name": "Cuartiles y percentiles", "pages": [103, 110]},
+    {"name": "Diagramas de caja", "pages": [111, 115]},
+    {"name": "Medidas de centralización", "pages": [116, 120]},
+    {"name": "Forma de la distribución", "pages": [121, 123]},
+    {"name": "Medidas de dispersión", "pages": [124, 134]}
+  ],
+  "feedback": [
+    {
+      "id": "median-even-correct",
+      "statement": "Calcula la mediana de estos datos: 1; 2; 4; 6; 8; 10",
+      "answer": "Hay 6 datos, así que la mediana es la media del 3.º y el 4.º: (4 + 6) / 2 = 5.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "median-unsorted",
+      "statement": "Calcula la mediana de estos datos: 7; 1; 9; 3; 5",
+      "answer": "Hay 5 datos y el del centro es el tercero, así que la mediana es 9.",
+      "verdicts": ["incorrect"], "types": ["procedural"], "topics": ["Cuartiles y percentiles", "Medidas de centralización"]
+    },
+    {
+      "id": "mean-slip",
+      "statement": "Calcula la media de estos datos: 2; 4; 6; 8",
+      "answer": "(2 + 4 + 6 + 8) / 4 = 22 / 4 = 5,5",
+      "verdicts": ["incorrect", "partially_correct"], "types": ["execution"], "topics": ["Medidas de centralización"]
+    },
+    {
+      "id": "iqr-as-sum",
+      "statement": "Si el primer cuartil es Q1 = 20 y el tercero es Q3 = 60, ¿cuál es el rango intercuartil?",
+      "answer": "IQR = Q3 + Q1 = 60 + 20 = 80",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Cuartiles y percentiles"]
+    },
+    {
+      "id": "outlier-stops-at-iqr",
+      "statement": "Con Q1 = 308.750 y Q3 = 649.000, ¿es 5.500.000 un posible valor atípico?",
+      "answer": "IQR = 649.000 − 308.750 = 340.250.",
+      "verdicts": ["partially_correct", "incorrect"], "types": ["incomplete"], "topics": ["Cuartiles y percentiles"]
+    },
+    {
+      "id": "sample-variance-by-n",
+      "statement": "¿Entre qué número se divide la suma de los cuadrados de las desviaciones para hallar la varianza de una muestra de n datos?",
+      "answer": "Entre n, el número de datos de la muestra.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Medidas de dispersión"]
+    },
+    {
+      "id": "left-skew-wrong",
+      "statement": "En una distribución con distorsión a la izquierda, ¿qué suele ser mayor, la media o la mediana?",
+      "answer": "La media es mayor que la mediana.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Forma de la distribución"]
+    },
+    {
+      "id": "z-score-correct",
+      "statement": "John tiene un GPA de 2,85 en una escuela cuya media es 3,0 y cuya desviación típica es 0,7. ¿Cuántas desviaciones típicas está por debajo de la media?",
+      "answer": "(2,85 − 3,0) / 0,7 = −0,21, así que está 0,21 desviaciones típicas por debajo de la media.",
+      "verdicts": ["correct"], "types": [], "topics": []
+    },
+    {
+      "id": "percentile-as-score",
+      "statement": "¿Qué significa que la nota de un examen está en el percentil 90?",
+      "answer": "Que el alumno ha acertado el 90 % de las preguntas del examen.",
+      "verdicts": ["incorrect"], "types": ["conceptual"], "topics": ["Cuartiles y percentiles"]
+    }
+  ],
+  "tutor": [
+    {"id": "iqr", "question": "¿Qué es el rango intercuartil?", "expect": ["answer"], "topics": ["Cuartiles y percentiles", "Diagramas de caja"]},
+    {"id": "median-or-mean", "question": "¿Cuándo es mejor usar la mediana en lugar de la media?", "expect": ["answer"], "topics": ["Medidas de centralización"]},
+    {"id": "whiskers", "question": "¿Qué representan los bigotes de un diagrama de caja?", "expect": ["answer"], "topics": ["Diagramas de caja"]},
+    {"id": "n-minus-one", "question": "¿Por qué en la varianza de una muestra se divide entre n − 1?", "expect": ["answer"], "topics": ["Medidas de dispersión"]},
+    {"id": "sd-exercise", "question": "Calcula la desviación típica de la muestra: 2; 4; 4; 4; 5; 5; 7; 9", "expect": ["hint"], "topics": ["Medidas de dispersión"]},
+    {"id": "binomial-not-covered", "question": "¿Qué es una distribución binomial?", "expect": ["no_source"], "topics": []},
+    {"id": "off-subject", "question": "¿Qué fue el ludismo?", "expect": ["no_source"], "topics": []}
+  ],
+  "retrieval": [
+    {"query": "valores atípicos con 1,5 veces el IQR", "topics": ["Cuartiles y percentiles"]},
+    {"query": "distribución simétrica: media, mediana y moda iguales", "topics": ["Forma de la distribución"]},
+    {"query": "comparar valores de conjuntos de datos distintos con la desviación típica", "topics": ["Medidas de dispersión"]}
+  ],
+  "questions": ["Medidas de centralización", "Medidas de dispersión"]
+}
