@@ -1,61 +1,30 @@
-"""Classification of exercise mistakes against the local model (spec 009).
+"""Classification of exercise mistakes against the local model (specs/009, 017).
 
 Not part of the normal suite: `uv run pytest -m eval -s`. Needs Supabase and Ollama
-with the configured models. Each case is graded RUNS times in a rolled-back transaction;
-the report gives verdict, type and topic accuracy and consistency across runs. Set
-EVAL_REPORT to also write the report as Markdown.
+with the configured models. Each case of each subject is graded RUNS times in a
+rolled-back transaction; the report gives verdict, type and topic accuracy and
+consistency across runs, by subject. Set EVAL_REPORT to also write it as Markdown.
 """
 
-import json
 import os
 from collections import Counter
 from pathlib import Path
 
 import pytest
 
-from app.core.config import get_settings
-from app.llm.client import get_llm
-from tests.api.helpers import classroom, give_consent
-from tests.api.test_us6_topics import create_topic
+from tests.eval.report import (
+    available,
+    model_label,
+    rate,
+    share,
+    table,
+    write_results,
+)
+from tests.eval.subjects import enrolled_student, open_room, subjects
 
-CASES = json.loads((Path(__file__).parent / "feedback_cases.json").read_text())
 RUNS = int(os.environ.get("EVAL_RUNS", "3"))
 
 pytestmark = [pytest.mark.eval, pytest.mark.db]
-
-
-@pytest.fixture
-def llm():
-    # The real model and the production thresholds, not the test ones.
-    os.environ["RETRIEVAL_MIN_SIMILARITY"] = "0.55"
-    os.environ["RETRIEVAL_MIN_SIMILARITY_EXERCISES"] = "0.40"
-    os.environ["DAILY_MESSAGE_LIMIT"] = "1000"
-    get_settings.cache_clear()
-    yield get_llm()
-    get_settings.cache_clear()
-
-
-def assign_sections(client, teacher, course_id: str, document_id: str) -> None:
-    """Confirmed topic assignments for each numbered section, as a teacher would."""
-    fragments = client.get(
-        f"/v1/teacher/courses/{course_id}/documents/{document_id}/fragments",
-        headers=teacher.headers,
-        params={"limit": 100},
-    ).json()["items"]
-    sections = {f["section"] for f in fragments}
-    for name, number in CASES["topics"].items():
-        topic = create_topic(client, teacher, course_id, name).json()
-        for section in sorted(s for s in sections if number in s):
-            response = client.post(
-                f"/v1/teacher/courses/{course_id}/topic-assignments",
-                headers=teacher.headers,
-                json={
-                    "topic_id": topic["id"],
-                    "document_id": document_id,
-                    "section": section,
-                },
-            )
-            assert response.status_code == 201, response.text
 
 
 def grade(results: list[dict], case: dict) -> dict:
@@ -74,74 +43,112 @@ def grade(results: list[dict], case: dict) -> dict:
     }
 
 
-def rate(values: list[bool]) -> str:
-    return f"{sum(values)}/{len(values)} ({100 * sum(values) / len(values):.0f} %)"
-
-
-def report(graded: list[dict], model: str) -> str:
+def summary(graded: list[dict]) -> dict:
     def flat(key):
         return [v for g in graded for v in g[key]]
 
-    lines = [
-        f"Model `{model}`, {RUNS} runs per case, {len(graded)} cases.",
-        "",
-        "| Metric | Result |",
-        "|---|---|",
-        f"| Verdict | {rate(flat('verdicts'))} |",
-        f"| Type (mistakes) | {rate(flat('types'))} |",
-        f"| Topic (mistakes) | {rate(flat('topics'))} |",
-        f"| Consistent cases | {rate([g['consistent'] for g in graded])} |",
-        "",
-        "| Case | Seen (verdict, type, topic) × runs |",
-        "|---|---|",
-    ]
-    for g in graded:
-        seen = "; ".join(
-            f"{v}, {t or '—'}, {p or '—'} ×{n}" for (v, t, p), n in g["seen"].items()
+    return {
+        "verdict": share(flat("verdicts")),
+        "type": share(flat("types")),
+        "topic": share(flat("topics")),
+        "consistent": share([g["consistent"] for g in graded]),
+        "counts": {
+            "verdict": rate(flat("verdicts")),
+            "type": rate(flat("types")),
+            "topic": rate(flat("topics")),
+            "consistent": rate([g["consistent"] for g in graded]),
+        },
+    }
+
+
+def report(by_subject: dict[str, list[dict]], model: str, latency: dict) -> str:
+    every = [g for graded in by_subject.values() for g in graded]
+    rows = []
+    for slug, graded in [*by_subject.items(), ("**all**", every)]:
+        counts = summary(graded)["counts"]
+        rows.append(
+            [
+                slug,
+                counts["verdict"],
+                counts["type"],
+                counts["topic"],
+                counts["consistent"],
+            ]
         )
-        lines.append(f"| `{g['id']}` | {seen} |")
+    lines = [
+        f"Model `{model}`, {RUNS} runs per case, {len(every)} cases, "
+        f"median {latency['median_ms']} ms per call.",
+        "",
+        *table(
+            ["Subject", "Verdict", "Type (mistakes)", "Topic (mistakes)", "Consistent"],
+            rows,
+        ),
+        "",
+        *table(
+            ["Case", "Seen (verdict, type, topic) × runs"],
+            [
+                [
+                    f"`{slug}/{g['id']}`",
+                    "; ".join(
+                        f"{v}, {t or '—'}, {p or '—'} ×{n}"
+                        for (v, t, p), n in g["seen"].items()
+                    ),
+                ]
+                for slug, graded in by_subject.items()
+                for g in graded
+            ],
+        ),
+    ]
     return "\n".join(lines)
 
 
-def fresh_student(client, make_user, room):
-    """A student of their own for each case: with RUNS < 4 they never reach the repeated
-    mistakes that switch on the adaptation note (spec 013), so only classification is
-    measured."""
-    student = make_user("student")
-    client.post(
-        "/v1/student/enrolments",
-        headers=student.headers,
-        json={"class_code": room.course["class_code"]},
-    )
-    give_consent(client, student)
-    client.post(
-        f"/v1/student/courses/{room.course_id}/disclosure", headers=student.headers
-    )
-    return student
-
-
-def test_feedback_classification(client, llm, make_user, teacher, student) -> None:
+def test_feedback_classification(client, db, llm, make_user, teacher) -> None:
     # The study's default repeated-mistake count (spec 015); more runs would trigger S8.
     assert RUNS <= 3, "EVAL_RUNS would trigger the adaptation note"
-    room = classroom(client, teacher, student)
-    assign_sections(client, teacher, room.course_id, room.document["id"])
-    graded = []
-    for case in CASES["cases"]:
-        case_student = fresh_student(client, make_user, room)
-        results = []
-        for _ in range(RUNS):
-            response = client.post(
-                f"/v1/student/courses/{room.course_id}/submissions",
-                headers=case_student.headers,
-                json={
-                    "problem_statement": case["statement"],
-                    "worked_answer": case["answer"],
-                },
-            )
-            assert response.status_code == 201, response.text
-            results.append(response.json())
-        graded.append(grade(results, case))
-    text = report(graded, get_settings().route("feedback").model)
+    by_subject: dict[str, list[dict]] = {}
+    for subject, content in available(subjects()):
+        room = open_room(client, db, teacher, subject, content)
+        graded = []
+        for case in subject.data["feedback"]:
+            # A student of their own for each case: with RUNS < 4 they never reach the
+            # repeated mistakes that switch on the adaptation note (spec 013).
+            student = enrolled_student(client, make_user, room)
+            results = []
+            for _ in range(RUNS):
+                response = client.post(
+                    f"/v1/student/courses/{room.course_id}/submissions",
+                    headers=student.headers,
+                    json={
+                        "problem_statement": case["statement"],
+                        "worked_answer": case["answer"],
+                    },
+                )
+                assert response.status_code == 201, response.text
+                results.append(response.json())
+            graded.append(grade(results, case))
+        by_subject[subject.slug] = graded
+
+    model = model_label("feedback")
+    latency = llm.latency("feedback")
+    text = report(by_subject, model, latency)
     print("\n" + text)
     if path := os.environ.get("EVAL_REPORT"):
         Path(path).write_text(text + "\n")
+    every = [g for graded in by_subject.values() for g in graded]
+    write_results(
+        "feedback",
+        model,
+        {
+            "runs": RUNS,
+            "latency": latency,
+            "overall": summary(every),
+            "by_subject": {slug: summary(g) for slug, g in by_subject.items()},
+            "cases": {
+                slug: {
+                    g["id"]: [list(k) + [n] for k, n in g["seen"].items()]
+                    for g in graded
+                }
+                for slug, graded in by_subject.items()
+            },
+        },
+    )
