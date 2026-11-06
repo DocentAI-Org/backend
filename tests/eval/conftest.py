@@ -29,6 +29,7 @@ class EvalLLM:
         self.calls: dict[str, list[tuple[float, bool]]] = defaultdict(list)
         # Provider failures and timeouts (LLM_TIMEOUT_SECONDS), by task.
         self.errors: dict[str, int] = defaultdict(int)
+        self.error_samples: dict[str, list[str]] = defaultdict(list)
 
     @property
     def chat_model(self) -> str:
@@ -44,8 +45,14 @@ class EvalLLM:
         started = time.perf_counter()
         try:
             result = self._inner.chat_json(system, messages, temperature, task)
-        except Exception:
+        except Exception as exc:
             self.errors[task] += 1
+            self.error_samples[task].append(str(exc)[:300])
+            if dump := os.environ.get("EVAL_DUMP_FAILED"):
+                # Keeps the failing request, to replay it against the provider.
+                with open(dump, "a") as out:
+                    request = {"task": task, "system": system, "messages": messages}
+                    out.write(json.dumps(request, ensure_ascii=False) + "\n")
             raise
         elapsed = (time.perf_counter() - started) * 1000
         self.calls[task].append((elapsed, not result.data))
@@ -78,6 +85,7 @@ class EvalLLM:
             else None,
             "unusable_replies": sum(c[1] for c in calls),
             "errors": self.errors.get(task, 0),
+            "error_samples": sorted(set(self.error_samples.get(task, [])))[:5],
         }
 
 
