@@ -95,6 +95,7 @@ def comparison(out: Path, specs: list[str]) -> str:
         "Usable drafts",
         "Key confirmed",
         "Median s (feedback / tutor / questions)",
+        "Errors",
     ]
     rows = []
     for spec, r in results.items():
@@ -119,6 +120,7 @@ def comparison(out: Path, specs: list[str]) -> str:
                 pct(qu.get("usable")),
                 pct(qu.get("key_confirmed")),
                 latency,
+                str(sum(r[t]["latency"].get("errors", 0) for t in r)),
             ]
         )
     lines = ["Percentages over all subjects.", "", *markdown(header, rows)]

@@ -64,8 +64,12 @@ def test_tutor(client, db, llm, make_user, teacher) -> None:
             response = ask(
                 client, student, room.course_id, conversation["id"], item["question"]
             )
-            assert response.status_code == 201, response.text
-            reply = response.json()["tutor_message"]
+            # A provider failure or timeout counts as a wrong reply.
+            reply = (
+                response.json()["tutor_message"]
+                if response.status_code == 201
+                else {"kind": "error", "text": response.text, "citations": []}
+            )
             cite_ok = None
             if item["topics"] and reply["kind"] in ("answer", "hint"):
                 cite_ok = bool(cited_topics(db, room, reply) & set(item["topics"]))

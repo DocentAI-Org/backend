@@ -27,6 +27,8 @@ class EvalLLM:
         )
         self._dirty = False
         self.calls: dict[str, list[tuple[float, bool]]] = defaultdict(list)
+        # Provider failures and timeouts (LLM_TIMEOUT_SECONDS), by task.
+        self.errors: dict[str, int] = defaultdict(int)
 
     @property
     def chat_model(self) -> str:
@@ -40,7 +42,11 @@ class EvalLLM:
         task="tutor",
     ) -> ChatResult:
         started = time.perf_counter()
-        result = self._inner.chat_json(system, messages, temperature, task)
+        try:
+            result = self._inner.chat_json(system, messages, temperature, task)
+        except Exception:
+            self.errors[task] += 1
+            raise
         elapsed = (time.perf_counter() - started) * 1000
         self.calls[task].append((elapsed, not result.data))
         return result
@@ -71,6 +77,7 @@ class EvalLLM:
             if calls
             else None,
             "unusable_replies": sum(c[1] for c in calls),
+            "errors": self.errors.get(task, 0),
         }
 
 

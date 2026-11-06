@@ -24,6 +24,8 @@ from tests.eval.subjects import enrolled_student, open_room, subjects
 
 RUNS = int(os.environ.get("EVAL_RUNS", "3"))
 
+FAILED = {"verdict": "error", "error_type": None, "topic_name": None}
+
 pytestmark = [pytest.mark.eval, pytest.mark.db]
 
 
@@ -123,8 +125,10 @@ def test_feedback_classification(client, db, llm, make_user, teacher) -> None:
                         "worked_answer": case["answer"],
                     },
                 )
-                assert response.status_code == 201, response.text
-                results.append(response.json())
+                # A provider failure or timeout counts as a wrong answer.
+                results.append(
+                    response.json() if response.status_code == 201 else FAILED
+                )
             graded.append(grade(results, case))
         by_subject[subject.slug] = graded
 
