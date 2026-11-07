@@ -61,3 +61,16 @@ class AdminCourse(BaseModel):
     teacher_name: str
     student_count: int
     created_at: datetime
+
+
+class StudentErasure(BaseModel):
+    """What an erasure deleted (spec 017); nothing about the student is kept."""
+
+    student_id: uuid.UUID
+    courses: int = Field(description="Enrolments deleted")
+    conversations: int
+    messages: int
+    exercise_submissions: int
+    quizzes: int
+    test_attempts: int
+    interaction_logs: int
