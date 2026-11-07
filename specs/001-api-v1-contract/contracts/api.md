@@ -89,7 +89,10 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/study-export?course_id` (specs/011) | — | `application/zip`: `README.md` and `students`, `topics`, `messages`, `exercises`, `quiz_items`, `tests`, `interactions` `.csv`; consenting students only, `study_ref` ids, no free text |
 | GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}}, provisional, updated_at}` |
 | GET / PUT | `/ai-settings` (specs/019) | `StudyOverrides {models: TaskModels, limits?, retrieval?, ceiling?}` (null: the server's) | `StudyAISettings {server: StudyValues, study: StudyOverrides, effective: StudyValues, updated_at}`; `StudyValues = Values + ceiling {messages?}` |
-| GET | `/ai-models` (specs/019) | — | `AIModels {sources: [ModelSource {provider, label, reachable, models: [{id, label?, size_bytes?, parameter_size?, family?}]}]}` |
+| GET | `/ai-models` (specs/019) | — | `AIModels {sources: [ModelSource {provider, label, reachable, models: [{id, label?, size_bytes?, parameter_size?, family?}], credential_id?, scope: server\|study\|course}]}`; a study key lists only the models it offers |
+| GET / POST | `/llm-credentials` (specs/019) | `CredentialCreate {provider: openai\|anthropic\|openai_compatible, label, base_url? (required for openai_compatible), api_key}` | `StudyCredentials {server: [{provider, label}], items: [Credential]}` / 201 `Credential {id, provider, label, base_url?, key_hint (…last4), scope: study\|course, offered_models?, created_at}`. The key is checked with the provider: `422 key_rejected` or `provider_unreachable`; `409 credentials_not_configured` without `LLM_CREDENTIALS_KEY`. The key is never returned |
+| PATCH / DELETE | `/llm-credentials/{credential_id}` | `CredentialUpdate {label?, offered_models? (null: all)}` | `Credential` / 204. Tasks using a model no longer offered, or the deleted key, go back to the inherited model with a notice |
+| GET | `/llm-credentials/{credential_id}/models` | — | `ModelSource`: every model of the key's account |
 | GET / POST | `/questionnaires` (specs/012) | `QuestionnaireCreate {title, url (https), audience: student\|teacher}` | `[Questionnaire]` / 201 `Questionnaire {id, title, url, audience, status: open\|closed, created_at, updated_at}` |
 | PATCH / DELETE | `/questionnaires/{questionnaire_id}` | `QuestionnaireUpdate {title?, url?, status?}` | `Questionnaire` / 204 |
 | DELETE | `/students/{student_id}` (specs/017) | — | `StudentErasure {student_id, courses, conversations, messages, exercise_submissions, quizzes, test_attempts, interaction_logs}`: rows deleted. Deletes the auth account, every row linked to it and the student's interaction logs; `404` unknown or already erased, `409 not_a_student` for a teacher or admin, `503 auth_unavailable` and nothing deleted if the auth service fails. The erased student's tokens get `401` |
@@ -222,7 +225,9 @@ Dashboard, progress, repeated mistakes and adaptation use the course's criteria 
 | Method | Path | Request | Response |
 |---|---|---|---|
 | GET / PUT | `/courses/{course_id}/ai-settings` | `CourseOverrides {models: TaskModels, limits?, retrieval?}` (null: inherited) | `CourseAISettings {inherited: Values, course: CourseOverrides, effective: Values, ceiling {messages?}}` |
-| GET | `/courses/{course_id}/ai-models` | — | `AIModels` |
+| GET | `/courses/{course_id}/ai-models` | — | `AIModels`: the server's, the study's keys and, if allowed, the course's own |
+| GET / POST | `/courses/{course_id}/llm-credentials` | `CredentialCreate` | `[Credential]` / 201 `Credential`; `403 teacher_keys_disabled` unless the study allows it |
+| DELETE | `/courses/{course_id}/llm-credentials/{credential_id}` | — | 204 |
 
 - Each group comes from the course, else the study, else the server's environment.
   `TaskModels {tutor?, feedback?, review?, questions?}` of `ModelChoice {provider:
@@ -232,7 +237,13 @@ Dashboard, progress, repeated mistakes and adaptation use the course's criteria 
   review]}, retrieval {top_k 1–10, min_similarity 0–1, min_similarity_exercises 0–1,
   history_messages 0–20}}`.
 - `422` `provider_unavailable` (no key on the server), `provider_unreachable`,
-  `model_unavailable` (not in the source's list), `temperature_not_supported`, with `{task}`.
+  `model_unavailable` (not in the source's list), `temperature_not_supported`,
+  `credential_unavailable` (a key the course cannot use), with `{task}`.
+- `ModelChoice.credential_id?` picks a stored key (null: the server's). `StudyOverrides` has
+  `allow_teacher_keys` (default false; turning it off resets the tasks using teachers' keys);
+  `CourseAISettings` has `allow_teacher_keys` and `notices: [{task, model, reason:
+  credential_removed|model_withdrawn|teacher_keys_disabled, at}]`, also in `StudyAISettings`,
+  cleared on save.
 
 ### Pre-test and post-test (P3; specs/008)
 
