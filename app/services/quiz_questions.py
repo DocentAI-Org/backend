@@ -28,7 +28,7 @@ from app.models import (
     TutorSettings,
 )
 from app.schemas import quizzes as schemas
-from app.services import exercises, interactions, tutor
+from app.services import ai_settings, exercises, interactions, tutor
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -198,13 +198,14 @@ def topic_material(
         )
     ).all()
     if not assignments:
+        ai = ai_settings.in_effect(session, settings, topic.course_id)
         return retrieve(
             session,
             llm,
             topic.course_id,
             topic.name,
             TOPIC_FRAGMENTS,
-            settings.retrieval_min_similarity,
+            ai.retrieval.min_similarity,
         )
     assigned = or_(
         *(
@@ -327,10 +328,12 @@ def _generate(
     if hits:
         tutor_settings = session.get(TutorSettings, course.id)
         assert tutor_settings is not None
+        route = ai_settings.in_effect(session, settings, course.id).route("questions")
         result = llm.chat_json(
             build_prompt(settings, tutor_settings),
             build_messages(hits, topic, count),
             task="questions",
+            route=route,
         )
         existing = {
             statement_key(s)

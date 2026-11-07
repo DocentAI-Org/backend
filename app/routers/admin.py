@@ -11,6 +11,7 @@ from app.core.search import Search
 from app.core.security import AdminUser as AdminProfile
 from app.core.security import require_role
 from app.integrations.auth_admin import AuthAdminClient, get_auth_admin
+from app.llm.catalog import Catalog, get_catalog
 from app.schemas.admin import (
     AdminCourse,
     CreatedAccount,
@@ -22,6 +23,7 @@ from app.schemas.admin import (
 from app.schemas.admin import (
     AdminUser as AdminUserOut,
 )
+from app.schemas.ai_settings import AIModels, StudyAISettings, StudyOverrides
 from app.schemas.pedagogy import StudyCriteria, StudyCriteriaUpdate
 from app.schemas.questionnaires import (
     Questionnaire,
@@ -31,6 +33,7 @@ from app.schemas.questionnaires import (
 from app.schemas.review import EvaluationItem
 from app.services import (
     accounts,
+    ai_settings,
     erasure,
     pedagogy,
     questionnaires,
@@ -46,6 +49,7 @@ router = APIRouter(
 )
 
 AuthAdmin = Annotated[AuthAdminClient, Depends(get_auth_admin)]
+ModelCatalog = Annotated[Catalog, Depends(get_catalog)]
 
 
 @router.get("/users", response_model=Page[AdminUserOut])
@@ -226,3 +230,36 @@ def update_study_criteria(
     payload: StudyCriteriaUpdate, admin: AdminProfile, session: DbSession
 ) -> StudyCriteria:
     return pedagogy.update_study(session, payload, admin)
+
+
+@router.get(
+    "/ai-settings",
+    response_model=StudyAISettings,
+    summary="The study's AI settings and the server's values they change (specs/019)",
+)
+def read_ai_settings(session: DbSession) -> StudyAISettings:
+    return ai_settings.study(session, get_settings())
+
+
+@router.put(
+    "/ai-settings",
+    response_model=StudyAISettings,
+    responses=error_responses(422),
+    summary="Set the AI settings of every course without its own; null inherits",
+)
+def update_ai_settings(
+    payload: StudyOverrides,
+    admin: AdminProfile,
+    session: DbSession,
+    catalog: ModelCatalog,
+) -> StudyAISettings:
+    return ai_settings.update_study(session, get_settings(), catalog, payload, admin)
+
+
+@router.get(
+    "/ai-models",
+    response_model=AIModels,
+    summary="The models the server offers, by source",
+)
+def list_ai_models(catalog: ModelCatalog) -> AIModels:
+    return AIModels(sources=catalog.sources())

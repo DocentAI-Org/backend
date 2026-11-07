@@ -5,12 +5,12 @@ import re
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.config import Settings
+from app.core.config import Route, Settings
 from app.core.errors import ApiError, not_found
 from app.llm.client import LLMClient, LLMError
 from app.llm.prompts import load_labels, load_prompt
@@ -22,7 +22,8 @@ from app.models import (
     TutorSettings,
 )
 from app.schemas import chat as schemas
-from app.services import adaptation, allowance, consent, interactions
+from app.services import adaptation, ai_settings, allowance, consent, interactions
+from app.services.ai_settings import InEffect
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -238,7 +239,7 @@ def _next_hint_number(history: list[Message]) -> int:
 def _retrieve_for(
     session: Session,
     llm: LLMClient,
-    settings: Settings,
+    ai: InEffect,
     course_id: uuid.UUID,
     history: list[Message],
     text: str,
@@ -252,8 +253,8 @@ def _retrieve_for(
         llm,
         course_id,
         text,
-        settings.retrieval_top_k,
-        settings.retrieval_min_similarity,
+        ai.retrieval.top_k,
+        ai.retrieval.min_similarity,
     )
     last = history[-1] if history else None
     if hits or last is None or last.author != "tutor" or last.kind != "hint":
@@ -264,8 +265,8 @@ def _retrieve_for(
         llm,
         course_id,
         f"{previous}\n{text}",
-        settings.retrieval_top_k,
-        settings.retrieval_min_similarity,
+        ai.retrieval.top_k,
+        ai.retrieval.min_similarity,
     )
 
 
@@ -291,16 +292,41 @@ def ensure_can_message(
     return tutor_settings
 
 
-def reserve_or_raise(session: Session, settings: Settings, student_id: uuid.UUID):
-    day = allowance.reserve(session, settings, student_id)
-    if day is None:
+def reserve_or_raise(
+    session: Session, settings: Settings, ai: InEffect, enrolment: Enrolment, task: str
+) -> allowance.Reservation:
+    taken = allowance.reserve(
+        session, settings, ai, enrolment.student_id, enrolment.course_id, task
+    )
+    if isinstance(taken, allowance.Reservation):
+        return taken
+    resets_at = allowance.resets_at(settings, taken.period)
+    details = {"resets_at": resets_at.isoformat() if resets_at else None}
+    if taken.scope == "daily":
         raise ApiError(
             429,
             "daily_limit_reached",
             "The daily message limit has been reached.",
-            {"resets_at": allowance.resets_at(settings).isoformat()},
+            details,
         )
-    return day
+    raise ApiError(
+        429,
+        "course_limit_reached",
+        "The course's message limit has been reached.",
+        {**details, "period": taken.period},
+    )
+
+
+def allowance_view(
+    session: Session,
+    settings: Settings,
+    ai: InEffect,
+    enrolment: Enrolment,
+    task: str = "tutor",
+) -> schemas.Allowance:
+    return allowance.read(
+        session, settings, ai, enrolment.student_id, enrolment.course_id, task
+    )
 
 
 def send_message(
@@ -314,7 +340,8 @@ def send_message(
     retry_of: Message | None = None,
 ) -> schemas.TutorExchange:
     tutor_settings = ensure_can_message(session, settings, enrolment, request_solution)
-    day = reserve_or_raise(session, settings, enrolment.student_id)
+    ai = ai_settings.in_effect(session, settings, enrolment.course_id)
+    reservation = reserve_or_raise(session, settings, ai, enrolment, "tutor")
 
     if retry_of is None:
         student_message = Message(
@@ -328,7 +355,7 @@ def send_message(
     else:
         student_message = retry_of
     student_message.status = "sent"
-    student_message.counts_toward_limit = True
+    student_message.counts_toward_limit = reservation.period_start is not None
     session.flush()
     # The reservation and the question are kept even if the model call is slow.
     session.commit()
@@ -339,6 +366,7 @@ def send_message(
             session,
             llm,
             settings,
+            ai,
             enrolment,
             conversation,
             tutor_settings,
@@ -351,7 +379,7 @@ def send_message(
         # can retry (FR-061).
         if not isinstance(exc, LLMError):
             logger.exception("Tutor reply failed for message %s", student_message.id)
-        _fail(session, settings, enrolment, student_message, day, started)
+        _fail(session, settings, enrolment, student_message, reservation, started)
         raise ApiError(
             503,
             "tutor_unavailable",
@@ -371,6 +399,7 @@ class _ModelReply:
 def _ask_model(
     llm: LLMClient,
     settings: Settings,
+    route: Route,
     tutor_settings: TutorSettings,
     request_solution: bool,
     history: list[Message],
@@ -380,7 +409,7 @@ def _ask_model(
 ) -> _ModelReply:
     system = build_system_prompt(settings, tutor_settings, request_solution, note)
     messages = build_messages(history, hits, text)
-    result = llm.chat_json(system, messages, task="tutor")
+    result = llm.chat_json(system, messages, task="tutor", route=route)
     outcome = _ModelReply(
         ground_reply(result.data, len(hits)),
         result.model,
@@ -399,7 +428,7 @@ def _ask_model(
     # back to a generic hint on the same cited material.
     labels = load_labels("messages", settings.tutor_language)
     retry = llm.chat_json(
-        f"{system}\n\n{labels['hint_reminder']}", messages, task="tutor"
+        f"{system}\n\n{labels['hint_reminder']}", messages, task="tutor", route=route
     )
     outcome.input_tokens += retry.input_tokens
     outcome.output_tokens += retry.output_tokens
@@ -417,6 +446,7 @@ def _reply(
     session: Session,
     llm: LLMClient,
     settings: Settings,
+    ai: InEffect,
     enrolment: Enrolment,
     conversation: Conversation,
     tutor_settings: TutorSettings,
@@ -425,10 +455,10 @@ def _reply(
     started: float,
 ) -> schemas.TutorExchange:
     history = _history(
-        session, conversation, student_message.id, settings.history_max_messages
+        session, conversation, student_message.id, ai.retrieval.history_messages
     )
     hits = _retrieve_for(
-        session, llm, settings, enrolment.course_id, history, student_message.text
+        session, llm, ai, enrolment.course_id, history, student_message.text
     )
     focus = adaptation.focus(
         session, settings, enrolment.course_id, enrolment.student_id
@@ -437,6 +467,7 @@ def _reply(
         _ask_model(
             llm,
             settings,
+            ai.route("tutor"),
             tutor_settings,
             request_solution,
             history,
@@ -493,7 +524,7 @@ def _reply(
     return schemas.TutorExchange(
         student_message=message_view(student_message),
         tutor_message=message_view(tutor_message),
-        allowance=allowance.read(session, settings, enrolment.student_id),
+        allowance=allowance_view(session, settings, ai, enrolment),
     )
 
 
@@ -502,11 +533,11 @@ def _fail(
     settings: Settings,
     enrolment: Enrolment,
     student_message: Message,
-    day: date,
+    reservation: allowance.Reservation,
     started: float,
 ) -> None:
     session.rollback()
-    allowance.release(session, enrolment.student_id, day)
+    allowance.release(session, reservation)
     student_message.status = "failed"
     student_message.counts_toward_limit = False
     interactions.record(

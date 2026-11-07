@@ -29,11 +29,13 @@ from app.core.config import get_settings  # noqa: E402
 from app.core.db import get_session_factory  # noqa: E402
 from app.integrations.auth_admin import get_auth_admin  # noqa: E402
 from app.integrations.storage import get_storage  # noqa: E402
+from app.llm.catalog import get_catalog  # noqa: E402
 from app.llm.client import get_llm  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import Profile  # noqa: E402
 from tests.fakes import (  # noqa: E402
     FakeAuthAdmin,
+    FakeCatalog,
     FakeLLM,
     FakeStorage,
     insert_auth_user,
@@ -104,6 +106,11 @@ def llm() -> FakeLLM:
 
 
 @pytest.fixture
+def catalog() -> FakeCatalog:
+    return FakeCatalog()
+
+
+@pytest.fixture
 def storage() -> FakeStorage:
     return FakeStorage()
 
@@ -114,10 +121,11 @@ def auth_admin(session_factory) -> FakeAuthAdmin:
 
 
 @pytest.fixture
-def client(session_factory, llm, storage, auth_admin) -> Iterator[TestClient]:
+def client(session_factory, llm, catalog, storage, auth_admin) -> Iterator[TestClient]:
     app = create_app()
     app.dependency_overrides[get_session_factory] = lambda: session_factory
     app.dependency_overrides[get_llm] = lambda: llm
+    app.dependency_overrides[get_catalog] = lambda: catalog
     app.dependency_overrides[get_storage] = lambda: storage
     app.dependency_overrides[get_auth_admin] = lambda: auth_admin
     with TestClient(app) as test_client:

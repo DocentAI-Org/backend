@@ -23,7 +23,8 @@ from app.models import (
     TutorSettings,
 )
 from app.schemas import exercises as schemas
-from app.services import allowance, exercises, interactions, tutor
+from app.services import ai_settings, allowance, exercises, interactions, tutor
+from app.services.ai_settings import InEffect
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -183,18 +184,19 @@ def request_review(
     tutor_settings = tutor.ensure_can_message(
         session, settings, enrolment, request_solution=False
     )
-    day = tutor.reserve_or_raise(session, settings, enrolment.student_id)
+    ai = ai_settings.in_effect(session, settings, enrolment.course_id)
+    reservation = tutor.reserve_or_raise(session, settings, ai, enrolment, "review")
     session.commit()
     started = time.perf_counter()
     try:
         review = _create(
-            session, llm, settings, tutor_settings, submission, repeated, started
+            session, llm, settings, ai, tutor_settings, submission, repeated, started
         )
     except Exception as exc:
         if not isinstance(exc, LLMError):
             logger.exception("Mistake review failed in course %s", enrolment.course_id)
         session.rollback()
-        allowance.release(session, enrolment.student_id, day)
+        allowance.release(session, reservation)
         interactions.record(
             session,
             settings,
@@ -220,6 +222,7 @@ def _create(
     session: Session,
     llm: LLMClient,
     settings: Settings,
+    ai: InEffect,
     tutor_settings: TutorSettings,
     submission: ExerciseSubmission,
     repeated: schemas.RepeatedMistake,
@@ -234,8 +237,8 @@ def _create(
         submission.course_id,
         f"{error_type.label_es}: {error_type.description_es}{topic}\n"
         f"{submission.problem_statement}\n{submission.worked_answer}",
-        settings.retrieval_top_k,
-        settings.retrieval_min_similarity,
+        ai.retrieval.top_k,
+        ai.retrieval.min_similarity,
     )
     result: ChatResult | None = None
     review: Review | None = None
@@ -244,6 +247,7 @@ def _create(
             build_review_prompt(settings, tutor_settings),
             build_review_messages(hits, error_type, repeated.topic_name, submission),
             task="review",
+            route=ai.route("review"),
         )
         review = validate_review(result.data, len(hits), submission.problem_statement)
 
