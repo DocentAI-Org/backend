@@ -76,6 +76,7 @@ def test_without_changes_the_servers_values_apply(client, admin) -> None:
         "models": NO_MODELS,
         "limits": None,
         "retrieval": None,
+        "instructions": None,
         "ceiling": None,
         "allow_teacher_keys": False,
     }
@@ -108,7 +109,12 @@ def test_the_admin_sets_the_study_values_for_every_course(
     assert seen["effective"]["limits"] == limits
     assert seen["effective"]["models"]["tutor"]["origin"] == "study"
     assert seen["effective"]["models"]["feedback"] == server_model("feedback")
-    assert seen["course"] == {"models": NO_MODELS, "limits": None, "retrieval": None}
+    assert seen["course"] == {
+        "models": NO_MODELS,
+        "limits": None,
+        "retrieval": None,
+        "instructions": None,
+    }
     assert seen["ceiling"] == {"messages": None}
 
 
