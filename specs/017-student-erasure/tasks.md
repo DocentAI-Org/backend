@@ -7,4 +7,4 @@
   503 (`tests/api/test_student_erasure.py`)
 - [x] T002 `AuthAdminClient.delete_user` (Supabase and the test fake)
 - [x] T003 [US1] [US2] `app/services/erasure.py`; `DELETE /v1/admin/students/{student_id}`
-- [ ] T004 Contract note and `openapi.json`
+- [x] T004 Contract note and `openapi.json`

@@ -90,6 +90,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}}, provisional, updated_at}` |
 | GET / POST | `/questionnaires` (specs/012) | `QuestionnaireCreate {title, url (https), audience: student\|teacher}` | `[Questionnaire]` / 201 `Questionnaire {id, title, url, audience, status: open\|closed, created_at, updated_at}` |
 | PATCH / DELETE | `/questionnaires/{questionnaire_id}` | `QuestionnaireUpdate {title?, url?, status?}` | `Questionnaire` / 204 |
+| DELETE | `/students/{student_id}` (specs/017) | — | `StudentErasure {student_id, courses, conversations, messages, exercise_submissions, quizzes, test_attempts, interaction_logs}`: rows deleted. Deletes the auth account, every row linked to it and the student's interaction logs; `404` unknown or already erased, `409 not_a_student` for a teacher or admin, `503 auth_unavailable` and nothing deleted if the auth service fails. The erased student's tokens get `401` |
 
 `initial_password` is returned once and never stored in plain text by the API.
 
