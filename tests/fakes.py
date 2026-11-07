@@ -1,4 +1,5 @@
-"""Deterministic stand-ins for the model provider, Storage and Auth admin."""
+"""Deterministic stand-ins for the model provider and its catalogue, Storage and Auth
+admin."""
 
 import hashlib
 import math
@@ -12,7 +13,9 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.config import Provider, Route
 from app.llm.client import ChatResult, LLMError
+from app.schemas.ai_settings import ModelInfo, ModelSource
 
 DIMENSIONS = 1024
 _WORD = re.compile(r"[a-z0-9]{3,}")
@@ -54,6 +57,7 @@ class FakeLLM:
         self.chat_calls: list[tuple[str, list[dict[str, str]]]] = []
         self.temperatures: list[float] = []
         self.tasks: list[str] = []
+        self.routes: list[Route | None] = []
 
     def chat_json(
         self,
@@ -61,10 +65,12 @@ class FakeLLM:
         messages: list[dict[str, str]],
         temperature: float = 0.2,
         task: str = "tutor",
+        route: Route | None = None,
     ) -> ChatResult:
         self.chat_calls.append((system, messages))
         self.temperatures.append(temperature)
         self.tasks.append(task)
+        self.routes.append(route)
         if self.fail_chat:
             raise LLMError("fake provider failure")
         data = (
@@ -85,6 +91,36 @@ class FakeLLM:
 
     def is_reachable(self) -> bool:
         return self.reachable
+
+
+class FakeCatalog:
+    """Ollama with three models and Anthropic; the server has no OpenAI key."""
+
+    def __init__(self) -> None:
+        self.by_provider: dict[Provider, ModelSource] = {
+            "ollama": ModelSource(
+                provider="ollama",
+                label="Ollama (local)",
+                reachable=True,
+                models=[
+                    ModelInfo(id="gemma4:e4b-it-qat", parameter_size="4B"),
+                    ModelInfo(id="qwen2.5:3b", parameter_size="3.1B", family="qwen2"),
+                    ModelInfo(id="qwen2.5:7b", parameter_size="7.6B", family="qwen2"),
+                ],
+            ),
+            "anthropic": ModelSource(
+                provider="anthropic",
+                label="Anthropic",
+                reachable=True,
+                models=[ModelInfo(id="claude-haiku-5-5", label="Claude Haiku 5.5")],
+            ),
+        }
+
+    def sources(self) -> list[ModelSource]:
+        return list(self.by_provider.values())
+
+    def source(self, provider: Provider) -> ModelSource | None:
+        return self.by_provider.get(provider)
 
 
 class FakeStorage:

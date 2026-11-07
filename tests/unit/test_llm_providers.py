@@ -6,7 +6,7 @@ import anthropic
 import pytest
 from pydantic import ValidationError
 
-from app.core.config import Settings
+from app.core.config import Route, Settings
 from app.llm.client import (
     AnthropicProvider,
     ChatResult,
@@ -69,8 +69,8 @@ def test_a_task_overrides_the_default_provider_model_and_effort(env) -> None:
         LLM_FEEDBACK_EFFORT="low",
     )
 
-    assert settings.route("tutor") == ("anthropic", "claude-haiku-5-5", None)
-    assert settings.route("feedback") == ("openai", "gpt-test", "low")
+    assert settings.route("tutor") == Route("anthropic", "claude-haiku-5-5", None)
+    assert settings.route("feedback") == Route("openai", "gpt-test", "low")
 
 
 def test_the_old_variable_names_keep_working(env) -> None:
@@ -112,6 +112,20 @@ def test_the_router_sends_each_task_to_its_provider(env) -> None:
     assert tutor.model == "qwen2.5:7b" and ollama.calls[0]["temperature"] == 0.2
     assert feedback.model == "claude-sonnet-5-5"
     assert claude.calls[0]["effort"] == "low" and claude.calls[0]["temperature"] == 0.0
+
+
+def test_a_course_route_replaces_the_servers(env) -> None:
+    ollama = FakeProvider()
+    router = LLMRouter(env(), providers={"ollama": ollama})
+
+    router.chat_json("sys", [], route=Route("ollama", "qwen2.5:3b", None, 0.7, 500))
+    router.chat_json(
+        "sys", [], temperature=0.0, route=Route("ollama", "qwen2.5:3b", None)
+    )
+
+    assert [c["model"] for c in ollama.calls] == ["qwen2.5:3b", "qwen2.5:3b"]
+    assert [c["temperature"] for c in ollama.calls] == [0.7, 0.0]
+    assert [c["max_tokens"] for c in ollama.calls] == [500, None]
 
 
 # --- Anthropic ---------------------------------------------------------------------

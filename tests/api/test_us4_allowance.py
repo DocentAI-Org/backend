@@ -1,13 +1,16 @@
-"""US4 — daily message allowance shared across courses (FR-060, FR-061, SC-007)."""
+"""US4 — daily message allowance shared across courses (FR-060, FR-061, SC-007); the
+study's daily ceiling since spec 019."""
 
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import datetime
 
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import get_settings
-from app.services import allowance
+from app.schemas.ai_settings import Ceiling, Limits
+from app.services import ai_settings, allowance
 from tests.api.helpers import COVERED_QUESTION, ask, classroom, open_conversation
 from tests.fakes import insert_auth_user
 
@@ -61,21 +64,41 @@ def test_concurrent_reservations_never_exceed_the_limit(engine) -> None:
     factory = sessionmaker(bind=engine)
     with factory() as session:
         student_id = insert_auth_user(session, None, "Concurrencia")
+        teacher_id = insert_auth_user(session, None, "Profesora")
+        course_id = session.execute(
+            text(
+                "insert into courses (teacher_id, name, class_code) "
+                "values (:t, 'Concurrencia', 'CON-0001') returning id"
+            ),
+            {"t": teacher_id},
+        ).scalar_one()
+        ai = ai_settings.in_effect(session, settings, course_id)
         session.commit()
 
-    def reserve(_: int) -> bool:
-        with factory() as session:
-            reserved = allowance.reserve(session, settings, student_id)
-            session.commit()
-            return reserved is not None
+    def taken(ai: ai_settings.InEffect) -> int:
+        def reserve(_: int) -> bool:
+            with factory() as session:
+                reserved = allowance.reserve(
+                    session, settings, ai, student_id, course_id, "tutor"
+                )
+                session.commit()
+                return isinstance(reserved, allowance.Reservation)
+
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            return sum(pool.map(reserve, range(10)))
 
     try:
-        with ThreadPoolExecutor(max_workers=10) as pool:
-            results = list(pool.map(reserve, range(10)))
-        assert sum(results) == settings.daily_message_limit == 5
+        assert taken(ai) == settings.daily_message_limit == 5
+        # And a course limit (spec 019), with no ceiling.
+        weekly = Limits(messages=8, period="week", counted_tasks=["tutor"])
+        assert taken(replace(ai, limits=weekly, ceiling=Ceiling(messages=None))) == 8
     finally:
         with factory() as session:
             session.execute(
-                text("delete from auth.users where id = :id"), {"id": student_id}
+                text("delete from courses where id = :id"), {"id": course_id}
+            )
+            session.execute(
+                text("delete from auth.users where id = any(:ids)"),
+                {"ids": [student_id, teacher_id]},
             )
             session.commit()

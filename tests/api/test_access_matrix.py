@@ -27,6 +27,8 @@ BODIES: dict[tuple[str, str], dict] = {
         "provisional": True,
     },
     ("put", "/v1/teacher/courses/{course_id}/pedagogy-criteria"): {},
+    ("put", "/v1/admin/ai-settings"): {},
+    ("put", "/v1/teacher/courses/{course_id}/ai-settings"): {},
     ("post", "/v1/admin/questionnaires"): {
         "title": "X",
         "url": "https://example.org",
