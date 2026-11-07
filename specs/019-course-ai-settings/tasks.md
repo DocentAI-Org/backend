@@ -31,4 +31,5 @@ Delivered in three PRs against `main`, one after the other (never stacked).
   (not logged, no allowance, rate limit), usage figures (`tests/api/test_ai_tools.py`)
 - [x] T012 Teacher instruction block in the four prompts
 - [x] T013 `ai-test` and `ai-usage` routes
-- [ ] T014 Evaluation unchanged with no overrides (SC-002); validation on the real stack
+- [x] T014 Evaluation unchanged with no overrides (SC-002: same prompts, tested; not re-run);
+  validation on the real stack

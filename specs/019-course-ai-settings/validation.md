@@ -38,3 +38,25 @@ path a commercial key would.
 | The tutor through the key | 201 in 4.6 s; the log keeps `qwen2.5:3b` |
 | Deleting the key | the row is gone; the course's tutor goes back to the inherited model with a `credential_removed` notice |
 | Both keys in the API log | absent |
+
+# Validation: Instructions, test message and usage (PR 3)
+
+**Date**: 2026-11-08 · **Stack**: as above.
+
+The API tests (`test_ai_tools.py`, 16 tests; full suite 447 passed) use the fake model. This run
+uses the local Ollama.
+
+| Check | Result |
+|---|---|
+| Test message with the saved settings (none) | `hint` from `qwen2.5:3b` (the server's), 3.5 s, 494 + 65 tokens, 1 fragment |
+| Test message with unsaved `qwen2.5:7b` and a tutor instruction | `qwen2.5:7b`, 7.0 s; the course's saved settings are unchanged afterwards |
+| Feedback test | `incorrect` with the explanation of the parenthesis mistake |
+| Usage after two student questions (weekly limit 5, only the tutor counts) | tutor 2 messages, 1053 input tokens; top student 2 of 5 |
+
+**Finding (model quality)**: `qwen2.5:7b` did not follow the test instruction ("Termina siempre
+con la frase exacta: ¡Ánimo, tú puedes!"). The block reaches the prompt (tested), after the
+rules and before the reply format; how well small models follow teachers' instructions belongs
+to the model comparison (spec 018) and prompt work.
+
+**SC-002**: with no instructions the `{teacher}` placeholders are empty, so the four prompts are
+the same text as before (tested); the evaluation was not re-run.
