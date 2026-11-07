@@ -10,7 +10,7 @@ from typing import Any, Protocol
 import anthropic
 from openai import OpenAI, OpenAIError
 
-from app.core.config import Effort, Provider, Settings, Task, get_settings
+from app.core.config import Effort, Provider, Route, Settings, Task, get_settings
 
 # A valid JSON escape, or a lone backslash: models write LaTeX (\sqrt, \() unescaped.
 _ESCAPE = re.compile(r'(\\(?:u[0-9a-fA-F]{4}|["\\/bfnrt]))|\\', re.S)
@@ -78,6 +78,7 @@ class LLMClient(Protocol):
         messages: list[dict[str, str]],
         temperature: float = 0.2,
         task: Task = "tutor",
+        route: Route | None = None,
     ) -> ChatResult: ...
 
     def embed(self, texts: list[str]) -> list[list[float]]: ...
@@ -94,6 +95,7 @@ class ChatProvider(Protocol):
         messages: list[dict[str, str]],
         temperature: float,
         effort: Effort | None = None,
+        max_tokens: int | None = None,
     ) -> ChatResult: ...
 
     def is_reachable(self, model: str) -> bool: ...
@@ -113,14 +115,17 @@ class OpenAICompatProvider:
         messages: list[dict[str, str]],
         temperature: float,
         effort: Effort | None = None,
+        max_tokens: int | None = None,
     ) -> ChatResult:
         # `effort` is Anthropic's; these models get the temperature instead.
+        extra = {"max_tokens": max_tokens} if max_tokens else {}
         try:
             response = self._client.chat.completions.create(
                 model=model,
                 messages=[{"role": "system", "content": system}, *messages],
                 response_format={"type": "json_object"},
                 temperature=temperature,
+                **extra,
             )
         except OpenAIError as exc:
             raise LLMError(str(exc)) from exc
@@ -177,10 +182,11 @@ class AnthropicProvider:
         messages: list[dict[str, str]],
         temperature: float,
         effort: Effort | None = None,
+        max_tokens: int | None = None,
     ) -> ChatResult:
         request: dict[str, Any] = {
             "model": model,
-            "max_tokens": self._max_tokens,
+            "max_tokens": max_tokens or self._max_tokens,
             "system": system,
             "messages": messages,
         }
@@ -261,14 +267,17 @@ class LLMRouter:
         messages: list[dict[str, str]],
         temperature: float = 0.2,
         task: Task = "tutor",
+        route: Route | None = None,
     ) -> ChatResult:
-        route = self._settings.route(task)
+        """`route` is the course's (specs/019); otherwise the server's for the task."""
+        route = route or self._settings.route(task)
         return self._get(route.provider).complete_json(
             model=route.model,
             system=system,
             messages=messages,
-            temperature=temperature,
+            temperature=temperature if route.temperature is None else route.temperature,
             effort=route.effort,
+            max_tokens=route.max_tokens,
         )
 
     def embed(self, texts: list[str]) -> list[list[float]]:

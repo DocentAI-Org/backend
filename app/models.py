@@ -466,6 +466,21 @@ class PedagogyCriteria(Base):
     updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
 
 
+class AISettings(Base):
+    """The study's AI settings (no course) or a course's, per group (specs/019)."""
+
+    __tablename__ = "ai_settings"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("courses.id"))
+    models: Mapped[dict] = mapped_column(JSONB, server_default="{}")
+    limits: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    retrieval: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    ceiling: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
+
+
 class TeacherFlag(Base):
     __tablename__ = "teacher_flags"
 
@@ -516,6 +531,22 @@ class DailyUsage(Base):
         ForeignKey("profiles.id"), primary_key=True
     )
     usage_date: Mapped[date] = mapped_column(primary_key=True)
+    used: Mapped[int] = mapped_column(server_default="0")
+
+
+class CourseUsage(Base):
+    """Messages a student used in a course in a period (specs/019)."""
+
+    __tablename__ = "course_usage"
+
+    student_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("profiles.id"), primary_key=True
+    )
+    course_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("courses.id"), primary_key=True
+    )
+    period: Mapped[str] = mapped_column(primary_key=True)
+    period_start: Mapped[date] = mapped_column(primary_key=True)
     used: Mapped[int] = mapped_column(server_default="0")
 
 

@@ -55,10 +55,15 @@ class StudentMessage(BaseModel):
 
 
 class Allowance(BaseModel):
-    limit: int
+    """The tighter of the course's limit and the daily ceiling across courses
+    (specs/019); a null limit is no limit."""
+
+    scope: Literal["course", "daily"]
+    limit: int | None
     used: int
-    remaining: int
-    resets_at: datetime
+    remaining: int | None
+    period: Literal["day", "week", "course"]
+    resets_at: datetime | None = Field(description="Null for a whole-course limit.")
 
 
 class TutorExchange(BaseModel):

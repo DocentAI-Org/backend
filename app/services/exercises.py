@@ -31,7 +31,15 @@ from app.models import (
 )
 from app.schemas import exercises as schemas
 from app.schemas.chat import Adaptation, Correction
-from app.services import adaptation, allowance, interactions, pedagogy, tutor
+from app.services import (
+    adaptation,
+    ai_settings,
+    allowance,
+    interactions,
+    pedagogy,
+    tutor,
+)
+from app.services.ai_settings import InEffect
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
@@ -272,7 +280,8 @@ def submit(
     tutor_settings = tutor.ensure_can_message(
         session, settings, enrolment, request_solution=False
     )
-    day = tutor.reserve_or_raise(session, settings, enrolment.student_id)
+    ai = ai_settings.in_effect(session, settings, enrolment.course_id)
+    reservation = tutor.reserve_or_raise(session, settings, ai, enrolment, "feedback")
     session.commit()
     started = time.perf_counter()
     try:
@@ -280,6 +289,7 @@ def submit(
             session,
             llm,
             settings,
+            ai,
             enrolment,
             tutor_settings,
             problem_statement,
@@ -293,7 +303,7 @@ def submit(
                 "Exercise feedback failed in course %s", enrolment.course_id
             )
         session.rollback()
-        allowance.release(session, enrolment.student_id, day)
+        allowance.release(session, reservation)
         interactions.record(
             session,
             settings,
@@ -318,6 +328,7 @@ def _assess(
     session: Session,
     llm: LLMClient,
     settings: Settings,
+    ai: InEffect,
     enrolment: Enrolment,
     tutor_settings: TutorSettings,
     problem_statement: str,
@@ -329,8 +340,8 @@ def _assess(
         llm,
         enrolment.course_id,
         f"{problem_statement}\n{worked_answer}",
-        settings.retrieval_top_k,
-        settings.retrieval_min_similarity_exercises,
+        ai.retrieval.top_k,
+        ai.retrieval.min_similarity_exercises,
     )
     topics = list(
         session.scalars(
@@ -363,6 +374,7 @@ def _assess(
             ),
             temperature=settings.llm_feedback_temperature,
             task="feedback",
+            route=ai.route("feedback"),
         )
         feedback = validate_feedback(
             result.data, len(hits), len(topics), {t.code for t in error_types}

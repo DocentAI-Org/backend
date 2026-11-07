@@ -18,7 +18,7 @@ from app.schemas.chat import (
     StudentConversationSummary,
     TutorExchange,
 )
-from app.services import allowance, courses, tutor
+from app.services import ai_settings, allowance, courses, tutor
 
 router = APIRouter(tags=["student: tutor chat"])
 
@@ -26,9 +26,29 @@ LLM = Annotated[LLMClient, Depends(get_llm)]
 CONVERSATION = "/courses/{course_id}/conversations/{conversation_id}"
 
 
-@router.get("/allowance", response_model=Allowance)
+@router.get(
+    "/allowance",
+    response_model=Allowance,
+    summary="Messages left today across all courses (the study's daily ceiling)",
+)
 def read_allowance(student: StudentUser, session: DbSession) -> Allowance:
-    return allowance.read(session, get_settings(), student.id)
+    ceiling = ai_settings.study_ceiling(session, get_settings())
+    return allowance.read_daily(session, get_settings(), ceiling.messages, student.id)
+
+
+@router.get(
+    "/courses/{course_id}/allowance",
+    response_model=Allowance,
+    responses=error_responses(403, 404),
+    summary="Messages left in the course: its limit or the daily ceiling, the tighter",
+)
+def read_course_allowance(
+    course_id: uuid.UUID, student: StudentUser, session: DbSession
+) -> Allowance:
+    enrolment = courses.get_active_enrolment(session, course_id, student)
+    settings = get_settings()
+    ai = ai_settings.in_effect(session, settings, enrolment.course_id)
+    return tutor.allowance_view(session, settings, ai, enrolment)
 
 
 @router.post(

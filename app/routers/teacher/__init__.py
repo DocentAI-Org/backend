@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from app.core.errors import error_responses
 from app.core.security import require_role
 from app.routers.teacher import (
+    ai_settings,
     course_tests,
     courses,
     dashboard,
@@ -30,3 +31,4 @@ router.include_router(dashboard.router)
 router.include_router(quizzes.router)
 router.include_router(course_tests.router)
 router.include_router(pedagogy.router)
+router.include_router(ai_settings.router)

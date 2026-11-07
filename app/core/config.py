@@ -14,6 +14,10 @@ class Route(NamedTuple):
     provider: Provider
     model: str
     effort: Effort | None
+    # A course's own (specs/019); None keeps the call's temperature and the server's
+    # max tokens.
+    temperature: float | None = None
+    max_tokens: int | None = None
 
 
 class Settings(BaseSettings):
