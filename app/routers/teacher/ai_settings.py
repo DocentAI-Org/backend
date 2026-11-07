@@ -1,15 +1,16 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from app.core.config import get_settings
 from app.core.db import DbSession
-from app.core.errors import error_responses
+from app.core.errors import ApiError, error_responses
 from app.core.security import TeacherUser
 from app.llm.catalog import Catalog, get_catalog
 from app.schemas.ai_settings import AIModels, CourseAISettings, CourseOverrides
-from app.services import ai_settings, courses
+from app.schemas.llm_credentials import Credential, CredentialCreate
+from app.services import ai_settings, courses, llm_credentials
 
 router = APIRouter(prefix="/courses/{course_id}", tags=["teacher: AI settings"])
 
@@ -60,5 +61,64 @@ def list_ai_models(
     session: DbSession,
     catalog: ModelCatalog,
 ) -> AIModels:
-    courses.get_owned_course(session, course_id, teacher)
-    return AIModels(sources=catalog.sources())
+    course = courses.get_owned_course(session, course_id, teacher)
+    return AIModels(
+        sources=ai_settings.course_sources(session, get_settings(), catalog, course.id)
+    )
+
+
+@router.get(
+    "/llm-credentials",
+    response_model=list[Credential],
+    responses=error_responses(404),
+    summary="The teacher's own keys for the course (specs/019)",
+)
+def list_own_credentials(
+    course_id: uuid.UUID, teacher: TeacherUser, session: DbSession
+) -> list[Credential]:
+    course = courses.get_owned_course(session, course_id, teacher)
+    return llm_credentials.list_course(session, course.id)
+
+
+@router.post(
+    "/llm-credentials",
+    status_code=201,
+    response_model=Credential,
+    responses=error_responses(403, 404, 409, 422),
+    summary="Add the teacher's own key, if the study allows it; requests then go to "
+    "that provider under the teacher's account",
+)
+def create_own_credential(
+    course_id: uuid.UUID,
+    payload: CredentialCreate,
+    teacher: TeacherUser,
+    session: DbSession,
+    catalog: ModelCatalog,
+) -> Credential:
+    course = courses.get_owned_course(session, course_id, teacher)
+    if not ai_settings.teacher_keys_allowed(session):
+        raise ApiError(
+            403, "teacher_keys_disabled", "The study does not allow teachers' own keys."
+        )
+    return llm_credentials.create(
+        session, get_settings(), catalog, payload, teacher, course.id
+    )
+
+
+@router.delete(
+    "/llm-credentials/{credential_id}",
+    status_code=204,
+    responses=error_responses(404),
+    summary="Delete the teacher's own key; its tasks go back to the inherited model",
+)
+def delete_own_credential(
+    course_id: uuid.UUID,
+    credential_id: uuid.UUID,
+    teacher: TeacherUser,
+    session: DbSession,
+) -> Response:
+    course = courses.get_owned_course(session, course_id, teacher)
+    llm_credentials.delete(
+        session, llm_credentials.get(session, credential_id, course.id)
+    )
+    return Response(status_code=204)

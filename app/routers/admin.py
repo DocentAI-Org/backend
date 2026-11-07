@@ -23,7 +23,18 @@ from app.schemas.admin import (
 from app.schemas.admin import (
     AdminUser as AdminUserOut,
 )
-from app.schemas.ai_settings import AIModels, StudyAISettings, StudyOverrides
+from app.schemas.ai_settings import (
+    AIModels,
+    ModelSource,
+    StudyAISettings,
+    StudyOverrides,
+)
+from app.schemas.llm_credentials import (
+    Credential,
+    CredentialCreate,
+    CredentialUpdate,
+    StudyCredentials,
+)
 from app.schemas.pedagogy import StudyCriteria, StudyCriteriaUpdate
 from app.schemas.questionnaires import (
     Questionnaire,
@@ -35,6 +46,7 @@ from app.services import (
     accounts,
     ai_settings,
     erasure,
+    llm_credentials,
     pedagogy,
     questionnaires,
     review,
@@ -261,5 +273,67 @@ def update_ai_settings(
     response_model=AIModels,
     summary="The models the server offers, by source",
 )
-def list_ai_models(catalog: ModelCatalog) -> AIModels:
-    return AIModels(sources=catalog.sources())
+def list_ai_models(session: DbSession, catalog: ModelCatalog) -> AIModels:
+    return AIModels(sources=llm_credentials.sources(session, get_settings(), catalog))
+
+
+@router.get(
+    "/llm-credentials",
+    response_model=StudyCredentials,
+    summary="The server's keys and the study's stored keys (specs/019)",
+)
+def list_credentials(session: DbSession, catalog: ModelCatalog) -> StudyCredentials:
+    return llm_credentials.list_study(session, catalog)
+
+
+@router.post(
+    "/llm-credentials",
+    status_code=201,
+    response_model=Credential,
+    responses=error_responses(409, 422),
+    summary="Add a key every course may use; checked with the provider, then encrypted",
+)
+def create_credential(
+    payload: CredentialCreate,
+    admin: AdminProfile,
+    session: DbSession,
+    catalog: ModelCatalog,
+) -> Credential:
+    return llm_credentials.create(session, get_settings(), catalog, payload, admin)
+
+
+@router.patch(
+    "/llm-credentials/{credential_id}",
+    response_model=Credential,
+    responses=error_responses(404, 422),
+    summary="Rename a key or choose the models courses may use",
+)
+def update_credential(
+    credential_id: uuid.UUID, payload: CredentialUpdate, session: DbSession
+) -> Credential:
+    row = llm_credentials.get(session, credential_id)
+    return llm_credentials.update_study(session, row, payload)
+
+
+@router.delete(
+    "/llm-credentials/{credential_id}",
+    status_code=204,
+    responses=error_responses(404),
+    summary="Delete a key; the courses using it go back to the inherited model",
+)
+def delete_credential(credential_id: uuid.UUID, session: DbSession) -> Response:
+    llm_credentials.delete(session, llm_credentials.get(session, credential_id))
+    return Response(status_code=204)
+
+
+@router.get(
+    "/llm-credentials/{credential_id}/models",
+    response_model=ModelSource,
+    responses=error_responses(404, 409),
+    summary="Every model the key's account offers, to choose those courses may use",
+)
+def list_credential_models(
+    credential_id: uuid.UUID, session: DbSession, catalog: ModelCatalog
+) -> ModelSource:
+    row = llm_credentials.get(session, credential_id)
+    return llm_credentials.all_models(get_settings(), catalog, row)

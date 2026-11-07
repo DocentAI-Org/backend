@@ -2,7 +2,9 @@
 server's environment; models are resolved per task the same way."""
 
 import uuid
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -10,9 +12,11 @@ from sqlalchemy.orm import Session
 from app.core.config import Route, Settings, Task
 from app.core.errors import ApiError
 from app.llm.catalog import Catalog
-from app.models import AISettings, Course, Profile
+from app.llm.credentials import CredentialAccess
+from app.models import AISettings, Course, LLMCredential, Profile
 from app.schemas import ai_settings as schemas
-from app.schemas.ai_settings import COUNTED_TASKS
+from app.schemas.ai_settings import COUNTED_TASKS, ModelSource
+from app.services import llm_credentials
 
 TASKS: tuple[Task, ...] = ("tutor", "feedback", "review", "questions")
 
@@ -23,6 +27,7 @@ class InEffect:
     limits: schemas.Limits
     retrieval: schemas.Retrieval
     ceiling: schemas.Ceiling
+    credentials: dict[uuid.UUID, CredentialAccess] = field(default_factory=dict)
 
     def route(self, task: Task) -> Route:
         model = self.models[task]
@@ -32,6 +37,7 @@ class InEffect:
             model.effort,
             model.temperature,
             model.max_tokens,
+            self.credentials[model.credential_id] if model.credential_id else None,
         )
 
 
@@ -99,7 +105,16 @@ def _values(values: schemas.StudyValues) -> schemas.Values:
 def in_effect(session: Session, settings: Settings, course_id: uuid.UUID) -> InEffect:
     study = _layer(server_values(settings), _study_row(session), "study")
     values = _layer(study, _course_row(session, course_id), "course")
-    return InEffect(values.models, values.limits, values.retrieval, study.ceiling)
+    credentials = {}
+    for model in values.models.values():
+        if model.credential_id and model.credential_id not in credentials:
+            row = session.get(LLMCredential, model.credential_id)
+            # Deleting a key resets the tasks using it, so it is always there.
+            assert row is not None
+            credentials[row.id] = llm_credentials.access(settings, row)
+    return InEffect(
+        values.models, values.limits, values.retrieval, study.ceiling, credentials
+    )
 
 
 def study_ceiling(session: Session, settings: Settings) -> schemas.Ceiling:
@@ -114,12 +129,28 @@ def _overrides(row: AISettings | None) -> dict:
     return {"models": models, "limits": row.limits, "retrieval": row.retrieval}
 
 
-def _check_models(catalog: Catalog, models: schemas.TaskModels) -> None:
+def _check_models(sources: list[ModelSource], models: schemas.TaskModels) -> None:
+    """Only a model one of the sources offers, through that source's key."""
     for task in TASKS:
         choice: schemas.ModelChoice | None = getattr(models, task)
         if choice is None:
             continue
-        source = catalog.source(choice.provider)
+        source = next(
+            (
+                s
+                for s in sources
+                if s.credential_id == choice.credential_id
+                and s.provider == choice.provider
+            ),
+            None,
+        )
+        if source is None and choice.credential_id is not None:
+            raise ApiError(
+                422,
+                "credential_unavailable",
+                "This course cannot use that key.",
+                {"task": task},
+            )
         if source is None:
             raise ApiError(
                 422,
@@ -156,14 +187,61 @@ def _store(
     user: Profile,
 ) -> None:
     row.models = {
-        task: choice.model_dump()
+        task: choice.model_dump(mode="json")
         for task in TASKS
         if (choice := getattr(payload.models, task)) is not None
     }
     row.limits = payload.limits.model_dump() if payload.limits else None
     row.retrieval = payload.retrieval.model_dump() if payload.retrieval else None
+    row.notices = []
     row.updated_at = func.clock_timestamp()
     row.updated_by = user.id
+
+
+def _reset(
+    session: Session,
+    keep: Callable[[dict], bool],
+    reason: str,
+) -> None:
+    """Every task whose model `keep` rejects goes back to the inherited one, with a
+    notice."""
+    at = datetime.now(UTC).isoformat()
+    for row in session.scalars(select(AISettings)):
+        removed = {t: c for t, c in row.models.items() if not keep(c)}
+        if not removed:
+            continue
+        row.models = {t: c for t, c in row.models.items() if t not in removed}
+        row.notices = [
+            *row.notices,
+            *(
+                {"task": t, "model": c["model"], "reason": reason, "at": at}
+                for t, c in removed.items()
+            ),
+        ]
+    session.flush()
+
+
+def withdraw(
+    session: Session, credential_id: uuid.UUID, offered: set[str], reason: str
+) -> None:
+    """Tasks using the key with a model it no longer offers (any, when deleted)."""
+    _reset(
+        session,
+        lambda c: c.get("credential_id") != str(credential_id) or c["model"] in offered,
+        reason,
+    )
+
+
+def _disable_teacher_keys(session: Session) -> None:
+    own = {
+        str(i)
+        for i in session.scalars(
+            select(LLMCredential.id).where(LLMCredential.course_id.is_not(None))
+        )
+    }
+    _reset(
+        session, lambda c: c.get("credential_id") not in own, "teacher_keys_disabled"
+    )
 
 
 def study(session: Session, settings: Settings) -> schemas.StudyAISettings:
@@ -172,9 +250,14 @@ def study(session: Session, settings: Settings) -> schemas.StudyAISettings:
     return schemas.StudyAISettings(
         server=server,
         study=schemas.StudyOverrides.model_validate(
-            {**_overrides(row), "ceiling": row.ceiling}
+            {
+                **_overrides(row),
+                "ceiling": row.ceiling,
+                "allow_teacher_keys": row.allow_teacher_keys,
+            }
         ),
         effective=_layer(server, row, "study"),
+        notices=row.notices,
         updated_at=row.updated_at,
     )
 
@@ -186,10 +269,13 @@ def update_study(
     payload: schemas.StudyOverrides,
     admin: Profile,
 ) -> schemas.StudyAISettings:
-    _check_models(catalog, payload.models)
+    _check_models(llm_credentials.sources(session, settings, catalog), payload.models)
     row = _study_row(session)
     _store(row, payload, admin)
     row.ceiling = payload.ceiling.model_dump() if payload.ceiling else None
+    if row.allow_teacher_keys and not payload.allow_teacher_keys:
+        _disable_teacher_keys(session)
+    row.allow_teacher_keys = payload.allow_teacher_keys
     session.flush()
     session.refresh(row)
     return study(session, settings)
@@ -198,13 +284,28 @@ def update_study(
 def for_course(
     session: Session, settings: Settings, course: Course
 ) -> schemas.CourseAISettings:
-    study_values = _layer(server_values(settings), _study_row(session), "study")
+    study_row = _study_row(session)
+    study_values = _layer(server_values(settings), study_row, "study")
     own = _course_row(session, course.id)
     return schemas.CourseAISettings(
         inherited=_values(study_values),
         course=schemas.CourseOverrides.model_validate(_overrides(own)),
         effective=_values(_layer(study_values, own, "course")),
         ceiling=study_values.ceiling,
+        allow_teacher_keys=study_row.allow_teacher_keys,
+        notices=own.notices if own else [],
+    )
+
+
+def teacher_keys_allowed(session: Session) -> bool:
+    return _study_row(session).allow_teacher_keys
+
+
+def course_sources(
+    session: Session, settings: Settings, catalog: Catalog, course_id: uuid.UUID
+) -> list[ModelSource]:
+    return llm_credentials.sources(
+        session, settings, catalog, course_id, teacher_keys_allowed(session)
     )
 
 
@@ -216,7 +317,7 @@ def update_course(
     payload: schemas.CourseOverrides,
     teacher: Profile,
 ) -> schemas.CourseAISettings:
-    _check_models(catalog, payload.models)
+    _check_models(course_sources(session, settings, catalog, course.id), payload.models)
     own = _course_row(session, course.id)
     if own is None:
         own = AISettings(course_id=course.id)

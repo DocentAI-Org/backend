@@ -1,6 +1,7 @@
 """AI settings (specs/019): the server's values (env), the study's and each course's,
 per group; models are chosen per task."""
 
+import uuid
 from datetime import datetime
 from typing import Literal
 
@@ -26,6 +27,9 @@ class ModelChoice(BaseModel):
     effort: Effort | None = None
     max_tokens: int | None = Field(
         default=None, ge=64, le=32000, description="Longest reply; null: the server's."
+    )
+    credential_id: uuid.UUID | None = Field(
+        default=None, description="A stored key; null: the server's key."
     )
 
 
@@ -85,6 +89,9 @@ class StudyOverrides(BaseModel):
     limits: Limits | None = None
     retrieval: Retrieval | None = None
     ceiling: Ceiling | None = None
+    allow_teacher_keys: bool = Field(
+        default=False, description="Teachers may add their own keys to their courses."
+    )
 
 
 class CourseOverrides(BaseModel):
@@ -93,10 +100,20 @@ class CourseOverrides(BaseModel):
     retrieval: Retrieval | None = None
 
 
+class Notice(BaseModel):
+    """A task that went back to the inherited model, and why."""
+
+    task: Task
+    model: str
+    reason: Literal["credential_removed", "model_withdrawn", "teacher_keys_disabled"]
+    at: datetime
+
+
 class StudyAISettings(BaseModel):
     server: StudyValues = Field(description="The values in the server's environment.")
     study: StudyOverrides = Field(description="What the study changes; null inherits.")
     effective: StudyValues
+    notices: list[Notice] = Field(description="Cleared when the settings are saved.")
     updated_at: datetime
 
 
@@ -105,6 +122,8 @@ class CourseAISettings(BaseModel):
     course: CourseOverrides = Field(description="What the course changes.")
     effective: Values
     ceiling: Ceiling = Field(description="The study's daily ceiling, for reference.")
+    allow_teacher_keys: bool
+    notices: list[Notice] = Field(description="Cleared when the settings are saved.")
 
 
 class ModelInfo(BaseModel):
@@ -120,6 +139,10 @@ class ModelSource(BaseModel):
     label: str
     reachable: bool
     models: list[ModelInfo]
+    credential_id: uuid.UUID | None = Field(
+        default=None, description="Null for the server's own keys."
+    )
+    scope: Literal["server", "study", "course"] = "server"
 
 
 class AIModels(BaseModel):
