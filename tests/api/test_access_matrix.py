@@ -28,6 +28,17 @@ BODIES: dict[tuple[str, str], dict] = {
     },
     ("put", "/v1/teacher/courses/{course_id}/pedagogy-criteria"): {},
     ("put", "/v1/admin/ai-settings"): {},
+    ("post", "/v1/admin/llm-credentials"): {
+        "provider": "openai",
+        "label": "X",
+        "api_key": "sk-test-0123456789",
+    },
+    ("patch", "/v1/admin/llm-credentials/{credential_id}"): {"label": "X"},
+    ("post", "/v1/teacher/courses/{course_id}/llm-credentials"): {
+        "provider": "openai",
+        "label": "X",
+        "api_key": "sk-test-0123456789",
+    },
     ("put", "/v1/teacher/courses/{course_id}/ai-settings"): {},
     ("post", "/v1/admin/questionnaires"): {
         "title": "X",

@@ -28,6 +28,7 @@ QWEN_3B = {
     "temperature": 0.4,
     "effort": None,
     "max_tokens": 800,
+    "credential_id": None,
 }
 
 
@@ -43,6 +44,7 @@ def server_model(task: str) -> dict:
         "temperature": None,
         "effort": route.effort,
         "max_tokens": None,
+        "credential_id": None,
         "origin": "server",
     }
 
@@ -75,6 +77,7 @@ def test_without_changes_the_servers_values_apply(client, admin) -> None:
         "limits": None,
         "retrieval": None,
         "ceiling": None,
+        "allow_teacher_keys": False,
     }
     assert body["server"] == body["effective"]
     effective = body["effective"]
@@ -220,6 +223,7 @@ def test_anthropic_takes_effort_but_no_temperature(client, teacher) -> None:
         "temperature": None,
         "effort": "low",
         "max_tokens": None,
+        "credential_id": None,
     }
 
     body = set_course(

@@ -14,7 +14,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import Provider, Route
+from app.llm.catalog import KeyCheck
 from app.llm.client import ChatResult, LLMError
+from app.llm.credentials import CredentialAccess
 from app.schemas.ai_settings import ModelInfo, ModelSource
 
 DIMENSIONS = 1024
@@ -94,7 +96,13 @@ class FakeLLM:
 
 
 class FakeCatalog:
-    """Ollama with three models and Anthropic; the server has no OpenAI key."""
+    """Ollama with three models and Anthropic; the server has no OpenAI key. A key
+    starting with "bad" is rejected; one starting with "down" finds no provider."""
+
+    CREDENTIAL_MODELS = {
+        "openai": ["gpt-mini", "gpt-test"],
+        "anthropic": ["claude-haiku-5-5"],
+    }
 
     def __init__(self) -> None:
         self.by_provider: dict[Provider, ModelSource] = {
@@ -121,6 +129,22 @@ class FakeCatalog:
 
     def source(self, provider: Provider) -> ModelSource | None:
         return self.by_provider.get(provider)
+
+    def check_key(self, credential: CredentialAccess) -> KeyCheck:
+        if credential.api_key.startswith("bad"):
+            return "rejected"
+        return "unreachable" if credential.api_key.startswith("down") else "ok"
+
+    def credential_models(self, credential: CredentialAccess) -> ModelSource:
+        return ModelSource(
+            provider=credential.provider,
+            label=credential.label,
+            reachable=True,
+            models=[
+                ModelInfo(id=m) for m in self.CREDENTIAL_MODELS[credential.provider]
+            ],
+            credential_id=credential.id,
+        )
 
 
 class FakeStorage:
