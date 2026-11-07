@@ -16,6 +16,7 @@ from app.schemas.admin import (
     CreatedAccount,
     PseudonymousBatch,
     PseudonymousBatchCreate,
+    StudentErasure,
     TeacherCreate,
 )
 from app.schemas.admin import (
@@ -28,7 +29,14 @@ from app.schemas.questionnaires import (
     QuestionnaireUpdate,
 )
 from app.schemas.review import EvaluationItem
-from app.services import accounts, pedagogy, questionnaires, review, study_export
+from app.services import (
+    accounts,
+    erasure,
+    pedagogy,
+    questionnaires,
+    review,
+    study_export,
+)
 
 router = APIRouter(
     prefix="/admin",
@@ -90,6 +98,18 @@ def create_pseudonymous_students(
         session, auth_admin, get_settings(), payload.count
     )
     return PseudonymousBatch(accounts=created)
+
+
+@router.delete(
+    "/students/{student_id}",
+    response_model=StudentErasure,
+    responses=error_responses(404, 409, 503),
+    summary="Erase a student and everything linked to them (spec 017)",
+)
+def erase_student(
+    student_id: uuid.UUID, session: DbSession, auth_admin: AuthAdmin
+) -> StudentErasure:
+    return erasure.erase_student(session, auth_admin, get_settings(), student_id)
 
 
 @router.get("/courses", response_model=Page[AdminCourse])

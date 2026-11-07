@@ -128,6 +128,8 @@ class FakeAuthAdmin:
     def __init__(self, session_factory: Callable[[], Session]) -> None:
         self._session_factory = session_factory
         self.created: list[str] = []
+        self.deleted: list[uuid.UUID] = []
+        self.fail_with: Exception | None = None
 
     def create_user(self, email: str, password: str, display_name: str) -> uuid.UUID:
         with self._session_factory() as session:
@@ -135,3 +137,13 @@ class FakeAuthAdmin:
             session.commit()
         self.created.append(email)
         return user_id
+
+    def delete_user(self, user_id: uuid.UUID) -> None:
+        if self.fail_with is not None:
+            raise self.fail_with
+        with self._session_factory() as session:
+            session.execute(
+                text("delete from auth.users where id = :id"), {"id": user_id}
+            )
+            session.commit()
+        self.deleted.append(user_id)

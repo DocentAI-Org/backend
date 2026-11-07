@@ -1141,6 +1141,104 @@
         ]
       }
     },
+    "/v1/admin/students/{student_id}": {
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Erase a student and everything linked to them (spec 017)",
+        "operationId": "erase_student_v1_admin_students__student_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Student Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentErasure"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/admin/courses": {
       "get": {
         "tags": [
@@ -13705,6 +13803,57 @@
           "disclosure_acknowledged"
         ],
         "title": "StudentCourse"
+      },
+      "StudentErasure": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Student Id"
+          },
+          "courses": {
+            "type": "integer",
+            "title": "Courses",
+            "description": "Enrolments deleted"
+          },
+          "conversations": {
+            "type": "integer",
+            "title": "Conversations"
+          },
+          "messages": {
+            "type": "integer",
+            "title": "Messages"
+          },
+          "exercise_submissions": {
+            "type": "integer",
+            "title": "Exercise Submissions"
+          },
+          "quizzes": {
+            "type": "integer",
+            "title": "Quizzes"
+          },
+          "test_attempts": {
+            "type": "integer",
+            "title": "Test Attempts"
+          },
+          "interaction_logs": {
+            "type": "integer",
+            "title": "Interaction Logs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "courses",
+          "conversations",
+          "messages",
+          "exercise_submissions",
+          "quizzes",
+          "test_attempts",
+          "interaction_logs"
+        ],
+        "title": "StudentErasure",
+        "description": "What an erasure deleted (spec 017); nothing about the student is kept."
       },
       "StudentErrors": {
         "properties": {
