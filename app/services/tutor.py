@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.config import Route, Settings
+from app.core.config import Settings
 from app.core.errors import ApiError, not_found
 from app.llm.client import LLMClient, LLMError
 from app.llm.prompts import load_labels, load_prompt
@@ -128,13 +128,31 @@ def no_source_text(settings: Settings) -> str:
     return load_labels("messages", settings.tutor_language)["no_source"]
 
 
+TEACHER_TAG = "instrucciones_profesor"
+
+
+def teacher_block(settings: Settings, text: str | None) -> str:
+    """The teacher's instructions (spec 019), after the rules and before the reply
+    format (text after the format made a small model drop "cited"). They are data in
+    their own block, which they cannot close."""
+    clean = (
+        (text or "").replace(f"</{TEACHER_TAG}>", "").replace(f"<{TEACHER_TAG}>", "")
+    )
+    if not clean.strip():
+        return ""
+    label = load_labels("policies", settings.tutor_language)["teacher_instructions"]
+    return f"\n\n{label}\n<{TEACHER_TAG}>\n{clean.strip()}\n</{TEACHER_TAG}>"
+
+
 def build_system_prompt(
     settings: Settings,
     tutor_settings: TutorSettings,
     request_solution: bool,
     note: str | None = None,
+    teacher: str | None = None,
 ) -> str:
-    """The adaptation note (spec 013) is one more rule, before the reply format."""
+    """The adaptation note (spec 013) is one more rule, before the reply format; the
+    teacher's instructions (spec 019) follow the rules."""
     labels = load_labels("policies", settings.tutor_language)
     policy = labels[f"policy.{tutor_settings.solution_policy}"]
     if request_solution and tutor_settings.solution_policy != "hints_only":
@@ -144,6 +162,7 @@ def build_system_prompt(
         tone=labels[f"tone.{tutor_settings.tone}"],
         policy=policy,
         adaptation=f"\n7. {note}" if note else "",
+        teacher=teacher_block(settings, teacher),
     )
 
 
@@ -399,7 +418,7 @@ class _ModelReply:
 def _ask_model(
     llm: LLMClient,
     settings: Settings,
-    route: Route,
+    ai: InEffect,
     tutor_settings: TutorSettings,
     request_solution: bool,
     history: list[Message],
@@ -407,8 +426,11 @@ def _ask_model(
     text: str,
     note: str | None = None,
 ) -> _ModelReply:
-    system = build_system_prompt(settings, tutor_settings, request_solution, note)
+    system = build_system_prompt(
+        settings, tutor_settings, request_solution, note, ai.instruction("tutor")
+    )
     messages = build_messages(history, hits, text)
+    route = ai.route("tutor")
     result = llm.chat_json(system, messages, task="tutor", route=route)
     outcome = _ModelReply(
         ground_reply(result.data, len(hits)),
@@ -467,7 +489,7 @@ def _reply(
         _ask_model(
             llm,
             settings,
-            ai.route("tutor"),
+            ai,
             tutor_settings,
             request_solution,
             history,

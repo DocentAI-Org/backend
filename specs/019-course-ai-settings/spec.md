@@ -124,9 +124,10 @@ which stay where they are.
 
 ### User Story 5 — The teacher tries the settings and sees the usage (Priority: P2)
 
-1. **When** the teacher sends a test message for a task with settings not yet saved, **Then**
-   they get the reply, the model, the latency, the tokens and the estimated cost; it is not
-   logged as a student interaction and uses no allowance. At most 20 tests per teacher and hour.
+1. **When** the teacher sends a test message for the tutor or exercise feedback with settings
+   not yet saved, **Then** they get the reply (or the verdict), the model, the latency, the
+   tokens and the estimated cost; it is not logged as a student interaction and uses no
+   allowance. At most 20 tests per teacher and hour.
 2. **When** they read the course usage, **Then** they get, per task and for the last 7 and 30
    days, messages, tokens and estimated cost, and the students closest to the limit.
 

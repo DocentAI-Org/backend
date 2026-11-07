@@ -28,6 +28,10 @@ class InEffect:
     retrieval: schemas.Retrieval
     ceiling: schemas.Ceiling
     credentials: dict[uuid.UUID, CredentialAccess] = field(default_factory=dict)
+    instructions: schemas.Instructions = field(default_factory=schemas.Instructions)
+
+    def instruction(self, task: Task) -> str | None:
+        return getattr(self.instructions, task) or None
 
     def route(self, task: Task) -> Route:
         model = self.models[task]
@@ -63,6 +67,7 @@ def server_values(settings: Settings) -> schemas.StudyValues:
             history_messages=settings.history_max_messages,
         ),
         ceiling=schemas.Ceiling(messages=settings.daily_message_limit),
+        instructions=schemas.Instructions(),
     )
 
 
@@ -93,18 +98,32 @@ def _layer(
             schemas.Retrieval(**row.retrieval) if row.retrieval else base.retrieval
         ),
         ceiling=schemas.Ceiling(**row.ceiling) if row.ceiling else base.ceiling,
+        instructions=(
+            schemas.Instructions(**row.instructions)
+            if row.instructions
+            else base.instructions
+        ),
     )
 
 
 def _values(values: schemas.StudyValues) -> schemas.Values:
     return schemas.Values(
-        models=values.models, limits=values.limits, retrieval=values.retrieval
+        models=values.models,
+        limits=values.limits,
+        retrieval=values.retrieval,
+        instructions=values.instructions,
     )
 
 
-def in_effect(session: Session, settings: Settings, course_id: uuid.UUID) -> InEffect:
+def in_effect(
+    session: Session,
+    settings: Settings,
+    course_id: uuid.UUID,
+    own: AISettings | None = None,
+) -> InEffect:
+    """The course's settings, or `own` in their place (unsaved ones, for a test)."""
     study = _layer(server_values(settings), _study_row(session), "study")
-    values = _layer(study, _course_row(session, course_id), "course")
+    values = _layer(study, own or _course_row(session, course_id), "course")
     credentials = {}
     for model in values.models.values():
         if model.credential_id and model.credential_id not in credentials:
@@ -113,7 +132,12 @@ def in_effect(session: Session, settings: Settings, course_id: uuid.UUID) -> InE
             assert row is not None
             credentials[row.id] = llm_credentials.access(settings, row)
     return InEffect(
-        values.models, values.limits, values.retrieval, study.ceiling, credentials
+        values.models,
+        values.limits,
+        values.retrieval,
+        study.ceiling,
+        credentials,
+        values.instructions,
     )
 
 
@@ -124,9 +148,19 @@ def study_ceiling(session: Session, settings: Settings) -> schemas.Ceiling:
 def _overrides(row: AISettings | None) -> dict:
     models = dict.fromkeys(TASKS)
     if row is None:
-        return {"models": models, "limits": None, "retrieval": None}
+        return {
+            "models": models,
+            "limits": None,
+            "retrieval": None,
+            "instructions": None,
+        }
     models.update(row.models)
-    return {"models": models, "limits": row.limits, "retrieval": row.retrieval}
+    return {
+        "models": models,
+        "limits": row.limits,
+        "retrieval": row.retrieval,
+        "instructions": row.instructions,
+    }
 
 
 def _check_models(sources: list[ModelSource], models: schemas.TaskModels) -> None:
@@ -181,10 +215,8 @@ def _check_models(sources: list[ModelSource], models: schemas.TaskModels) -> Non
             )
 
 
-def _store(
-    row: AISettings,
-    payload: schemas.StudyOverrides | schemas.CourseOverrides,
-    user: Profile,
+def _fill(
+    row: AISettings, payload: schemas.StudyOverrides | schemas.CourseOverrides
 ) -> None:
     row.models = {
         task: choice.model_dump(mode="json")
@@ -193,6 +225,17 @@ def _store(
     }
     row.limits = payload.limits.model_dump() if payload.limits else None
     row.retrieval = payload.retrieval.model_dump() if payload.retrieval else None
+    row.instructions = (
+        payload.instructions.model_dump() if payload.instructions else None
+    )
+
+
+def _store(
+    row: AISettings,
+    payload: schemas.StudyOverrides | schemas.CourseOverrides,
+    user: Profile,
+) -> None:
+    _fill(row, payload)
     row.notices = []
     row.updated_at = func.clock_timestamp()
     row.updated_by = user.id
@@ -325,3 +368,17 @@ def update_course(
     _store(own, payload, teacher)
     session.flush()
     return for_course(session, settings, course)
+
+
+def preview(
+    session: Session,
+    settings: Settings,
+    catalog: Catalog,
+    course: Course,
+    payload: schemas.CourseOverrides,
+) -> InEffect:
+    """The settings the course would have with `payload`, checked but not saved."""
+    _check_models(course_sources(session, settings, catalog, course.id), payload.models)
+    draft = AISettings(course_id=course.id, ceiling=None)
+    _fill(draft, payload)
+    return in_effect(session, settings, course.id, own=draft)

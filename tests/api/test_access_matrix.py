@@ -40,6 +40,10 @@ BODIES: dict[tuple[str, str], dict] = {
         "api_key": "sk-test-0123456789",
     },
     ("put", "/v1/teacher/courses/{course_id}/ai-settings"): {},
+    ("post", "/v1/teacher/courses/{course_id}/ai-test"): {
+        "task": "tutor",
+        "message": "hola",
+    },
     ("post", "/v1/admin/questionnaires"): {
         "title": "X",
         "url": "https://example.org",

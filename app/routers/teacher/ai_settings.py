@@ -8,13 +8,22 @@ from app.core.db import DbSession
 from app.core.errors import ApiError, error_responses
 from app.core.security import TeacherUser
 from app.llm.catalog import Catalog, get_catalog
-from app.schemas.ai_settings import AIModels, CourseAISettings, CourseOverrides
+from app.llm.client import LLMClient, get_llm
+from app.schemas.ai_settings import (
+    AIModels,
+    AITestRequest,
+    AITestResult,
+    AIUsage,
+    CourseAISettings,
+    CourseOverrides,
+)
 from app.schemas.llm_credentials import Credential, CredentialCreate
-from app.services import ai_settings, courses, llm_credentials
+from app.services import ai_settings, ai_tools, courses, llm_credentials
 
 router = APIRouter(prefix="/courses/{course_id}", tags=["teacher: AI settings"])
 
 ModelCatalog = Annotated[Catalog, Depends(get_catalog)]
+LLM = Annotated[LLMClient, Depends(get_llm)]
 
 
 @router.get(
@@ -122,3 +131,37 @@ def delete_own_credential(
         session, llm_credentials.get(session, credential_id, course.id)
     )
     return Response(status_code=204)
+
+
+@router.post(
+    "/ai-test",
+    response_model=AITestResult,
+    responses=error_responses(404, 422, 429, 503),
+    summary="Try a message with the given (unsaved) settings; it is not a student "
+    "interaction and uses no allowance; at most 20 an hour",
+)
+def test_ai_settings(
+    course_id: uuid.UUID,
+    payload: AITestRequest,
+    teacher: TeacherUser,
+    session: DbSession,
+    catalog: ModelCatalog,
+    llm: LLM,
+) -> AITestResult:
+    course = courses.get_owned_course(session, course_id, teacher)
+    return ai_tools.test_message(
+        session, llm, get_settings(), catalog, course, teacher, payload
+    )
+
+
+@router.get(
+    "/ai-usage",
+    response_model=AIUsage,
+    responses=error_responses(404),
+    summary="Messages, tokens and estimated cost per task, and who used most",
+)
+def read_ai_usage(
+    course_id: uuid.UUID, teacher: TeacherUser, session: DbSession
+) -> AIUsage:
+    course = courses.get_owned_course(session, course_id, teacher)
+    return ai_tools.usage(session, get_settings(), course)

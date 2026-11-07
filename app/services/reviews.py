@@ -103,7 +103,9 @@ def validate_review(
     )
 
 
-def build_review_prompt(settings: Settings, tutor_settings: TutorSettings) -> str:
+def build_review_prompt(
+    settings: Settings, tutor_settings: TutorSettings, teacher: str | None = None
+) -> str:
     labels = load_labels("policies", settings.tutor_language)
     rule = (
         "review.solution_allowed"
@@ -114,6 +116,7 @@ def build_review_prompt(settings: Settings, tutor_settings: TutorSettings) -> st
         level=labels[f"level.{tutor_settings.level}"],
         tone=labels[f"tone.{tutor_settings.tone}"],
         solution_rule=labels[rule],
+        teacher=tutor.teacher_block(settings, teacher),
     )
 
 
@@ -244,7 +247,7 @@ def _create(
     review: Review | None = None
     if hits:
         result = llm.chat_json(
-            build_review_prompt(settings, tutor_settings),
+            build_review_prompt(settings, tutor_settings, ai.instruction("review")),
             build_review_messages(hits, error_type, repeated.topic_name, submission),
             task="review",
             route=ai.route("review"),

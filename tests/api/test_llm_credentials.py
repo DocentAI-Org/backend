@@ -84,7 +84,8 @@ def test_an_openai_compatible_key_needs_its_address(client, admin) -> None:
 
 
 def test_without_a_master_key_no_key_can_be_stored(client, admin, monkeypatch) -> None:
-    monkeypatch.delenv("LLM_CREDENTIALS_KEY")
+    # Empty, not unset: a developer's .env may hold one.
+    monkeypatch.setenv("LLM_CREDENTIALS_KEY", "")
     get_settings.cache_clear()
     try:
         response = client.post(ADMIN, headers=admin.headers, json=OPENAI)

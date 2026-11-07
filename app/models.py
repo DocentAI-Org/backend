@@ -477,10 +477,24 @@ class AISettings(Base):
     limits: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     retrieval: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     ceiling: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    instructions: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     allow_teacher_keys: Mapped[bool] = mapped_column(server_default="false")
     notices: Mapped[list] = mapped_column(JSONB, server_default="[]")
     updated_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
     updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
+
+
+class AITest(Base):
+    """A teacher's test message (specs/019), kept to limit them to 20 an hour."""
+
+    __tablename__ = "ai_tests"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
+    teacher_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
+    task: Mapped[str]
+    model: Mapped[str | None]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class LLMCredential(Base):

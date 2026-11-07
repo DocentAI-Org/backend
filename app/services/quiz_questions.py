@@ -157,11 +157,14 @@ def validate_drafts(
     return accepted
 
 
-def build_prompt(settings: Settings, tutor_settings: TutorSettings) -> str:
+def build_prompt(
+    settings: Settings, tutor_settings: TutorSettings, teacher: str | None = None
+) -> str:
     labels = load_labels("policies", settings.tutor_language)
     return load_prompt("quiz_questions", settings.tutor_language).format(
         level=labels[f"level.{tutor_settings.level}"],
         tone=labels[f"tone.{tutor_settings.tone}"],
+        teacher=tutor.teacher_block(settings, teacher),
     )
 
 
@@ -328,12 +331,12 @@ def _generate(
     if hits:
         tutor_settings = session.get(TutorSettings, course.id)
         assert tutor_settings is not None
-        route = ai_settings.in_effect(session, settings, course.id).route("questions")
+        ai = ai_settings.in_effect(session, settings, course.id)
         result = llm.chat_json(
-            build_prompt(settings, tutor_settings),
+            build_prompt(settings, tutor_settings, ai.instruction("questions")),
             build_messages(hits, topic, count),
             task="questions",
-            route=route,
+            route=ai.route("questions"),
         )
         existing = {
             statement_key(s)

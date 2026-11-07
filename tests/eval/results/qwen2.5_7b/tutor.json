@@ -1,0 +1,434 @@
+{
+ "model": "qwen2.5:7b",
+ "latency": {
+  "calls": 21,
+  "median_ms": 5757,
+  "unusable_replies": 0
+ },
+ "overall": {
+  "kind": 0.647,
+  "citation": 0.944,
+  "off_material": 0.9,
+  "exercise_hint": 0.6,
+  "counts": {
+   "kind": "22/34 (65 %)",
+   "citation": "17/18 (94 %)",
+   "off_material": "9/10 (90 %)",
+   "exercise_hint": "3/5 (60 %)"
+  }
+ },
+ "by_subject": {
+  "estadistica": {
+   "kind": 0.714,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 1.0,
+   "counts": {
+    "kind": "5/7 (71 %)",
+    "citation": "5/5 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "1/1 (100 %)"
+   }
+  },
+  "historia": {
+   "kind": 0.714,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 1.0,
+   "counts": {
+    "kind": "5/7 (71 %)",
+    "citation": "3/3 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "1/1 (100 %)"
+   }
+  },
+  "lengua": {
+   "kind": 0.429,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 0.0,
+   "counts": {
+    "kind": "3/7 (43 %)",
+    "citation": "3/3 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "0/1 (0 %)"
+   }
+  },
+  "matematicas": {
+   "kind": 0.333,
+   "citation": 0.5,
+   "off_material": 0.5,
+   "exercise_hint": 0.0,
+   "counts": {
+    "kind": "2/6 (33 %)",
+    "citation": "1/2 (50 %)",
+    "off_material": "1/2 (50 %)",
+    "exercise_hint": "0/1 (0 %)"
+   }
+  },
+  "quimica": {
+   "kind": 1.0,
+   "citation": 1.0,
+   "off_material": 1.0,
+   "exercise_hint": 1.0,
+   "counts": {
+    "kind": "7/7 (100 %)",
+    "citation": "5/5 (100 %)",
+    "off_material": "2/2 (100 %)",
+    "exercise_hint": "1/1 (100 %)"
+   }
+  }
+ },
+ "replies": {
+  "estadistica": [
+   {
+    "id": "iqr",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "El rango intercuartil (IQR) es la diferencia entre el tercer cuartil (Q3) y el primer cuartil (Q1). Es un número que indica la dispersión de la mitad central o del 50% central de los datos."
+   },
+   {
+    "id": "median-or-mean",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": true,
+    "text": "La mediana es mejor opción cuando hay valores atípicos en el conjunto de datos, ya que no se ve afectada por ellos como la media. Puedes intentar resolver el problema INTÉNTELO 2.27 para practicar."
+   },
+   {
+    "id": "whiskers",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Los bigotes de un diagrama de caja representan los valores más pequeños y más grandes de los datos. En el caso del ejemplo F3, los bigotes se extienden desde el primer cuartil (64,5) hasta el valor más pequeño (59) y desde el tercer cuartil (70) hasta el valor más grande (77)."
+   },
+   {
+    "id": "n-minus-one",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": true,
+    "text": "Cuando calculamos la varianza de una muestra, dividimos entre n - 1 porque esto proporciona una mejor estimación de la varianza de la población. Esto se debe a que estamos trabajando con una muestra y no con toda la población."
+   },
+   {
+    "id": "sd-exercise",
+    "expect": [
+     "hint"
+    ],
+    "kind": "hint",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Para calcular la desviación típica de la muestra, primero necesitas encontrar la media de los datos. Luego, calcula las desviaciones de cada dato con respecto a la media, al cuadrado, y finalmente, sigue los pasos mostrados en el fragmento F1."
+   },
+   {
+    "id": "binomial-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "historia": [
+   {
+    "id": "why-britain",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "La Revolución Industrial comenzó en Gran Bretaña debido a varias causas previas: la revolución agraria que aumentó la producción de alimentos gracias a los cercamientos y nuevas técnicas de cultivo, lo que permitió que muchos campesinos sin tierra emigraran a las ciudades para trabajar en las fábricas. Además, la revolución demográfica, con una población creciente, proporcionó una mano de obra y consumidores. Gran Bretaña también contaba con capitales acumulados gracias a su comercio colonial, un gran imperio que le daba materias primas y mercados, abundantes yacimientos de carbón y hierro, una buena red de ríos y canales, y un sistema político favorable a los negocios."
+   },
+   {
+    "id": "chartism",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "factory-system",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "coke",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "El coque se usaba en la siderurgia para fundir hierro en lugar de carbón vegetal, ya que el coque era más abundante y de mejor calidad."
+   },
+   {
+    "id": "compare-classes",
+    "expect": [
+     "hint"
+    ],
+    "kind": "hint",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Puedes empezar comparando la posición social y económica de cada grupo. La burguesía industrial y financiera posee las fábricas y el capital, mientras que el proletariado solo tiene su trabajo."
+   },
+   {
+    "id": "french-revolution-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "lengua": [
+   {
+    "id": "find-subject",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": true,
+    "text": "Para identificar el sujeto de una oración, puedes preguntar al verbo '¿quién?' o '¿qué?'. Si la oración es 'Los alumnos leen una novela', preguntarías '¿quién leen?'. La respuesta sería 'Los alumnos'."
+   },
+   {
+    "id": "paroxytone-accent",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Las palabras llanas llevan tilde cuando NO terminan en vocal, «n» o «s»: «árbol», «lápiz», «césped». No la llevan «mesa», «examen» ni «lunes»."
+   },
+   {
+    "id": "el-or-el",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "direct-or-indirect",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": true,
+    "text": "Para diferenciar el complemento directo de persona del complemento indirecto, puedes usar la prueba de la sustitución. Si puedes sustituir la persona por 'le' o 'les' y la oración sigue siendo correcta, probablemente se trate de un complemento indirecto. Si no, podría ser un complemento directo de persona."
+   },
+   {
+    "id": "analyse-sentence",
+    "expect": [
+     "hint"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "subordinate-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "matematicas": [
+   {
+    "id": "what-is-transposing",
+    "expect": [
+     "answer"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "minus-before-brackets",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Si hay un signo menos delante del paréntesis, este cambia el signo de todos los términos que están dentro del paréntesis."
+   },
+   {
+    "id": "check-solution",
+    "expect": [
+     "answer"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": false,
+    "text": "Para comprobar si la solución de una ecuación está bien, puedes reemplazar el valor de la incógnita en la ecuación original y verificar que ambas partes sean iguales."
+   },
+   {
+    "id": "solve-exercise",
+    "expect": [
+     "hint"
+    ],
+    "kind": "no_source",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "quadratic-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "hint",
+    "kind_ok": false,
+    "cite_ok": null,
+    "text": "La fórmula general se usa para resolver ecuaciones de segundo grado, pero no se menciona en el material proporcionado. Podemos intentar dar una pista: la fórmula general involucra el cálculo de la raíz cuadrada de un discriminante."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ],
+  "quimica": [
+   {
+    "id": "why-not-subscripts",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "No se pueden cambiar los subíndices para balancear una ecuación química porque los subíndices definen la identidad de la sustancia. Cambiarlos alteraría el significado cualitativo de la ecuación."
+   },
+   {
+    "id": "limiting-reagent",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "El reactivo limitante es el que se consume por completo en una reacción química, limitando así la cantidad de producto que puede formarse. Este reactivo se proporciona en menor cantidad en relación a la estequiometría de la reacción."
+   },
+   {
+    "id": "titration",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Una titulación consiste en el uso de una bureta para realizar adiciones incrementales de una solución que contiene una concentración conocida de algún titulante a una solución de muestra que contiene la sustancia cuyo concentración se va a medir (el analito). El punto de equivalencia de la titulación se detecta cuando se completa la reacción entre el titulante y el analito, lo que permite calcular la concentración del analito."
+   },
+   {
+    "id": "precipitation",
+    "expect": [
+     "answer"
+    ],
+    "kind": "answer",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Una reacción de precipitación es aquella en la que las sustancias disueltas reaccionan para formar uno (o varios) productos sólidos. Muchas reacciones de este tipo implican el intercambio de iones entre compuestos iónicos en solución acuosa y a veces se denominan reacciones de doble desplazamiento, doble sustitución o metátesis."
+   },
+   {
+    "id": "yield-exercise",
+    "expect": [
+     "hint"
+    ],
+    "kind": "hint",
+    "kind_ok": true,
+    "cite_ok": true,
+    "text": "Para calcular el porcentaje de rendimiento, divide la masa del producto real entre la masa del producto teórico y multiplica por 100. ¿Puedes intentar hacer el cálculo?"
+   },
+   {
+    "id": "ideal-gas-not-covered",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   },
+   {
+    "id": "off-subject",
+    "expect": [
+     "no_source"
+    ],
+    "kind": "no_source",
+    "kind_ok": true,
+    "cite_ok": null,
+    "text": "El material del curso no cubre esta pregunta. Prueba a reformularla o pregúntale a tu profesor/a."
+   }
+  ]
+ }
+}

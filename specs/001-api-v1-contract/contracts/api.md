@@ -228,6 +228,8 @@ Dashboard, progress, repeated mistakes and adaptation use the course's criteria 
 | GET | `/courses/{course_id}/ai-models` | — | `AIModels`: the server's, the study's keys and, if allowed, the course's own |
 | GET / POST | `/courses/{course_id}/llm-credentials` | `CredentialCreate` | `[Credential]` / 201 `Credential`; `403 teacher_keys_disabled` unless the study allows it |
 | DELETE | `/courses/{course_id}/llm-credentials/{credential_id}` | — | 204 |
+| POST | `/courses/{course_id}/ai-test` | `AITestRequest {task: tutor\|feedback, settings?: CourseOverrides (unsaved; null: saved), message? (tutor), problem_statement? + worked_answer? (feedback)}` | `AITestResult {kind (reply kind or verdict), text, model?, latency_ms, input_tokens, output_tokens, estimated_cost_usd, fragments}`. Not a student interaction, no allowance; `429 test_limit_reached` after 20 an hour per teacher; `503 tutor_unavailable` |
+| GET | `/courses/{course_id}/ai-usage` | — | `AIUsage {windows: [{days: 7\|30, tasks: [{task, messages, input_tokens, output_tokens, estimated_cost_usd}]}], limit?, period, top_students: [{student_id, display_name, used}] (≤ 5, current period)}` |
 
 - Each group comes from the course, else the study, else the server's environment.
   `TaskModels {tutor?, feedback?, review?, questions?}` of `ModelChoice {provider:
@@ -239,6 +241,9 @@ Dashboard, progress, repeated mistakes and adaptation use the course's criteria 
 - `422` `provider_unavailable` (no key on the server), `provider_unreachable`,
   `model_unavailable` (not in the source's list), `temperature_not_supported`,
   `credential_unavailable` (a key the course cannot use), with `{task}`.
+- `instructions {tutor?, feedback?, review?, questions?}` (≤ 2000 characters each) is one more
+  group in `StudyOverrides`, `CourseOverrides` and `Values`: the teacher's words go after the
+  rules of each prompt, in a block they cannot close.
 - `ModelChoice.credential_id?` picks a stored key (null: the server's). `StudyOverrides` has
   `allow_teacher_keys` (default false; turning it off resets the tasks using teachers' keys);
   `CourseAISettings` has `allow_teacher_keys` and `notices: [{task, model, reason:

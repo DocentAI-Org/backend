@@ -1,0 +1,431 @@
+{
+ "model": "qwen2.5:7b",
+ "judge": "qwen2.5:7b",
+ "latency": {
+  "calls": 10,
+  "median_ms": 18119,
+  "unusable_replies": 0
+ },
+ "overall": {
+  "usable": 1.0,
+  "key_confirmed": 0.7,
+  "counts": {
+   "usable": "30/30",
+   "key_confirmed": "21/30 (70 %)"
+  }
+ },
+ "by_subject": {
+  "estadistica": {
+   "usable": 1.0,
+   "key_confirmed": 0.833,
+   "counts": {
+    "usable": "6/6",
+    "key_confirmed": "5/6 (83 %)"
+   }
+  },
+  "historia": {
+   "usable": 1.0,
+   "key_confirmed": 0.833,
+   "counts": {
+    "usable": "6/6",
+    "key_confirmed": "5/6 (83 %)"
+   }
+  },
+  "lengua": {
+   "usable": 1.0,
+   "key_confirmed": 0.5,
+   "counts": {
+    "usable": "6/6",
+    "key_confirmed": "3/6 (50 %)"
+   }
+  },
+  "matematicas": {
+   "usable": 1.0,
+   "key_confirmed": 0.667,
+   "counts": {
+    "usable": "6/6",
+    "key_confirmed": "4/6 (67 %)"
+   }
+  },
+  "quimica": {
+   "usable": 1.0,
+   "key_confirmed": 0.667,
+   "counts": {
+    "usable": "6/6",
+    "key_confirmed": "4/6 (67 %)"
+   }
+  }
+ },
+ "drafts": {
+  "estadistica": [
+   {
+    "topic": "Medidas de centralización",
+    "statement": "¿Cuál de las siguientes medidas de centralización se utiliza para determinar el valor más frecuente en un conjunto de datos?",
+    "options": [
+     "Moda",
+     "Desviación estándar",
+     "Media",
+     "Mediana"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Medidas de centralización",
+    "statement": "En un conjunto de datos bimodal, ¿cuántas modas puede haber?",
+    "options": [
+     "1",
+     "2",
+     "3",
+     "4"
+    ],
+    "key": 1,
+    "judge": 1
+   },
+   {
+    "topic": "Medidas de centralización",
+    "statement": "¿Cuál de las siguientes afirmaciones es correcta sobre la mediana en un conjunto de datos con un número par de valores?",
+    "options": [
+     "La mediana no se puede calcular",
+     "La mediana es el valor del centro de los datos ordenados",
+     "La mediana es el promedio de los dos valores del centro",
+     "La mediana es el valor más frecuente"
+    ],
+    "key": 2,
+    "judge": 2
+   },
+   {
+    "topic": "Medidas de dispersión",
+    "statement": "¿Cuál de las siguientes fórmulas se utiliza para calcular la desviación típica de una muestra?",
+    "options": [
+     "Sx = √(Σ(x - x̄)² / (n - 1))",
+     "Sx = Σ(x - x̄) / n",
+     "Sx = Σ(x - x̄)² / n",
+     "Sx = √(Σ(x - x̄)² / n)"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Medidas de dispersión",
+    "statement": "¿Cuál de las siguientes afirmaciones es correcta sobre la desviación típica de una población?",
+    "options": [
+     "Se calcula dividiendo la suma de las desviaciones al cuadrado por n - 1",
+     "Es siempre positiva o cero",
+     "Se utiliza cuando se dispone de datos de una muestra",
+     "Símbolo: Sx"
+    ],
+    "key": 1,
+    "judge": 1
+   },
+   {
+    "topic": "Medidas de dispersión",
+    "statement": "¿Cuál de las siguientes reglas se aplica a los datos que siguen una distribución normal y simétrica?",
+    "options": [
+     "Al menos el 75% de los datos están dentro de las dos desviaciones típicas de la media",
+     "Al menos el 89% de los datos están dentro de las tres desviaciones típicas de la media",
+     "Al menos el 95% de los datos están dentro de las dos desviaciones típicas de la media",
+     "Al menos el 99% de los datos están dentro de las tres desviaciones típicas de la media"
+    ],
+    "key": 2,
+    "judge": 3
+   }
+  ],
+  "historia": [
+   {
+    "topic": "Industria textil",
+    "statement": "¿En qué año se inventó la spinning jenny?",
+    "options": [
+     "1764",
+     "1769",
+     "1779",
+     "1733"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Industria textil",
+    "statement": "¿Qué característica diferenciaba a la water frame de las otras máquinas textiles mencionadas?",
+    "options": [
+     "Permitía hilar varios hilos a la vez",
+     "Usaba la fuerza del agua",
+     "Combinaba la lanzadera volante y la spinning jenny",
+     "Mecanizó el tejido"
+    ],
+    "key": 1,
+    "judge": 1
+   },
+   {
+    "topic": "Industria textil",
+    "statement": "¿Por qué se reunieron las máquinas textiles en fábricas?",
+    "options": [
+     "Para aumentar la productividad individual",
+     "Para reducir el costo de producción",
+     "Para permitir un horario fijo de trabajo",
+     "Para facilitar el mantenimiento de las máquinas"
+    ],
+    "key": 2,
+    "judge": 1
+   },
+   {
+    "topic": "Movimiento obrero",
+    "statement": "¿Cuál fue la primera acción organizada de los obreros para mejorar sus condiciones?",
+    "options": [
+     "Ludismo",
+     "Revolución industrial",
+     "Formación de sindicatos",
+     "Cartismo"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Movimiento obrero",
+    "statement": "¿En qué año se legalizaron los sindicatos en Gran Bretaña?",
+    "options": [
+     "1838",
+     "1824",
+     "1848",
+     "1816"
+    ],
+    "key": 1,
+    "judge": 1
+   },
+   {
+    "topic": "Movimiento obrero",
+    "statement": "¿Cuál fue el objetivo principal del Cartismo?",
+    "options": [
+     "Destruir las máquinas",
+     "Negociar salarios y horarios",
+     "Luchar por el sufragio universal",
+     "Formar sindicatos"
+    ],
+    "key": 2,
+    "judge": 2
+   }
+  ],
+  "lengua": [
+   {
+    "topic": "Complemento directo e indirecto",
+    "statement": "¿Qué indica el complemento indirecto en la frase 'Le di un regalo a mi hermana'?",
+    "options": [
+     "La persona que recibe el regalo",
+     "La acción del verbo",
+     "La persona que da el regalo",
+     "La cosa que se da"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Complemento directo e indirecto",
+    "statement": "¿Cuál de las siguientes oraciones contiene un complemento indirecto?",
+    "options": [
+     "Compré un libro",
+     "Le di un regalo a mi hermana",
+     "Vi un perro",
+     "Escuché la canción"
+    ],
+    "key": 1,
+    "judge": 1
+   },
+   {
+    "topic": "Complemento directo e indirecto",
+    "statement": "¿Por qué es incorrecto decir 'Le saludé a Marta' en lugar de 'Saludé a Marta'?",
+    "options": [
+     "Porque 'a Marta' no necesita preposición",
+     "Porque 'a Marta' es el complemento directo",
+     "Porque 'le' se convierte en 'se' cuando el CI y el CD son pronombres",
+     "Porque 'le' no se usa con personas"
+    ],
+    "key": 2,
+    "judge": 2
+   },
+   {
+    "topic": "Reglas generales de acentuación",
+    "statement": "¿Cuál de estas palabras lleva tilde y por qué?",
+    "options": [
+     "examen",
+     "pájaro",
+     "mesa",
+     "café"
+    ],
+    "key": 0,
+    "judge": 1
+   },
+   {
+    "topic": "Reglas generales de acentuación",
+    "statement": "¿Cuál de estas palabras no lleva tilde y por qué?",
+    "options": [
+     "examen",
+     "reloj",
+     "lápiz",
+     "mesa"
+    ],
+    "key": 1,
+    "judge": 0
+   },
+   {
+    "topic": "Reglas generales de acentuación",
+    "statement": "¿Cuál de las siguientes palabras se acentúa correctamente según las reglas de acentuación?",
+    "options": [
+     "mesa",
+     "café",
+     "dígamelo",
+     "pájaro"
+    ],
+    "key": 2,
+    "judge": 3
+   }
+  ],
+  "matematicas": [
+   {
+    "topic": "Paréntesis",
+    "statement": "¿Qué se debe hacer antes de transponer una ecuación si hay un paréntesis con un signo menos delante?",
+    "options": [
+     "Se deben quitar los paréntesis multiplicando el signo menos por cada término",
+     "Se deben dividir los términos dentro del paréntesis",
+     "Se deben ignorar los paréntesis",
+     "Se deben sumar los términos dentro del paréntesis"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Paréntesis",
+    "statement": "¿Cómo se resuelve la expresión 2(3x - 4) + 5?",
+    "options": [
+     "6x + 8 + 5",
+     "6x - 8 + 5",
+     "6x - 4 + 5",
+     "6x - 8 - 5"
+    ],
+    "key": 1,
+    "judge": 1
+   },
+   {
+    "topic": "Paréntesis",
+    "statement": "¿Qué error se comete al resolver 3(2x - 5) - 4(3x + 2)?",
+    "options": [
+     "Se quitan los paréntesis y se multiplica -4 por 3x correctamente",
+     "No se quitan los paréntesis",
+     "Se quitan los paréntesis pero se olvida multiplicar -4 por 3x",
+     "Se quitan los paréntesis pero se multiplica -4 por 2x"
+    ],
+    "key": 2,
+    "judge": 2
+   },
+   {
+    "topic": "Despejar la incógnita",
+    "statement": "Si 5y = 20, ¿cuál es el valor de y?",
+    "options": [
+     "4",
+     "25",
+     "5",
+     "10"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Despejar la incógnita",
+    "statement": "Resuelve la ecuación 3z - 6 = 15.",
+    "options": [
+     "z = 11",
+     "z = 9",
+     "z = 3",
+     "z = 7"
+    ],
+    "key": 1,
+    "judge": 3
+   },
+   {
+    "topic": "Despejar la incógnita",
+    "statement": "¿Cuál de las siguientes ecuaciones tiene la solución x = 3?",
+    "options": [
+     "3x - 2 = 7",
+     "2x + 1 = 7",
+     "4x - 3 = 9",
+     "6x / 2 = 10"
+    ],
+    "key": 2,
+    "judge": 3
+   }
+  ],
+  "quimica": [
+   {
+    "topic": "Estequiometría de la reacción",
+    "statement": "¿Cuántos moles de Ca(OH)2 son necesarios para reaccionar con 1,36 mol de H3PO4 para producir Ca3(PO4)2 según la ecuación?",
+    "options": [
+     "2,04 mol",
+     "0,28 mol",
+     "1,36 mol",
+     "0,45 mol"
+    ],
+    "key": 0,
+    "judge": 0
+   },
+   {
+    "topic": "Estequiometría de la reacción",
+    "statement": "¿Qué masa de gas oxígeno, O2, se consume en la combustión de 702 g de octano, C8H18, según la ecuación?",
+    "options": [
+     "600 g",
+     "456 g",
+     "1200 g",
+     "300 g"
+    ],
+    "key": 1,
+    "judge": 1
+   },
+   {
+    "topic": "Estequiometría de la reacción",
+    "statement": "¿Cuántas moléculas de NH3 se producen por la reacción de 4,0 mol de Ca(OH)2 según la siguiente ecuación?",
+    "options": [
+     "4,0 mol",
+     "12,0 mol",
+     "4,8 × 10^24 mol",
+     "2,4 × 10^24 mol"
+    ],
+    "key": 2,
+    "judge": 2
+   },
+   {
+    "topic": "Rendimiento y reactivo limitante",
+    "statement": "¿Cuál es el reactivo limitante cuando se reaccionan 5,00 g de H2 y 10,0 g de O2 para formar agua?",
+    "options": [
+     "O2",
+     "H2O",
+     "No hay reactivo limitante",
+     "H2"
+    ],
+    "key": 0,
+    "judge": 3
+   },
+   {
+    "topic": "Rendimiento y reactivo limitante",
+    "statement": "¿Cuál es el reactivo limitante en la reacción del silicio con el nitrógeno para formar nitruro de silicio, si se tienen 2,00 g de Si y 1,50 g de N2?",
+    "options": [
+     "Si",
+     "N2",
+     "Si y N2",
+     "Ninguno"
+    ],
+    "key": 1,
+    "judge": 0
+   },
+   {
+    "topic": "Rendimiento y reactivo limitante",
+    "statement": "¿Cuál es el porcentaje de rendimiento de una reacción que produce 12,5 g de freón CF2Cl2 a partir de 32,9 g de CCl4 y un exceso de HF?",
+    "options": [
+     "68%",
+     "38%",
+     "48%",
+     "58%"
+    ],
+    "key": 2,
+    "judge": 2
+   }
+  ]
+ }
+}
