@@ -1891,6 +1891,162 @@
         ]
       }
     },
+    "/v1/admin/ai-settings": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "The study's AI settings and the server's values they change (specs/019)",
+        "operationId": "read_ai_settings_v1_admin_ai_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyAISettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Set the AI settings of every course without its own; null inherits",
+        "operationId": "update_ai_settings_v1_admin_ai_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudyOverrides"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyAISettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/admin/ai-models": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "The models the server offers, by source",
+        "operationId": "list_ai_models_v1_admin_ai_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIModels"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/v1/teacher/courses": {
       "post": {
         "tags": [
@@ -7423,6 +7579,248 @@
         }
       }
     },
+    "/v1/teacher/courses/{course_id}/ai-settings": {
+      "get": {
+        "tags": [
+          "teacher: AI settings"
+        ],
+        "summary": "The course's AI settings: inherited, its own and those in effect",
+        "operationId": "read_ai_settings_v1_teacher_courses__course_id__ai_settings_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseAISettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "teacher: AI settings"
+        ],
+        "summary": "Set the course's own models, limits and retrieval; null inherits",
+        "operationId": "update_ai_settings_v1_teacher_courses__course_id__ai_settings_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseOverrides"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseAISettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teacher/courses/{course_id}/ai-models": {
+      "get": {
+        "tags": [
+          "teacher: AI settings"
+        ],
+        "summary": "The models the course can use, by source (specs/019)",
+        "operationId": "list_ai_models_v1_teacher_courses__course_id__ai_models_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIModels"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/student/enrolments": {
       "post": {
         "tags": [
@@ -7889,7 +8287,7 @@
         "tags": [
           "student: tutor chat"
         ],
-        "summary": "Read Allowance",
+        "summary": "Messages left today across all courses (the study's daily ceiling)",
         "operationId": "read_allowance_v1_student_allowance_get",
         "responses": {
           "200": {
@@ -7928,6 +8326,84 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/v1/student/courses/{course_id}/allowance": {
+      "get": {
+        "tags": [
+          "student: tutor chat"
+        ],
+        "summary": "Messages left in the course: its limit or the daily ceiling, the tighter",
+        "operationId": "read_course_allowance_v1_student_courses__course_id__allowance_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Allowance"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/student/courses/{course_id}/conversations": {
@@ -10101,6 +10577,22 @@
   },
   "components": {
     "schemas": {
+      "AIModels": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ModelSource"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources"
+        ],
+        "title": "AIModels"
+      },
       "ActivityCounts": {
         "properties": {
           "messages": {
@@ -10259,8 +10751,23 @@
       },
       "Allowance": {
         "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "course",
+              "daily"
+            ],
+            "title": "Scope"
+          },
           "limit": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Limit"
           },
           "used": {
@@ -10268,23 +10775,50 @@
             "title": "Used"
           },
           "remaining": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Remaining"
           },
-          "resets_at": {
+          "period": {
             "type": "string",
-            "format": "date-time",
-            "title": "Resets At"
+            "enum": [
+              "day",
+              "week",
+              "course"
+            ],
+            "title": "Period"
+          },
+          "resets_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resets At",
+            "description": "Null for a whole-course limit."
           }
         },
         "type": "object",
         "required": [
+          "scope",
           "limit",
           "used",
           "remaining",
+          "period",
           "resets_at"
         ],
-        "title": "Allowance"
+        "title": "Allowance",
+        "description": "The tighter of the course's limit and the daily ceiling across courses\n(specs/019); a null limit is no limit."
       },
       "AnswerResult": {
         "properties": {
@@ -10470,6 +11004,29 @@
           "file"
         ],
         "title": "Body_upload_document_v1_teacher_courses__course_id__documents_post"
+      },
+      "Ceiling": {
+        "properties": {
+          "messages": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "Ceiling",
+        "description": "Messages per student and day across all courses; null is no ceiling."
       },
       "Citation": {
         "properties": {
@@ -10726,6 +11283,33 @@
         ],
         "title": "Correction"
       },
+      "CourseAISettings": {
+        "properties": {
+          "inherited": {
+            "$ref": "#/components/schemas/Values",
+            "description": "What applies without the course's values."
+          },
+          "course": {
+            "$ref": "#/components/schemas/CourseOverrides",
+            "description": "What the course changes."
+          },
+          "effective": {
+            "$ref": "#/components/schemas/Values"
+          },
+          "ceiling": {
+            "$ref": "#/components/schemas/Ceiling",
+            "description": "The study's daily ceiling, for reference."
+          }
+        },
+        "type": "object",
+        "required": [
+          "inherited",
+          "course",
+          "effective",
+          "ceiling"
+        ],
+        "title": "CourseAISettings"
+      },
       "CourseCreate": {
         "properties": {
           "name": {
@@ -10965,6 +11549,36 @@
           "submission_id"
         ],
         "title": "CourseFlag"
+      },
+      "CourseOverrides": {
+        "properties": {
+          "models": {
+            "$ref": "#/components/schemas/TaskModels",
+            "default": {}
+          },
+          "limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Limits"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retrieval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Retrieval"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "CourseOverrides"
       },
       "CourseStudent": {
         "properties": {
@@ -11934,6 +12548,53 @@
         ],
         "title": "LearningRecordEntry"
       },
+      "Limits": {
+        "properties": {
+          "messages": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Messages"
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week",
+              "course"
+            ],
+            "title": "Period"
+          },
+          "counted_tasks": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "tutor",
+                "feedback",
+                "review"
+              ]
+            },
+            "type": "array",
+            "title": "Counted Tasks",
+            "description": "Student tasks that use messages."
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages",
+          "period",
+          "counted_tasks"
+        ],
+        "title": "Limits",
+        "description": "Messages per student in the course and period; null is no limit."
+      },
       "Localized": {
         "properties": {
           "es": {
@@ -12167,6 +12828,170 @@
           "created_at"
         ],
         "title": "MistakeReview"
+      },
+      "ModelChoice": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "ollama",
+              "openai",
+              "anthropic"
+            ],
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Model"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 2.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature",
+            "description": "Null: the task's own (not for Anthropic)."
+          },
+          "effort": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effort"
+          },
+          "max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 32000.0,
+                "minimum": 64.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Tokens",
+            "description": "Longest reply; null: the server's."
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "model"
+        ],
+        "title": "ModelChoice"
+      },
+      "ModelInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "parameter_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameter Size"
+          },
+          "family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ModelInfo"
+      },
+      "ModelSource": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "ollama",
+              "openai",
+              "anthropic"
+            ],
+            "title": "Provider"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "reachable": {
+            "type": "boolean",
+            "title": "Reachable"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelInfo"
+            },
+            "type": "array",
+            "title": "Models"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "label",
+          "reachable",
+          "models"
+        ],
+        "title": "ModelSource"
       },
       "MyQuestionnaire": {
         "properties": {
@@ -13630,6 +14455,125 @@
         "title": "RepeatedMistakeCriteria",
         "description": "The same mistake this many times in this many days (spec 005)."
       },
+      "ResolvedModel": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "ollama",
+              "openai",
+              "anthropic"
+            ],
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Model"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 2.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature",
+            "description": "Null: the task's own (not for Anthropic)."
+          },
+          "effort": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effort"
+          },
+          "max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 32000.0,
+                "minimum": 64.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Tokens",
+            "description": "Longest reply; null: the server's."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "course",
+              "study",
+              "server"
+            ],
+            "title": "Origin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "model",
+          "origin"
+        ],
+        "title": "ResolvedModel"
+      },
+      "Retrieval": {
+        "properties": {
+          "top_k": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "description": "Fragments sent to the model."
+          },
+          "min_similarity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Similarity"
+          },
+          "min_similarity_exercises": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Similarity Exercises"
+          },
+          "history_messages": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "History Messages",
+            "description": "Earlier messages kept."
+          }
+        },
+        "type": "object",
+        "required": [
+          "top_k",
+          "min_similarity",
+          "min_similarity_exercises",
+          "history_messages"
+        ],
+        "title": "Retrieval"
+      },
       "RiskCriteriaList": {
         "properties": {
           "provisional": {
@@ -14426,6 +15370,34 @@
         ],
         "title": "StudentTutorSettings"
       },
+      "StudyAISettings": {
+        "properties": {
+          "server": {
+            "$ref": "#/components/schemas/StudyValues",
+            "description": "The values in the server's environment."
+          },
+          "study": {
+            "$ref": "#/components/schemas/StudyOverrides",
+            "description": "What the study changes; null inherits."
+          },
+          "effective": {
+            "$ref": "#/components/schemas/StudyValues"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server",
+          "study",
+          "effective",
+          "updated_at"
+        ],
+        "title": "StudyAISettings"
+      },
       "StudyCriteria": {
         "properties": {
           "criteria": {
@@ -14467,6 +15439,82 @@
         ],
         "title": "StudyCriteriaUpdate"
       },
+      "StudyOverrides": {
+        "properties": {
+          "models": {
+            "$ref": "#/components/schemas/TaskModels",
+            "default": {}
+          },
+          "limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Limits"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retrieval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Retrieval"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ceiling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Ceiling"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "StudyOverrides"
+      },
+      "StudyValues": {
+        "properties": {
+          "models": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ResolvedModel"
+            },
+            "propertyNames": {
+              "enum": [
+                "tutor",
+                "feedback",
+                "review",
+                "questions"
+              ]
+            },
+            "type": "object",
+            "title": "Models"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "retrieval": {
+            "$ref": "#/components/schemas/Retrieval"
+          },
+          "ceiling": {
+            "$ref": "#/components/schemas/Ceiling"
+          }
+        },
+        "type": "object",
+        "required": [
+          "models",
+          "limits",
+          "retrieval",
+          "ceiling"
+        ],
+        "title": "StudyValues"
+      },
       "SubmissionCreate": {
         "properties": {
           "problem_statement": {
@@ -14488,6 +15536,53 @@
           "worked_answer"
         ],
         "title": "SubmissionCreate"
+      },
+      "TaskModels": {
+        "properties": {
+          "tutor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelChoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelChoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelChoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelChoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "TaskModels",
+        "description": "A task's own model, or null for the one it inherits."
       },
       "TeacherConversation": {
         "properties": {
@@ -16155,6 +17250,38 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "Values": {
+        "properties": {
+          "models": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ResolvedModel"
+            },
+            "propertyNames": {
+              "enum": [
+                "tutor",
+                "feedback",
+                "review",
+                "questions"
+              ]
+            },
+            "type": "object",
+            "title": "Models"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "retrieval": {
+            "$ref": "#/components/schemas/Retrieval"
+          }
+        },
+        "type": "object",
+        "required": [
+          "models",
+          "limits",
+          "retrieval"
+        ],
+        "title": "Values"
       },
       "WeekActivity": {
         "properties": {

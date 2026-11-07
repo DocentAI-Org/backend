@@ -88,6 +88,8 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/evaluation-set` | — | `Page[EvaluationItem {flag_id, course_id, category, correction, question, original_answer, citations, created_at}]` |
 | GET | `/study-export?course_id` (specs/011) | — | `application/zip`: `README.md` and `students`, `topics`, `messages`, `exercises`, `quiz_items`, `tests`, `interactions` `.csv`; consenting students only, `study_ref` ids, no free text |
 | GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}}, provisional, updated_at}` |
+| GET / PUT | `/ai-settings` (specs/019) | `StudyOverrides {models: TaskModels, limits?, retrieval?, ceiling?}` (null: the server's) | `StudyAISettings {server: StudyValues, study: StudyOverrides, effective: StudyValues, updated_at}`; `StudyValues = Values + ceiling {messages?}` |
+| GET | `/ai-models` (specs/019) | — | `AIModels {sources: [ModelSource {provider, label, reachable, models: [{id, label?, size_bytes?, parameter_size?, family?}]}]}` |
 | GET / POST | `/questionnaires` (specs/012) | `QuestionnaireCreate {title, url (https), audience: student\|teacher}` | `[Questionnaire]` / 201 `Questionnaire {id, title, url, audience, status: open\|closed, created_at, updated_at}` |
 | PATCH / DELETE | `/questionnaires/{questionnaire_id}` | `QuestionnaireUpdate {title?, url?, status?}` | `Questionnaire` / 204 |
 | DELETE | `/students/{student_id}` (specs/017) | — | `StudentErasure {student_id, courses, conversations, messages, exercise_submissions, quizzes, test_attempts, interaction_logs}`: rows deleted. Deletes the auth account, every row linked to it and the student's interaction logs; `404` unknown or already erased, `409 not_a_student` for a teacher or admin, `503 auth_unavailable` and nothing deleted if the auth service fails. The erased student's tokens get `401` |
@@ -215,6 +217,23 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 Dashboard, progress, repeated mistakes and adaptation use the course's criteria in effect;
 `GET /risk-criteria` returns the study's.
 
+### AI settings (specs/019)
+
+| Method | Path | Request | Response |
+|---|---|---|---|
+| GET / PUT | `/courses/{course_id}/ai-settings` | `CourseOverrides {models: TaskModels, limits?, retrieval?}` (null: inherited) | `CourseAISettings {inherited: Values, course: CourseOverrides, effective: Values, ceiling {messages?}}` |
+| GET | `/courses/{course_id}/ai-models` | — | `AIModels` |
+
+- Each group comes from the course, else the study, else the server's environment.
+  `TaskModels {tutor?, feedback?, review?, questions?}` of `ModelChoice {provider:
+  ollama|openai|anthropic, model, temperature? (0–2, not for Anthropic), effort?, max_tokens?
+  (64–32000)}`; `Values {models: {task: ModelChoice + origin: course|study|server}, limits
+  {messages? (≥1, null: no limit), period: day|week|course, counted_tasks: [tutor|feedback|
+  review]}, retrieval {top_k 1–10, min_similarity 0–1, min_similarity_exercises 0–1,
+  history_messages 0–20}}`.
+- `422` `provider_unavailable` (no key on the server), `provider_unreachable`,
+  `model_unavailable` (not in the source's list), `temperature_not_supported`, with `{task}`.
+
 ### Pre-test and post-test (P3; specs/008)
 
 | Method | Path | Request | Response |
@@ -238,7 +257,8 @@ once the pre-test has been opened.
 | GET | `/courses/{course_id}` | — | `StudentCourse` |
 | GET | `/courses/{course_id}/tutor-settings` | — | `StudentTutorSettings {level, tone, solution_policy}` |
 | POST | `/courses/{course_id}/disclosure` | — | `StudentCourse` (acknowledged) |
-| GET | `/allowance` | — | `Allowance {limit, used, remaining, resets_at}` |
+| GET | `/allowance` | — | `Allowance` of the daily ceiling across courses |
+| GET | `/courses/{course_id}/allowance` (specs/019) | — | `Allowance {scope: course\|daily, limit?, used, remaining?, period: day\|week\|course, resets_at?}`: the course's limit or the daily ceiling, whichever has fewer left; null `limit` is no limit, null `resets_at` a whole-course limit. `TutorExchange.allowance` is the same. `429 course_limit_reached {period, resets_at?}` or `daily_limit_reached {resets_at}` |
 | POST | `/courses/{course_id}/conversations` | — | 201 `Conversation {id, started_at, last_message_at, messages: []}` |
 | GET | `/courses/{course_id}/conversations` | — | `Page[StudentConversationSummary {id, started_at, last_message_at, preview}]` |
 | GET | `/courses/{course_id}/conversations/{conversation_id}` | — | `Conversation` |
