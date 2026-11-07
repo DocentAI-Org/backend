@@ -93,7 +93,9 @@ which stay where they are.
    credential label; the other tasks and courses are unchanged.
 3. **Given** a model the credential does not offer, or a temperature for Anthropic, **Then** 422.
 4. **When** the admin removes a credential or stops offering a model a course uses, **Then**
-   that course's `models` group goes back to the study values and the teacher sees why.
+   each task using it goes back to the inherited model and the course keeps a notice (task,
+   model, reason) until its settings are saved again. The same happens to the study's own
+   tasks.
 
 ### User Story 3 — Credentials (Priority: P1)
 
@@ -102,9 +104,13 @@ which stay where they are.
    provider, stored encrypted, and only `…last4` is ever returned. A key the provider rejects is
    422 and is not stored.
 2. **Given** `allow_teacher_keys = false`, **When** a teacher adds a credential to their course,
-   **Then** 403; with `true`, it is stored for that course only and the response reminds that
-   requests then go to that provider under the teacher's account.
+   **Then** 403 `teacher_keys_disabled`; with `true`, it is stored for that course only and its
+   models are offered only there (the page reminds that requests then go to that provider
+   under the teacher's account). Turning it off again resets the tasks using teachers' keys,
+   with a notice; the keys stay and come back if it is turned on again.
 3. **When** a credential is deleted, **Then** its key is erased, not just hidden.
+5. **Given** no `LLM_CREDENTIALS_KEY` on the server, **When** a key is added, **Then** 409
+   `credentials_not_configured`. The server's own env keys keep working.
 4. **Given** a teacher or a student on the admin routes, **Then** 403; another teacher's course,
    404.
 

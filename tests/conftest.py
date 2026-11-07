@@ -12,6 +12,8 @@ TEST_JWT_SECRET = "test-jwt-secret-with-at-least-32-characters"
 os.environ["SUPABASE_JWT_SECRET"] = TEST_JWT_SECRET
 os.environ["LOG_PSEUDONYM_SECRET"] = "test-pseudonym-secret"
 os.environ["DAILY_MESSAGE_LIMIT"] = "5"
+# A Fernet key for the tests only (specs/019).
+os.environ["LLM_CREDENTIALS_KEY"] = "9UvGAc7Qk45q7T2RR-iJTJd9HPbFLSo3aRdgu2C4ikw="
 # The app must not touch rows of a dev server sharing the local database.
 os.environ["RECOVER_INTERRUPTED_ON_STARTUP"] = "false"
 os.environ["RETRIEVAL_MIN_SIMILARITY"] = "0.2"

@@ -477,8 +477,28 @@ class AISettings(Base):
     limits: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     retrieval: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     ceiling: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    allow_teacher_keys: Mapped[bool] = mapped_column(server_default="false")
+    notices: Mapped[list] = mapped_column(JSONB, server_default="[]")
     updated_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
     updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
+
+
+class LLMCredential(Base):
+    """A key for a commercial model: the study's (no course) or a teacher's
+    (specs/019)."""
+
+    __tablename__ = "llm_credentials"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    course_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("courses.id"))
+    provider: Mapped[str]
+    label: Mapped[str]
+    base_url: Mapped[str | None]
+    encrypted_key: Mapped[str] = mapped_column(Text)
+    key_hint: Mapped[str]
+    offered_models: Mapped[list | None] = mapped_column(JSONB(none_as_null=True))
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class TeacherFlag(Base):

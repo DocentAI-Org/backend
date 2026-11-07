@@ -1,5 +1,6 @@
 """Model providers per task (spec 014): settings, routing, adapters, cost per model."""
 
+import uuid
 from types import SimpleNamespace
 
 import anthropic
@@ -15,6 +16,7 @@ from app.llm.client import (
     OpenAICompatProvider,
     parse_json_reply,
 )
+from app.llm.credentials import CredentialAccess
 from app.services.interactions import estimate_cost
 
 ENV = (
@@ -112,6 +114,21 @@ def test_the_router_sends_each_task_to_its_provider(env) -> None:
     assert tutor.model == "qwen2.5:7b" and ollama.calls[0]["temperature"] == 0.2
     assert feedback.model == "claude-sonnet-5-5"
     assert claude.calls[0]["effort"] == "low" and claude.calls[0]["temperature"] == 0.0
+
+
+def test_a_stored_key_gets_its_own_client(env) -> None:
+    router = LLMRouter(env())
+    key = CredentialAccess(
+        uuid.uuid4(), "openai", "Mistral", "https://api.mistral.ai/v1", "sk-own-1234"
+    )
+
+    client = router._get("openai", key)._client
+
+    assert client.api_key == "sk-own-1234"
+    assert str(client.base_url).startswith("https://api.mistral.ai/v1")
+    assert router._get("openai", key) is router._get("openai", key)
+    assert router._get("ollama") is not router._get("openai", key)
+    assert "sk-own-1234" not in repr(key)
 
 
 def test_a_course_route_replaces_the_servers(env) -> None:

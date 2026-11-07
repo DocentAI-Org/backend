@@ -18,12 +18,12 @@ Delivered in three PRs against `main`, one after the other (never stacked).
 
 ## PR 2 — Credentials (US3)
 
-- [ ] T007 Tests first: add, check, encrypt, last4 only, delete erases, `allow_teacher_keys`,
+- [x] T007 Tests first: add, check, encrypt, last4 only, delete erases, `allow_teacher_keys`,
   roles, a removed credential or model resets the course group (`tests/api/test_llm_credentials.py`)
-- [ ] T008 `cryptography` as a direct dependency; `LLM_CREDENTIALS_KEY`; `llm_credentials`
+- [x] T008 `cryptography` as a direct dependency; `LLM_CREDENTIALS_KEY`; `llm_credentials`
   service and routes; providers built per credential; catalogue lists credential models
-- [ ] T009 Keys absent from logs, errors and the study export (test)
-- [ ] T010 Requirements §4.1/§4.2 update in the knowledge base; contract note and `openapi.json`
+- [x] T009 Keys absent from logs, errors and the study export (test)
+- [x] T010 Requirements §4.1/§4.2 update in the knowledge base; contract note and `openapi.json`
 
 ## PR 3 — Instructions, test and usage (US4, US5)
 

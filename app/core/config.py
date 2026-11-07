@@ -1,8 +1,11 @@
 from functools import lru_cache
-from typing import Literal, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+if TYPE_CHECKING:
+    from app.llm.credentials import CredentialAccess
 
 Provider = Literal["ollama", "openai", "anthropic"]
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
@@ -18,6 +21,8 @@ class Route(NamedTuple):
     # max tokens.
     temperature: float | None = None
     max_tokens: int | None = None
+    # A study's or teacher's key; None is the server's key for the provider.
+    credential: "CredentialAccess | None" = None
 
 
 class Settings(BaseSettings):
@@ -66,6 +71,9 @@ class Settings(BaseSettings):
     openai_base_url: str = "https://api.openai.com/v1"
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
+    # Fernet key that encrypts the keys admins and teachers add in the app (specs/019);
+    # without it, no key can be stored.
+    llm_credentials_key: str | None = None
     # Server-side fallback when a Claude model declines; "" turns it off.
     llm_anthropic_fallbacks: str = "default"
     llm_max_tokens: int = 16000

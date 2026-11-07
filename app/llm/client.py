@@ -11,6 +11,7 @@ import anthropic
 from openai import OpenAI, OpenAIError
 
 from app.core.config import Effort, Provider, Route, Settings, Task, get_settings
+from app.llm.credentials import CredentialAccess
 
 # A valid JSON escape, or a lone backslash: models write LaTeX (\sqrt, \() unescaped.
 _ESCAPE = re.compile(r'(\\(?:u[0-9a-fA-F]{4}|["\\/bfnrt]))|\\', re.S)
@@ -219,21 +220,28 @@ class AnthropicProvider:
             return False
 
 
-def _provider(settings: Settings, name: Provider) -> Any:
+def _provider(
+    settings: Settings, name: Provider, credential: CredentialAccess | None = None
+) -> Any:
     if name == "anthropic":
         client = anthropic.Anthropic(
-            api_key=settings.anthropic_api_key,  # None: the SDK reads the environment
+            # None: the SDK reads the environment
+            api_key=credential.api_key if credential else settings.anthropic_api_key,
             timeout=settings.llm_timeout_seconds,
             max_retries=1,
         )
         return AnthropicProvider(
             client, settings.llm_max_tokens, settings.llm_anthropic_fallbacks
         )
-    base_url, api_key = (
-        (settings.openai_base_url, settings.openai_api_key)
-        if name == "openai"
-        else (settings.ollama_base_url, settings.ollama_api_key)
-    )
+    if credential:
+        base_url, api_key = (
+            credential.base_url or settings.openai_base_url,
+            credential.api_key,
+        )
+    elif name == "openai":
+        base_url, api_key = settings.openai_base_url, settings.openai_api_key
+    else:
+        base_url, api_key = settings.ollama_base_url, settings.ollama_api_key
     client = OpenAI(
         base_url=base_url,
         api_key=api_key,
@@ -252,10 +260,13 @@ class LLMRouter:
         self._settings = settings
         self._providers: dict[str, Any] = dict(providers or {})
 
-    def _get(self, name: Provider) -> Any:
-        if name not in self._providers:
-            self._providers[name] = _provider(self._settings, name)
-        return self._providers[name]
+    def _get(self, name: Provider, credential: CredentialAccess | None = None) -> Any:
+        # A credential's key never changes (it is replaced by a new one), so its id is
+        # enough to reuse the client.
+        key = str(credential.id) if credential else name
+        if key not in self._providers:
+            self._providers[key] = _provider(self._settings, name, credential)
+        return self._providers[key]
 
     @property
     def chat_model(self) -> str:
@@ -271,7 +282,7 @@ class LLMRouter:
     ) -> ChatResult:
         """`route` is the course's (specs/019); otherwise the server's for the task."""
         route = route or self._settings.route(task)
-        return self._get(route.provider).complete_json(
+        return self._get(route.provider, route.credential).complete_json(
             model=route.model,
             system=system,
             messages=messages,
