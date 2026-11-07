@@ -27,8 +27,8 @@ Delivered in three PRs against `main`, one after the other (never stacked).
 
 ## PR 3 — Instructions, test and usage (US4, US5)
 
-- [ ] T011 Tests first: instruction block position and length, retrieval options, test message
+- [x] T011 Tests first: instruction block position and length, retrieval options, test message
   (not logged, no allowance, rate limit), usage figures (`tests/api/test_ai_tools.py`)
-- [ ] T012 Teacher instruction block in the four prompts
-- [ ] T013 `ai-test` and `ai-usage` routes
+- [x] T012 Teacher instruction block in the four prompts
+- [x] T013 `ai-test` and `ai-usage` routes
 - [ ] T014 Evaluation unchanged with no overrides (SC-002); validation on the real stack
