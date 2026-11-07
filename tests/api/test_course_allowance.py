@@ -26,9 +26,11 @@ def limit(client, teacher, course_id: str, messages, period="day", tasks=None):
     )
 
 
-def allowance(client, student, course_id: str) -> dict:
+def allowance(client, student, course_id: str, task: str = "tutor") -> dict:
     response = client.get(
-        f"/v1/student/courses/{course_id}/allowance", headers=student.headers
+        f"/v1/student/courses/{course_id}/allowance",
+        params={"task": task},
+        headers=student.headers,
     )
     assert response.status_code == 200, response.text
     return response.json()
@@ -149,6 +151,12 @@ def test_tasks_the_teacher_does_not_count_use_no_messages(
     # The daily ceiling counts every message (cost safety net).
     daily = client.get("/v1/student/allowance", headers=student.headers).json()
     assert daily["used"] == 2
+    send(client, student, room.course_id)
+    assert allowance(client, student, room.course_id)["remaining"] == 0
+    # Exercises are not counted, so only the daily ceiling applies to them.
+    feedback = allowance(client, student, room.course_id, "feedback")
+    assert feedback["scope"] == "daily"
+    assert (feedback["used"], feedback["remaining"]) == (3, 2)
 
 
 def test_a_failed_reply_gives_the_message_back(client, llm, teacher, student) -> None:

@@ -179,9 +179,14 @@ def read(
     ai: InEffect,
     student_id: uuid.UUID,
     course_id: uuid.UUID,
+    task: str = "tutor",
 ) -> Allowance:
-    """The course's allowance, or the daily ceiling when that is tighter."""
+    """The course's allowance for the task, or the daily ceiling when that is tighter or
+    the course does not count the task."""
     limits = ai.limits
+    daily = read_daily(session, settings, ai.ceiling.messages, student_id)
+    if task not in limits.counted_tasks:
+        return daily
     used = (
         session.scalar(
             select(CourseUsage.used).where(
@@ -203,7 +208,6 @@ def read(
         period=limits.period,
         resets_at=resets_at(settings, limits.period),
     )
-    daily = read_daily(session, settings, ai.ceiling.messages, student_id)
     if daily.remaining is not None and (
         course.remaining is None or daily.remaining < course.remaining
     ):

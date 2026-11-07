@@ -8350,6 +8350,23 @@
               "format": "uuid",
               "title": "Course Id"
             }
+          },
+          {
+            "name": "task",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tutor",
+                "feedback",
+                "review"
+              ],
+              "type": "string",
+              "description": "The task about to be used.",
+              "default": "tutor",
+              "title": "Task"
+            },
+            "description": "The task about to be used."
           }
         ],
         "responses": {

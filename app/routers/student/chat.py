@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.core.config import get_settings
 from app.core.db import DbSession
@@ -11,6 +11,7 @@ from app.core.security import StudentUser
 from app.llm.client import LLMClient, get_llm
 from app.models import Conversation as ConversationRow
 from app.models import Message
+from app.schemas.ai_settings import CountedTask
 from app.schemas.chat import (
     Allowance,
     Conversation,
@@ -43,12 +44,17 @@ def read_allowance(student: StudentUser, session: DbSession) -> Allowance:
     summary="Messages left in the course: its limit or the daily ceiling, the tighter",
 )
 def read_course_allowance(
-    course_id: uuid.UUID, student: StudentUser, session: DbSession
+    course_id: uuid.UUID,
+    student: StudentUser,
+    session: DbSession,
+    task: Annotated[
+        CountedTask, Query(description="The task about to be used.")
+    ] = "tutor",
 ) -> Allowance:
     enrolment = courses.get_active_enrolment(session, course_id, student)
     settings = get_settings()
     ai = ai_settings.in_effect(session, settings, enrolment.course_id)
-    return tutor.allowance_view(session, settings, ai, enrolment)
+    return tutor.allowance_view(session, settings, ai, enrolment, task)
 
 
 @router.post(

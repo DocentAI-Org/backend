@@ -258,7 +258,7 @@ once the pre-test has been opened.
 | GET | `/courses/{course_id}/tutor-settings` | — | `StudentTutorSettings {level, tone, solution_policy}` |
 | POST | `/courses/{course_id}/disclosure` | — | `StudentCourse` (acknowledged) |
 | GET | `/allowance` | — | `Allowance` of the daily ceiling across courses |
-| GET | `/courses/{course_id}/allowance` (specs/019) | — | `Allowance {scope: course\|daily, limit?, used, remaining?, period: day\|week\|course, resets_at?}`: the course's limit or the daily ceiling, whichever has fewer left; null `limit` is no limit, null `resets_at` a whole-course limit. `TutorExchange.allowance` is the same. `429 course_limit_reached {period, resets_at?}` or `daily_limit_reached {resets_at}` |
+| GET | `/courses/{course_id}/allowance?task=tutor\|feedback\|review` (specs/019) | — | `Allowance {scope: course\|daily, limit?, used, remaining?, period: day\|week\|course, resets_at?}`: the course's limit or the daily ceiling, whichever has fewer left, or the ceiling alone when the course does not count `task`; null `limit` is no limit, null `resets_at` a whole-course limit. `TutorExchange.allowance` is the same. `429 course_limit_reached {period, resets_at?}` or `daily_limit_reached {resets_at}` |
 | POST | `/courses/{course_id}/conversations` | — | 201 `Conversation {id, started_at, last_message_at, messages: []}` |
 | GET | `/courses/{course_id}/conversations` | — | `Page[StudentConversationSummary {id, started_at, last_message_at, preview}]` |
 | GET | `/courses/{course_id}/conversations/{conversation_id}` | — | `Conversation` |

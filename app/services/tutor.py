@@ -318,10 +318,14 @@ def reserve_or_raise(
 
 
 def allowance_view(
-    session: Session, settings: Settings, ai: InEffect, enrolment: Enrolment
+    session: Session,
+    settings: Settings,
+    ai: InEffect,
+    enrolment: Enrolment,
+    task: str = "tutor",
 ) -> schemas.Allowance:
     return allowance.read(
-        session, settings, ai, enrolment.student_id, enrolment.course_id
+        session, settings, ai, enrolment.student_id, enrolment.course_id, task
     )
 
 
