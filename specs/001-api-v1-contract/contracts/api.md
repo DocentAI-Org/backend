@@ -87,7 +87,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/courses` | — | `Page[AdminCourse {id, name, teacher_name, student_count, created_at}]` |
 | GET | `/evaluation-set` | — | `Page[EvaluationItem {flag_id, course_id, category, correction, question, original_answer, citations, created_at}]` |
 | GET | `/study-export?course_id` (specs/011) | — | `application/zip`: `README.md` and `students`, `topics`, `messages`, `exercises`, `quiz_items`, `tests`, `interactions` `.csv`; consenting students only, `study_ref` ids, no free text |
-| GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}}, provisional, updated_at}` |
+| GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}, quiz {length, streak, start_level, adaptive} (specs/021)}, provisional, updated_at}` |
 | GET / PUT | `/ai-settings` (specs/019) | `StudyOverrides {models: TaskModels, limits?, retrieval?, ceiling?}` (null: the server's) | `StudyAISettings {server: StudyValues, study: StudyOverrides, effective: StudyValues, updated_at}`; `StudyValues = Values + ceiling {messages?}` |
 | GET | `/ai-models` (specs/019) | — | `AIModels {sources: [ModelSource {provider, label, reachable, models: [{id, label?, size_bytes?, parameter_size?, family?}], credential_id?, scope: server\|study\|course}]}`; a study key lists only the models it offers |
 | GET / POST | `/llm-credentials` (specs/019) | `CredentialCreate {provider: openai\|anthropic\|openai_compatible, label, base_url? (required for openai_compatible), api_key}` | `StudyCredentials {server: [{provider, label}], items: [Credential]}` / 201 `Credential {id, provider, label, base_url?, key_hint (…last4), scope: study\|course, offered_models?, created_at}`. The key is checked with the provider: `422 key_rejected` or `provider_unreachable`; `409 credentials_not_configured` without `LLM_CREDENTIALS_KEY`. The key is never returned |
@@ -216,7 +216,7 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 
 | Method | Path | Request | Response |
 |---|---|---|---|
-| GET / PUT | `/courses/{course_id}/pedagogy-criteria` | `CourseCriteriaUpdate {inactive?, error_rate?, repeated_mistakes?, adaptation?, mastery?}` (null: the study's) | `CourseCriteria {study: Criteria, provisional, custom: {group: bool}, effective: Criteria}` |
+| GET / PUT | `/courses/{course_id}/pedagogy-criteria` | `CourseCriteriaUpdate {inactive?, error_rate?, repeated_mistakes?, adaptation?, mastery?, quiz?}` (null: the study's) | `CourseCriteria {study: Criteria, provisional, custom: {group: bool}, effective: Criteria}` |
 
 Dashboard, progress, repeated mistakes and adaptation use the course's criteria in effect;
 `GET /risk-criteria` returns the study's.
@@ -341,7 +341,12 @@ Shared models:
   difficulty, topic_name}, summary?: {score, total, final_level, by_topic: [{topic_id?,
   topic_name, correct, total}]}, started_at, completed_at?}`; the correct option is never sent
   before the answer. `difficulty_change {from_level, to_level, reason: correct_streak|
-  wrong_streak|level_exhausted, streak}`; `level` is the difficulty of the current question (provisional `QUIZ_START_LEVEL=2`, `QUIZ_STREAK=2`, `QUIZ_LENGTH=5`).
+  wrong_streak|level_exhausted, streak}`; `level` is the difficulty of the current question.
+  Since specs/021 length, streak and start come from the course's `quiz` criteria (defaults 5, 2,
+  2); with `adaptive` a quiz starts at the student's mastery (starting 1, progressing 2, mastered
+  3; every topic: the mean of the scored topics) and, on every topic, favours weak topics.
+  `start_basis? {reason: mastery|no_score|fixed, mastery_level?, score?}`, stored at the start
+  (null before specs/021).
   Quizzes never call the model and do not count toward the allowance.
 - `LearningRecordEntry {id, submission_id, error_type, topic_id?, topic_name?, topic_deleted,
   created_at}`

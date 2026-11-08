@@ -332,6 +332,8 @@ class Quiz(Base):
     question_count: Mapped[int] = mapped_column(SmallInteger)
     level: Mapped[int] = mapped_column(SmallInteger)
     streak: Mapped[int] = mapped_column(SmallInteger, server_default="0")
+    # Why it started at its level (specs/021); null for quizzes started before.
+    start_basis: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     started_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
     completed_at: Mapped[datetime | None]
 
@@ -461,6 +463,7 @@ class PedagogyCriteria(Base):
     repeated_mistakes: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     adaptation: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     mastery: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    quiz: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     provisional: Mapped[bool] = mapped_column(server_default="true")
     updated_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
     updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
