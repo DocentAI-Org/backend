@@ -6692,6 +6692,95 @@
         }
       }
     },
+    "/v1/teacher/courses/{course_id}/students/{student_id}/next-steps": {
+      "get": {
+        "tags": [
+          "teacher: dashboard"
+        ],
+        "summary": "A student's recommended next steps",
+        "description": "Exactly what the student sees as their next steps (spec 020).",
+        "operationId": "read_student_next_steps_v1_teacher_courses__course_id__students__student_id__next_steps_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Student Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextSteps"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/teacher/risk-criteria": {
       "get": {
         "tags": [
@@ -10923,6 +11012,85 @@
         }
       }
     },
+    "/v1/student/courses/{course_id}/next-steps": {
+      "get": {
+        "tags": [
+          "student: progress"
+        ],
+        "summary": "My recommended next steps",
+        "description": "Up to three steps, most important first: an open test, an unfinished quiz, the most repeated mistake, the weakest topic and a topic not started, each with its basis. Computed on read; the teacher sees the same (spec 020).",
+        "operationId": "read_next_steps_v1_student_courses__course_id__next_steps_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Course Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextSteps"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/student/courses/{course_id}/test": {
       "get": {
         "tags": [
@@ -14294,6 +14462,55 @@
         "title": "MyQuestionnaire",
         "description": "An open questionnaire for the caller, with its link resolved."
       },
+      "NextSteps": {
+        "properties": {
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional",
+            "description": "True while the criteria are the technical team's draft (spec 015)."
+          },
+          "steps": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TestStep"
+                },
+                {
+                  "$ref": "#/components/schemas/ResumeQuizStep"
+                },
+                {
+                  "$ref": "#/components/schemas/ReviewMistakeStep"
+                },
+                {
+                  "$ref": "#/components/schemas/PracticeTopicStep"
+                },
+                {
+                  "$ref": "#/components/schemas/StartTopicStep"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "practice_topic": "#/components/schemas/PracticeTopicStep",
+                  "resume_quiz": "#/components/schemas/ResumeQuizStep",
+                  "review_mistake": "#/components/schemas/ReviewMistakeStep",
+                  "start_topic": "#/components/schemas/StartTopicStep",
+                  "test": "#/components/schemas/TestStep"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Steps",
+            "description": "At most three, most important first."
+          }
+        },
+        "type": "object",
+        "required": [
+          "provisional",
+          "steps"
+        ],
+        "title": "NextSteps"
+      },
       "Notice": {
         "properties": {
           "task": {
@@ -14891,6 +15108,58 @@
           "status"
         ],
         "title": "PhaseUpdate"
+      },
+      "PracticeTopicStep": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "practice_topic",
+            "title": "Kind"
+          },
+          "topic_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "starting",
+              "progressing"
+            ],
+            "title": "Level"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Share right, 0-1 (spec 007)."
+          },
+          "items": {
+            "type": "integer",
+            "title": "Items",
+            "description": "Graded items behind the score."
+          },
+          "has_questions": {
+            "type": "boolean",
+            "title": "Has Questions",
+            "description": "The topic has approved quiz questions."
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "topic_id",
+          "topic_name",
+          "level",
+          "score",
+          "items",
+          "has_questions"
+        ],
+        "title": "PracticeTopicStep"
       },
       "Progress": {
         "properties": {
@@ -15866,6 +16135,49 @@
         ],
         "title": "ResolvedModel"
       },
+      "ResumeQuizStep": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "resume_quiz",
+            "title": "Kind"
+          },
+          "quiz_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Quiz Id"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name",
+            "description": "Null for a quiz on every topic."
+          },
+          "answered": {
+            "type": "integer",
+            "title": "Answered"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "quiz_id",
+          "topic_name",
+          "answered",
+          "total"
+        ],
+        "title": "ResumeQuizStep"
+      },
       "Retrieval": {
         "properties": {
           "top_k": {
@@ -15903,6 +16215,73 @@
           "history_messages"
         ],
         "title": "Retrieval"
+      },
+      "ReviewMistakeStep": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "review_mistake",
+            "title": "Kind"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days"
+          },
+          "submission_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Submission Id",
+            "description": "The pattern's latest submission."
+          },
+          "reviewed": {
+            "type": "boolean",
+            "title": "Reviewed",
+            "description": "Its targeted review was already requested."
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "error_type",
+          "topic_id",
+          "topic_name",
+          "count",
+          "window_days",
+          "submission_id",
+          "reviewed"
+        ],
+        "title": "ReviewMistakeStep"
       },
       "RiskCriteriaList": {
         "properties": {
@@ -16000,6 +16379,56 @@
           "expires_at"
         ],
         "title": "SignedUrl"
+      },
+      "StartTopicStep": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "start_topic",
+            "title": "Kind"
+          },
+          "topic_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Topic Id"
+          },
+          "topic_name": {
+            "type": "string",
+            "title": "Topic Name"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "insufficient"
+            ],
+            "title": "Level"
+          },
+          "items": {
+            "type": "integer",
+            "title": "Items"
+          },
+          "min_items": {
+            "type": "integer",
+            "title": "Min Items",
+            "description": "Items needed for a score."
+          },
+          "has_questions": {
+            "type": "boolean",
+            "title": "Has Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "topic_id",
+          "topic_name",
+          "level",
+          "items",
+          "min_items",
+          "has_questions"
+        ],
+        "title": "StartTopicStep"
       },
       "StudentConversationSummary": {
         "properties": {
@@ -18025,6 +18454,29 @@
           "averages"
         ],
         "title": "TestResults"
+      },
+      "TestStep": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "test",
+            "title": "Kind"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "pre",
+              "post"
+            ],
+            "title": "Phase"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "phase"
+        ],
+        "title": "TestStep"
       },
       "TestSubmission": {
         "properties": {
