@@ -35,10 +35,18 @@ class ErrorRateCriteria(BaseModel):
 
 
 class RepeatedMistakeCriteria(BaseModel):
-    """The same mistake this many times in this many days (spec 005)."""
+    """The same mistake this many times in this many days (spec 005), and the correct
+    exercises that overcome it (spec 022)."""
 
     count: int = Field(ge=1, le=50)
     window_days: int = Field(ge=1, le=365)
+    overcome_after: int = Field(
+        default=3,
+        ge=1,
+        le=20,
+        description="Correct exercises in a row in the topic that overcome it "
+        "(specs/022).",
+    )
 
 
 class AdaptationCriteria(BaseModel):

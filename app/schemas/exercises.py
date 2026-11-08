@@ -24,6 +24,15 @@ class RepeatedMistake(BaseModel):
     topic_name: str | None
 
 
+class OvercomePattern(BaseModel):
+    """A repeated pattern this correct exercise completes (specs/022, provisional)."""
+
+    error_type: str
+    topic_name: str | None
+    count: int = Field(description="Its mistakes in the window, up to the latest.")
+    correct: int = Field(description="Correct exercises in a row in the topic since.")
+
+
 class StudentSubmission(BaseModel):
     id: uuid.UUID
     problem_statement: str
@@ -45,6 +54,11 @@ class StudentSubmission(BaseModel):
     )
     adaptation: Adaptation | None = Field(
         default=None, description="Set when the feedback was adapted (specs/013)."
+    )
+    overcome: list[OvercomePattern] = Field(
+        default_factory=list,
+        description="Repeated patterns this correct exercise overcomes (specs/022); "
+        "said once, on the exercise that completes the run.",
     )
     created_at: datetime
 

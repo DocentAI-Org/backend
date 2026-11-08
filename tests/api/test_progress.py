@@ -228,6 +228,8 @@ def test_the_most_frequent_mistakes_link_to_the_latest_one(
         "error_type": "procedural",
         "count": 2,
         "latest_submission_id": str(latest),
+        "correct_since": 0,
+        "overcome": False,
     }
     assert [(e["error_type"], e["count"]) for e in errors[1:]] == [("conceptual", 1)]
 

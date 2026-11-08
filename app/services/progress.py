@@ -21,7 +21,7 @@ from app.models import (
     Topic,
 )
 from app.schemas import progress as schemas
-from app.services import pedagogy
+from app.services import overcome, pedagogy
 
 WEEKS = 8
 EXERCISE_VALUE = {"correct": 1.0, "partially_correct": 0.5, "incorrect": 0.0}
@@ -34,16 +34,20 @@ class Criteria:
     min_items: int
     progressing: float
     mastered: float
+    overcome_after: int = 3
 
     @classmethod
     def of_course(cls, session: Session, course_id: uuid.UUID) -> "Criteria":
-        """The course's mastery criteria (its own or the study's, specs/015)."""
-        mastery = pedagogy.in_effect(session, course_id).criteria.mastery
+        """The course's mastery criteria (its own or the study's, specs/015), and when a
+        mistake is overcome (specs/022)."""
+        criteria = pedagogy.in_effect(session, course_id).criteria
+        mastery = criteria.mastery
         return cls(
             window=mastery.window,
             min_items=mastery.min_items,
             progressing=mastery.progressing,
             mastered=mastery.mastered,
+            overcome_after=criteria.repeated_mistakes.overcome_after,
         )
 
 
@@ -114,6 +118,24 @@ def _basis(items: list[Item]) -> schemas.ProgressBasis:
     )
 
 
+def _error(
+    code: str, count: int, data: _Topic, criteria: Criteria
+) -> schemas.TopicError:
+    latest, submission_id = data.latest_error[code]
+    after = sorted(
+        (i for i in data.items if i.kind == "exercise" and i.at > latest),
+        key=lambda i: i.at,
+    )
+    run = overcome.run_since([i.value for i in after])
+    return schemas.TopicError(
+        error_type=code,
+        count=count,
+        latest_submission_id=submission_id,
+        correct_since=run,
+        overcome=run >= criteria.overcome_after,
+    )
+
+
 def _view(
     topic_id: uuid.UUID | None,
     name: str | None,
@@ -138,14 +160,7 @@ def _view(
                 weeks, history_of(data.items, weeks, criteria), strict=True
             )
         ],
-        top_errors=[
-            schemas.TopicError(
-                error_type=code,
-                count=count,
-                latest_submission_id=data.latest_error[code][1],
-            )
-            for code, count in ranked
-        ],
+        top_errors=[_error(code, count, data, criteria) for code, count in ranked],
         last_activity_at=max((i.at for i in data.items), default=None),
     )
 

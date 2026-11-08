@@ -36,6 +36,7 @@ from app.services import (
     ai_settings,
     allowance,
     interactions,
+    overcome,
     pedagogy,
     tutor,
 )
@@ -257,6 +258,9 @@ def submission_view(submission: ExerciseSubmission) -> schemas.StudentSubmission
         adaptation=Adaptation(**submission.adaptation)
         if submission.adaptation
         else None,
+        overcome=overcome.overcome_by(session, submission)
+        if session is not None
+        else [],
         created_at=submission.created_at,
     )
 

@@ -17,7 +17,7 @@ from app.models import (
 )
 from app.schemas import next_steps as schemas
 from app.schemas.progress import TopicProgress
-from app.services import course_tests, pedagogy, progress, quizzes
+from app.services import course_tests, overcome, pedagogy, progress, quizzes
 
 LIMIT = 3
 
@@ -60,14 +60,15 @@ def _resume_quiz(
 def _review_mistake(
     session: Session, enrolment: Enrolment
 ) -> schemas.ReviewMistakeStep | None:
-    """The most repeated pattern (error type and topic) in the window (spec 005)."""
+    """The most repeated pattern (error type and topic) in the window (spec 005) that is
+    not overcome yet (spec 022)."""
     threshold = pedagogy.in_effect(
         session, enrolment.course_id
     ).criteria.repeated_mistakes
     since = datetime.now(UTC) - timedelta(days=threshold.window_days)
     count = func.count(LearningRecordEntry.id)
     latest = func.max(LearningRecordEntry.created_at)
-    row = session.execute(
+    rows = session.execute(
         select(
             LearningRecordEntry.error_type,
             LearningRecordEntry.topic_id,
@@ -87,8 +88,19 @@ def _review_mistake(
         )
         .having(count >= threshold.count)
         .order_by(count.desc(), latest.desc())
-        .limit(1)
-    ).first()
+    ).all()
+    # Patterns already overcome are not recommended (specs/022).
+    row = next(
+        (
+            r
+            for r in rows
+            if overcome.correct_run(
+                session, enrolment.course_id, enrolment.student_id, r[1], r[2], r[4]
+            )
+            < threshold.overcome_after
+        ),
+        None,
+    )
     if row is None:
         return None
     error_type, topic_id, topic_name, times, _ = row
