@@ -182,6 +182,7 @@ uploaded_at, topics: [TopicRef {id, name}]}`.
 | GET | `/courses/{course_id}/students/{student_id}/risk` | — | `StudentRisk` |
 | GET | `/risk-criteria` | — | `RiskCriteriaList {provisional, items: [{code, enabled, thresholds}]}` |
 | GET | `/courses/{course_id}/students/{student_id}/progress` (specs/007) | — | `Progress`, identical to the student's |
+| GET | `/courses/{course_id}/students/{student_id}/next-steps` (specs/020) | — | `NextSteps`, identical to the student's |
 
 - `TeacherDashboard {period, since?, activity: {messages, exercises}, enough_data, thresholds:
   {messages, exercises}, errors_by_topic: [{topic_id?, topic_name?, topic_deleted, errors,
@@ -285,6 +286,7 @@ once the pre-test has been opened.
 | GET | `/courses/{course_id}/submissions/{submission_id}` | — | `StudentSubmission` |
 | GET | `/courses/{course_id}/learning-record` | — | `Page[LearningRecordEntry]` |
 | GET | `/courses/{course_id}/progress` (specs/007) | — | `Progress` |
+| GET | `/courses/{course_id}/next-steps` (specs/020) | — | `NextSteps`: computed on read, no model call |
 | GET | `/courses/{course_id}/test` (specs/008) | — | `[StudentTestPhase {phase, status, done, question_count}]` |
 | GET | `/courses/{course_id}/test/{pre\|post}` | — | `StudentTest {phase, status, done, submitted_at?, questions: [{id, position, statement, options, topic_name}]}` (no right option; empty once done) |
 | POST | `/courses/{course_id}/test/{pre\|post}` (409 `consent_required`, `test_not_open`, `test_already_done`) | `TestSubmission {answers: [{question_id, choice}]}` (every question once) | 201 `TestSubmitted {phase, submitted_at}` (no score) |
@@ -327,6 +329,13 @@ Shared models:
   the window), history: [{week_start, score?}] (8 weeks), top_errors: [{error_type, count,
   latest_submission_id}] (≤ 3), last_activity_at?}` (provisional `PROGRESS_*` settings).
   Since specs/007, correct exercises also carry their `topic_name`.
+- `NextSteps {provisional, steps}` (specs/020): at most three, ranked `test` → `resume_quiz` →
+  `review_mistake` → `practice_topic` → `start_topic`, discriminated by `kind`: `test {phase}`
+  (open, not taken); `resume_quiz {quiz_id, topic_name?, answered, total}`; `review_mistake
+  {error_type, topic_id?, topic_name?, count, window_days, submission_id (latest), reviewed}`
+  (the most repeated pattern, spec 005 thresholds); `practice_topic {topic_id, topic_name, level:
+  starting|progressing, score, items, has_questions}` (lowest score); `start_topic {topic_id,
+  topic_name, level: not_started|insufficient, items, min_items, has_questions}` (first in order).
 - `Quiz {id, topic_id?, topic_name?, status: in_progress|completed, question_count,
   answered_count, level: 1|2|3, current?: {id (question), position, statement, options,
   difficulty, topic_name}, summary?: {score, total, final_level, by_topic: [{topic_id?,
