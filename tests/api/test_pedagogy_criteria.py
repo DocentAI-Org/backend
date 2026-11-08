@@ -17,6 +17,7 @@ DEFAULTS = {
     "repeated_mistakes": {"count": 3, "window_days": 30},
     "adaptation": {"enabled": True},
     "mastery": {"window": 10, "min_items": 3, "progressing": 0.5, "mastered": 0.8},
+    "quiz": {"length": 5, "streak": 2, "start_level": 2, "adaptive": True},
 }
 NO_OVERRIDES = dict.fromkeys(DEFAULTS)
 
