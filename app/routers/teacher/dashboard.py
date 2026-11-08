@@ -14,8 +14,9 @@ from app.schemas.dashboard import (
     StudentRisk,
     TeacherDashboard,
 )
+from app.schemas.next_steps import NextSteps
 from app.schemas.progress import Progress
-from app.services import courses, dashboard, progress, risk
+from app.services import courses, dashboard, next_steps, progress, risk
 
 router = APIRouter(tags=["teacher: dashboard"])
 
@@ -71,6 +72,24 @@ def read_student_progress(
     return progress.student_progress(
         session, get_settings(), course.id, enrolment.student_id
     )
+
+
+@router.get(
+    "/courses/{course_id}/students/{student_id}/next-steps",
+    response_model=NextSteps,
+    responses=error_responses(404),
+    summary="A student's recommended next steps",
+    description="Exactly what the student sees as their next steps (spec 020).",
+)
+def read_student_next_steps(
+    course_id: uuid.UUID,
+    student_id: uuid.UUID,
+    teacher: TeacherUser,
+    session: DbSession,
+) -> NextSteps:
+    course = courses.get_owned_course(session, course_id, teacher)
+    enrolment = courses.get_course_enrolment(session, course, student_id)
+    return next_steps.next_steps(session, get_settings(), enrolment)
 
 
 @router.get(
