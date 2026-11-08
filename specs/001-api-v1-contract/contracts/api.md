@@ -314,7 +314,8 @@ Shared models:
   submission (specs/005; provisional `REPEATED_MISTAKE_COUNT=3`, `REPEATED_MISTAKE_DAYS=30`)
 - `StudentMessage.adaptation?` and `StudentSubmission.adaptation? {error_type, count, window_days}`:
   set when the answer or feedback was adapted to the error type the student repeats most in the
-  course (specs/013, provisional, same thresholds); the teacher's views carry the same value
+  course (specs/013, provisional, same thresholds), leaving out the patterns (error type and
+  topic) already overcome (specs/023); the teacher's views carry the same value
 - `MistakeReview {id, submission_id, error_type, topic_name?, kind: answer|no_source,
   explanation, worked_example?, practice: [str], citations, created_at}`:
   `POST /v1/student/courses/{course_id}/submissions/{submission_id}/review` (201 created and
