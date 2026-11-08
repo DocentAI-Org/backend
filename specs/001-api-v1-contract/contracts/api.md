@@ -87,7 +87,7 @@ This document is its design: every endpoint, its role, models and error codes. F
 | GET | `/courses` | — | `Page[AdminCourse {id, name, teacher_name, student_count, created_at}]` |
 | GET | `/evaluation-set` | — | `Page[EvaluationItem {flag_id, course_id, category, correction, question, original_answer, citations, created_at}]` |
 | GET | `/study-export?course_id` (specs/011) | — | `application/zip`: `README.md` and `students`, `topics`, `messages`, `exercises`, `quiz_items`, `tests`, `interactions` `.csv`; consenting students only, `study_ref` ids, no free text |
-| GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}, quiz {length, streak, start_level, adaptive} (specs/021)}, provisional, updated_at}` |
+| GET / PUT | `/pedagogy-criteria` (specs/015) | `StudyCriteriaUpdate {criteria: Criteria, provisional}` | `StudyCriteria {criteria: Criteria {inactive {enabled, days}, error_rate {enabled, rate, min_exercises, window_days}, repeated_mistakes {count, window_days, overcome_after (specs/022, default 3)}, adaptation {enabled}, mastery {window, min_items, progressing, mastered}, quiz {length, streak, start_level, adaptive} (specs/021)}, provisional, updated_at}` |
 | GET / PUT | `/ai-settings` (specs/019) | `StudyOverrides {models: TaskModels, limits?, retrieval?, ceiling?}` (null: the server's) | `StudyAISettings {server: StudyValues, study: StudyOverrides, effective: StudyValues, updated_at}`; `StudyValues = Values + ceiling {messages?}` |
 | GET | `/ai-models` (specs/019) | — | `AIModels {sources: [ModelSource {provider, label, reachable, models: [{id, label?, size_bytes?, parameter_size?, family?}], credential_id?, scope: server\|study\|course}]}`; a study key lists only the models it offers |
 | GET / POST | `/llm-credentials` (specs/019) | `CredentialCreate {provider: openai\|anthropic\|openai_compatible, label, base_url? (required for openai_compatible), api_key}` | `StudyCredentials {server: [{provider, label}], items: [Credential]}` / 201 `Credential {id, provider, label, base_url?, key_hint (…last4), scope: study\|course, offered_models?, created_at}`. The key is checked with the provider: `422 key_rejected` or `provider_unreachable`; `409 credentials_not_configured` without `LLM_CREDENTIALS_KEY`. The key is never returned |
@@ -327,7 +327,12 @@ Shared models:
   mastered, score? (0–1, latest `window` graded items: exercise 1/½/0, quiz answer 1/0), basis
   {exercises_correct, exercises_partial, exercises_total, quiz_right, quiz_total} (the items in
   the window), history: [{week_start, score?}] (8 weeks), top_errors: [{error_type, count,
-  latest_submission_id}] (≤ 3), last_activity_at?}` (provisional `PROGRESS_*` settings).
+  latest_submission_id, correct_since, overcome}] (≤ 3), last_activity_at?}` (provisional
+  `PROGRESS_*` settings). Since specs/022 each error says how many correct exercises in a row
+  the topic has had since its latest occurrence, and whether that reaches `overcome_after`.
+- `StudentSubmission.overcome: [{error_type, topic_name?, count, correct}]` (specs/022): the
+  repeated patterns (spec 005) a correct exercise overcomes, on the exercise that completes the
+  run only. The next steps (specs/020) no longer recommend overcome patterns.
   Since specs/007, correct exercises also carry their `topic_name`.
 - `NextSteps {provisional, steps}` (specs/020): at most three, ranked `test` → `resume_quiz` →
   `review_mistake` → `practice_topic` → `start_topic`, discriminated by `kind`: `test {phase}`

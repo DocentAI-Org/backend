@@ -35,6 +35,11 @@ class TopicError(BaseModel):
     error_type: str
     count: int
     latest_submission_id: uuid.UUID
+    correct_since: int = Field(
+        description="Correct exercises in a row in the topic after its latest "
+        "occurrence (specs/022)."
+    )
+    overcome: bool = Field(description="`correct_since` reaches `overcome_after`.")
 
 
 class TopicProgress(BaseModel):

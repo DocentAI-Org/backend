@@ -14,7 +14,7 @@ ADMIN = "/v1/admin/pedagogy-criteria"
 DEFAULTS = {
     "inactive": {"enabled": True, "days": 7},
     "error_rate": {"enabled": True, "rate": 0.6, "min_exercises": 5, "window_days": 14},
-    "repeated_mistakes": {"count": 3, "window_days": 30},
+    "repeated_mistakes": {"count": 3, "window_days": 30, "overcome_after": 3},
     "adaptation": {"enabled": True},
     "mastery": {"window": 10, "min_items": 3, "progressing": 0.5, "mastered": 0.8},
     "quiz": {"length": 5, "streak": 2, "start_level": 2, "adaptive": True},

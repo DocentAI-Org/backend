@@ -14567,6 +14567,44 @@
         "title": "Notice",
         "description": "A task that went back to the inherited model, and why."
       },
+      "OvercomePattern": {
+        "properties": {
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Name"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Its mistakes in the window, up to the latest."
+          },
+          "correct": {
+            "type": "integer",
+            "title": "Correct",
+            "description": "Correct exercises in a row in the topic since."
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_type",
+          "topic_name",
+          "count",
+          "correct"
+        ],
+        "title": "OvercomePattern",
+        "description": "A repeated pattern this correct exercise completes (specs/022, provisional)."
+      },
       "Page_AdminCourse_": {
         "properties": {
           "items": {
@@ -16107,6 +16145,14 @@
             "maximum": 365.0,
             "minimum": 1.0,
             "title": "Window Days"
+          },
+          "overcome_after": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Overcome After",
+            "description": "Correct exercises in a row in the topic that overcome it (specs/022).",
+            "default": 3
           }
         },
         "type": "object",
@@ -16115,7 +16161,7 @@
           "window_days"
         ],
         "title": "RepeatedMistakeCriteria",
-        "description": "The same mistake this many times in this many days (spec 005)."
+        "description": "The same mistake this many times in this many days (spec 005), and the correct\nexercises that overcome it (spec 022)."
       },
       "ResolvedModel": {
         "properties": {
@@ -17085,6 +17131,14 @@
               }
             ],
             "description": "Set when the feedback was adapted (specs/013)."
+          },
+          "overcome": {
+            "items": {
+              "$ref": "#/components/schemas/OvercomePattern"
+            },
+            "type": "array",
+            "title": "Overcome",
+            "description": "Repeated patterns this correct exercise overcomes (specs/022); said once, on the exercise that completes the run."
           },
           "created_at": {
             "type": "string",
@@ -18258,6 +18312,14 @@
             ],
             "description": "Set when the feedback was adapted (specs/013)."
           },
+          "overcome": {
+            "items": {
+              "$ref": "#/components/schemas/OvercomePattern"
+            },
+            "type": "array",
+            "title": "Overcome",
+            "description": "Repeated patterns this correct exercise overcomes (specs/022); said once, on the exercise that completes the run."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -18883,13 +18945,25 @@
             "type": "string",
             "format": "uuid",
             "title": "Latest Submission Id"
+          },
+          "correct_since": {
+            "type": "integer",
+            "title": "Correct Since",
+            "description": "Correct exercises in a row in the topic after its latest occurrence (specs/022)."
+          },
+          "overcome": {
+            "type": "boolean",
+            "title": "Overcome",
+            "description": "`correct_since` reaches `overcome_after`."
           }
         },
         "type": "object",
         "required": [
           "error_type",
           "count",
-          "latest_submission_id"
+          "latest_submission_id",
+          "correct_since",
+          "overcome"
         ],
         "title": "TopicError"
       },
