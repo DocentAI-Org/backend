@@ -30,7 +30,7 @@ pedagogical values still in `.env`, outside the course criteria (spec 015).
   without a score counts as `progressing` (the threshold), so new topics are neither pushed nor
   hidden.
 - The **basis of the start is stored with the quiz** (`start_basis`) so it never changes, and
-  shown to the student and the teacher: `{reason: mastery|no_score|fixed, mastery_level?,
+  shown to the student: `{reason: mastery|no_score|fixed, mastery_level?,
   score?}`.
 - As before, the level is the difficulty of the question shown: if no question exists at the
   target level, the nearest one is used.
@@ -68,7 +68,8 @@ pedagogical values still in `.env`, outside the course criteria (spec 015).
 
 - **FR-001**: Migration: `pedagogy_criteria.quiz` (seeded on the defaults row; required there) and
   `quizzes.start_basis` (nullable JSON; null for quizzes started before).
-- **FR-002**: `Quiz.start_basis` in the student's and the teacher's views.
+- **FR-002**: `Quiz.start_basis` in every quiz view (the teacher has no quiz view yet; the
+  basis is stored, so a future one shows the same).
 - **FR-003**: `QUIZ_*` settings are removed from the configuration and `.env.example`.
 - **FR-004**: Answering still never calls the model.
 
