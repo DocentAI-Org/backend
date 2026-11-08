@@ -137,6 +137,20 @@ class QuizSummary(BaseModel):
     by_topic: list[TopicScore]
 
 
+class StartBasis(BaseModel):
+    """Why a quiz started at its level (specs/021), as it was then."""
+
+    reason: Literal["mastery", "no_score", "fixed"] = Field(
+        description="`no_score`: too few items for a mastery level; `fixed`: the "
+        "course starts every quiz at `start_level`."
+    )
+    mastery_level: Literal["starting", "progressing", "mastered"] | None = Field(
+        description="The topic's level, or for a quiz on every topic the level of the "
+        "mean score of the scored topics."
+    )
+    score: float | None
+
+
 class Quiz(BaseModel):
     id: uuid.UUID
     topic_id: uuid.UUID | None
@@ -145,6 +159,9 @@ class Quiz(BaseModel):
     question_count: int
     answered_count: int
     level: int = Field(description="Current difficulty level, 1-3.")
+    start_basis: StartBasis | None = Field(
+        description="Why it started at its level; null for quizzes before specs/021."
+    )
     current: QuizQuestion | None = Field(description="Null once completed.")
     summary: QuizSummary | None = Field(description="Set once completed.")
     started_at: datetime

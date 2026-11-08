@@ -5,13 +5,16 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-Group = Literal["inactive", "error_rate", "repeated_mistakes", "adaptation", "mastery"]
+Group = Literal[
+    "inactive", "error_rate", "repeated_mistakes", "adaptation", "mastery", "quiz"
+]
 GROUPS: tuple[Group, ...] = (
     "inactive",
     "error_rate",
     "repeated_mistakes",
     "adaptation",
     "mastery",
+    "quiz",
 )
 
 
@@ -61,12 +64,26 @@ class MasteryCriteria(BaseModel):
         return self
 
 
+class QuizCriteria(BaseModel):
+    """Quiz length, the streak that moves the level and the start (specs/006, 021)."""
+
+    length: int = Field(ge=1, le=30)
+    streak: int = Field(ge=1, le=10)
+    start_level: int = Field(
+        ge=1, le=3, description="The start without a score, or without `adaptive`."
+    )
+    adaptive: bool = Field(
+        description="Start from the student's mastery and favour their weak topics."
+    )
+
+
 class Criteria(BaseModel):
     inactive: InactiveCriteria
     error_rate: ErrorRateCriteria
     repeated_mistakes: RepeatedMistakeCriteria
     adaptation: AdaptationCriteria
     mastery: MasteryCriteria
+    quiz: QuizCriteria
 
 
 class StudyCriteria(BaseModel):
@@ -90,6 +107,7 @@ class CourseCriteriaUpdate(BaseModel):
     repeated_mistakes: RepeatedMistakeCriteria | None = None
     adaptation: AdaptationCriteria | None = None
     mastery: MasteryCriteria | None = None
+    quiz: QuizCriteria | None = None
 
 
 class CourseCriteria(BaseModel):

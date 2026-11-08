@@ -1,9 +1,11 @@
-"""Adaptive quizzes over the teacher's approved questions (S6, specs/006).
+"""Adaptive quizzes over the teacher's approved questions (S6, specs/006, 021).
 
 Answering never calls the model. The level follows a provisional rule (FR-006): it is
-the difficulty of the question shown. A quiz starts at the level nearest to
-`quiz_start_level`; `quiz_streak` right or wrong answers in a row aim one level up or
-down, and the level moves only if the next question really is at another level.
+the difficulty of the question shown. With the course's `quiz.adaptive` criterion, a
+quiz starts at the level of the student's mastery (specs/021) and, on every topic,
+favours their weak topics; otherwise, and without a score, at `quiz.start_level`.
+`quiz.streak` right or wrong answers in a row aim one level up or down, and the level
+moves only if the next question really is at another level.
 """
 
 import uuid
@@ -17,9 +19,13 @@ from app.core.config import Settings
 from app.core.errors import ApiError, not_found
 from app.models import Enrolment, Quiz, QuizItem, QuizQuestion, Topic
 from app.schemas import quizzes as schemas
-from app.services import consent, tutor
+from app.schemas.pedagogy import QuizCriteria
+from app.schemas.progress import Progress
+from app.services import consent, pedagogy, progress, tutor
 
 MIN_LEVEL, MAX_LEVEL = 1, 3
+# The start level of each mastery level (specs/021).
+START = {"starting": 1, "progressing": 2, "mastered": 3}
 
 
 @dataclass(frozen=True)
@@ -114,6 +120,9 @@ def quiz_view(quiz: Quiz) -> schemas.Quiz:
         question_count=quiz.question_count,
         answered_count=len(_answered(quiz)),
         level=quiz.level,
+        start_basis=schemas.StartBasis(**quiz.start_basis)
+        if quiz.start_basis
+        else None,
         current=schemas.QuizQuestion(
             id=current.question_id,
             position=current.position,
@@ -179,8 +188,62 @@ def _times_answered(
     return dict(rows)  # type: ignore[arg-type]
 
 
-def _pick(session: Session, quiz: Quiz, target: int) -> QuizQuestion | None:
-    """The level nearest to `target` first, then the questions answered least."""
+def _criteria(session: Session, course_id: uuid.UUID) -> QuizCriteria:
+    return pedagogy.in_effect(session, course_id).criteria.quiz
+
+
+def _progress(session: Session, settings: Settings, quiz: Quiz) -> Progress:
+    return progress.student_progress(session, settings, quiz.course_id, quiz.student_id)
+
+
+def start_basis(
+    current: Progress, topic_id: uuid.UUID | None, criteria: QuizCriteria
+) -> tuple[int, schemas.StartBasis]:
+    """The start level and why (specs/021): the topic's mastery, or for every topic the
+    mean score of the scored topics read with the same thresholds."""
+    if not criteria.adaptive:
+        return criteria.start_level, schemas.StartBasis(
+            reason="fixed", mastery_level=None, score=None
+        )
+    scores = [
+        t.score
+        for t in current.topics
+        if t.score is not None and (topic_id is None or t.topic_id == topic_id)
+    ]
+    if not scores:
+        return criteria.start_level, schemas.StartBasis(
+            reason="no_score", mastery_level=None, score=None
+        )
+    score = sum(scores) / len(scores)
+    thresholds = current.criteria
+    level = (
+        "mastered"
+        if score >= thresholds.mastered
+        else "progressing"
+        if score >= thresholds.progressing
+        else "starting"
+    )
+    return START[level], schemas.StartBasis(
+        reason="mastery", mastery_level=level, score=score
+    )
+
+
+def weakness(current: Progress) -> dict[uuid.UUID | None, float]:
+    """Each topic's score; a topic without one counts as `progressing` (specs/021)."""
+    middle = current.criteria.progressing
+    return {
+        t.topic_id: t.score if t.score is not None else middle for t in current.topics
+    }
+
+
+def _pick(
+    session: Session,
+    quiz: Quiz,
+    target: int,
+    weak: dict[uuid.UUID | None, float] | None = None,
+) -> QuizQuestion | None:
+    """The level nearest to `target` first, then the questions answered least and, with
+    `weak` (a quiz on every topic, specs/021), the topic with the lowest score."""
     used = {item.question_id for item in quiz.items}
     candidates = [
         q
@@ -195,6 +258,7 @@ def _pick(session: Session, quiz: Quiz, target: int) -> QuizQuestion | None:
         key=lambda q: (
             abs(q.difficulty - target),
             answered.get(q.id, 0),
+            weak.get(q.topic_id, 1.0) if weak else 0.0,
             q.difficulty,
             q.created_at,
             q.id,
@@ -251,18 +315,25 @@ def start(
         raise ApiError(
             409, "no_questions", "The teacher has not published questions yet."
         )
+    criteria = _criteria(session, enrolment.course_id)
+    current = progress.student_progress(
+        session, settings, enrolment.course_id, enrolment.student_id
+    )
+    level, basis = start_basis(current, topic_id, criteria)
     quiz = Quiz(
         course_id=enrolment.course_id,
         student_id=enrolment.student_id,
         topic_id=topic.id if topic else None,
         topic_name=topic.name if topic else None,
-        question_count=min(settings.quiz_length, available),
-        level=min(max(settings.quiz_start_level, MIN_LEVEL), MAX_LEVEL),
+        question_count=min(criteria.length, available),
+        level=level,
         streak=0,
+        start_basis=basis.model_dump(),
     )
     session.add(quiz)
     session.flush()
-    question = _pick(session, quiz, quiz.level)
+    weak = weakness(current) if criteria.adaptive and topic is None else None
+    question = _pick(session, quiz, quiz.level, weak)
     assert question is not None  # there are approved questions
     quiz.level = question.difficulty
     _add_item(session, quiz, question)
@@ -336,8 +407,14 @@ def answer(
     if item.position >= quiz.question_count:
         _complete(quiz)
     else:
-        target = adapt(quiz.level, quiz.streak, item.correct, settings.quiz_streak)
-        question = _pick(session, quiz, target.level)
+        criteria = _criteria(session, quiz.course_id)
+        target = adapt(quiz.level, quiz.streak, item.correct, criteria.streak)
+        weak = (
+            weakness(_progress(session, settings, quiz))
+            if criteria.adaptive and quiz.topic_id is None
+            else None
+        )
+        question = _pick(session, quiz, target.level, weak)
         if question is None:
             # Questions were rejected meanwhile: the quiz ends with what was answered.
             quiz.question_count = item.position

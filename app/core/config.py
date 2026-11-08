@@ -101,13 +101,9 @@ class Settings(BaseSettings):
     daily_reset_timezone: str = "Europe/Madrid"
     max_upload_mb: int = 20
     tutor_language: str = "es"
-    # Adaptive quizzes (specs/006, provisional): questions per quiz, starting
-    # level (1-3) and the right or wrong answers in a row that move the level.
-    quiz_length: int = 5
-    quiz_start_level: int = 2
-    quiz_streak: int = 2
-    # Repeated mistakes, adaptation and mastery are pedagogical criteria in the
-    # database since specs/015, set by the admin and per course by the teacher.
+    # Repeated mistakes, adaptation, mastery (specs/015) and quizzes (specs/021) are
+    # pedagogical criteria in the database, set by the admin and per course by the
+    # teacher.
     recover_interrupted_on_startup: bool = True
 
     # Study consent (specs/002): bump when the approved consent text changes.
