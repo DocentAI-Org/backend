@@ -62,6 +62,8 @@ include = ["app", "scripts"]
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
+# A silenced error that no longer happens is reported, so ignores do not pile up.
+reportUnnecessaryTypeIgnoreComment = "error"
 
 [tool.coverage.run]
 source = ["app"]
