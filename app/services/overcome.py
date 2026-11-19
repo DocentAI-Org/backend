@@ -3,9 +3,9 @@ is overcome once the student's next `overcome_after` assessed exercises in that 
 are all correct; any other result in the topic restarts the count."""
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from app.models import ExerciseSubmission, LearningRecordEntry
@@ -15,10 +15,44 @@ from app.services import pedagogy
 ASSESSED = ("correct", "partially_correct", "incorrect")
 
 
-def _same_topic(column_id, column_name, topic_id, topic_name):
+def same_topic(column_id, column_name, topic_id, topic_name):
+    """The rows in the topic: by id, or by name once the topic was deleted (no id)."""
     if topic_id is not None:
         return column_id == topic_id
     return column_id.is_(None) & column_name.is_not_distinct_from(topic_name)
+
+
+# A pattern's mistakes and its latest one, shared by the query below and the callers
+# that filter or order on them, so the count they use is the count returned.
+PATTERN_COUNT = func.count(LearningRecordEntry.id)
+PATTERN_LATEST = func.max(LearningRecordEntry.created_at)
+
+
+def patterns_in_window(
+    course_id: uuid.UUID, student_id: uuid.UUID, window_days: int
+) -> Select:
+    """The student's mistakes in the last `window_days`, one row per pattern (error
+    type and topic): error_type, topic_id, topic_name, count and latest entry."""
+    since = datetime.now(UTC) - timedelta(days=window_days)
+    return (
+        select(
+            LearningRecordEntry.error_type,
+            LearningRecordEntry.topic_id,
+            LearningRecordEntry.topic_name,
+            PATTERN_COUNT,
+            PATTERN_LATEST,
+        )
+        .where(
+            LearningRecordEntry.course_id == course_id,
+            LearningRecordEntry.student_id == student_id,
+            LearningRecordEntry.created_at >= since,
+        )
+        .group_by(
+            LearningRecordEntry.error_type,
+            LearningRecordEntry.topic_id,
+            LearningRecordEntry.topic_name,
+        )
+    )
 
 
 def correct_run(
@@ -40,7 +74,7 @@ def correct_run(
             ExerciseSubmission.verdict.in_(ASSESSED),
             ExerciseSubmission.is_stub.is_(False),
             ExerciseSubmission.created_at > after,
-            _same_topic(
+            same_topic(
                 ExerciseSubmission.topic_id,
                 ExerciseSubmission.topic_name,
                 topic_id,
@@ -97,7 +131,7 @@ def overcome_by(
     threshold = pedagogy.in_effect(
         session, submission.course_id
     ).criteria.repeated_mistakes
-    same_topic = _same_topic(
+    in_topic = same_topic(
         LearningRecordEntry.topic_id,
         LearningRecordEntry.topic_name,
         submission.topic_id,
@@ -106,7 +140,7 @@ def overcome_by(
     base = (
         LearningRecordEntry.course_id == submission.course_id,
         LearningRecordEntry.student_id == submission.student_id,
-        same_topic,
+        in_topic,
     )
     rows = session.execute(
         select(LearningRecordEntry.error_type, func.max(LearningRecordEntry.created_at))
