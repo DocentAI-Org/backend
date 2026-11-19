@@ -1,13 +1,11 @@
 import uuid
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.types import ExplanationKind, Verdict
 from app.schemas.chat import Adaptation, Citation, Correction
 from app.schemas.common import CleanText
-
-Verdict = Literal["correct", "partially_correct", "incorrect", "not_assessed"]
 
 
 class SubmissionCreate(BaseModel):
@@ -42,7 +40,7 @@ class StudentSubmission(BaseModel):
     error_type: str | None
     topic_name: str | None
     explanation: str
-    explanation_kind: Literal["answer", "no_source"]
+    explanation_kind: ExplanationKind
     citations: list[Citation]
     saved_to_record: bool
     is_stub: bool = Field(
@@ -68,7 +66,7 @@ class MistakeReview(BaseModel):
     submission_id: uuid.UUID
     error_type: str
     topic_name: str | None
-    kind: Literal["answer", "no_source"]
+    kind: ExplanationKind
     explanation: str
     worked_example: str | None
     practice: list[str] = Field(description="Practice statements, without solutions.")

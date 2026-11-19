@@ -4,11 +4,10 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.types import FlagCategory
 from app.schemas.chat import Citation, StudentMessage
 from app.schemas.common import CleanText
 from app.schemas.exercises import StudentSubmission
-
-FlagCategory = Literal["incorrect", "poor"]
 
 
 class FlagUpsert(BaseModel):

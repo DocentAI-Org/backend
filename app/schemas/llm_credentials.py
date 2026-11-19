@@ -7,8 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, HttpUrl, SecretStr, model_validator
 
 from app.core.config import Provider
-
-CredentialProvider = Literal["openai", "anthropic", "openai_compatible"]
+from app.core.types import CredentialProvider
 
 
 class CredentialCreate(BaseModel):

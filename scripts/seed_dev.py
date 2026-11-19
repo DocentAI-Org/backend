@@ -17,11 +17,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.core.config import get_settings  # noqa: E402
 from app.core.db import get_session_factory  # noqa: E402
 from app.core.errors import ApiError  # noqa: E402
+from app.core.types import Role  # noqa: E402
 from app.integrations.auth_admin import SupabaseAuthAdmin  # noqa: E402
 from app.models import Profile  # noqa: E402
 
 PASSWORD = "docentai-dev-password"  # noqa: S105 (local demo users only)
-USERS = [
+USERS: list[tuple[Role, str, str]] = [
     ("admin", "admin@docentai.local", "Admin DocentAI"),
     ("teacher", "profesora@docentai.local", "Prof. Elena Ruiz"),
     ("student", "alumno@docentai.local", "Lucas Herrera"),

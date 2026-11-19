@@ -3,9 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.types import AssignmentStatus
 from app.schemas.common import CleanText
-
-AssignmentStatus = Literal["suggested", "confirmed"]
 
 
 class TopicCreate(BaseModel):

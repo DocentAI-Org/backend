@@ -3,8 +3,9 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.core.types import Language, Role
 from app.models import Profile
-from app.schemas.common import ApiModel, Language, Role
+from app.schemas.common import ApiModel
 
 
 class Health(BaseModel):

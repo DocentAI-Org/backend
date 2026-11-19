@@ -1,11 +1,11 @@
 import uuid
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.types import AccountStatus, Role
 from app.models import Profile
-from app.schemas.common import ApiModel, Role
+from app.schemas.common import ApiModel
 
 
 class AdminUser(ApiModel):
@@ -14,7 +14,7 @@ class AdminUser(ApiModel):
     display_name: str
     email: str | None
     is_pseudonymous: bool
-    status: Literal["active", "disabled"]
+    status: AccountStatus
     created_at: datetime
 
     @classmethod

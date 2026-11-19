@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-from app.schemas.course_tests import Phase
+from app.core.types import Phase
 
 
 class TestStep(BaseModel):

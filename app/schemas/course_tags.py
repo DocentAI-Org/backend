@@ -5,8 +5,8 @@ from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, Field
 
+from app.core.types import TagColor
 from app.schemas.common import CleanText
-from app.schemas.courses import TagColor
 
 
 def _trimmed(value: str) -> str:
