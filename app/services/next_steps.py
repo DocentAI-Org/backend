@@ -2,7 +2,6 @@
 the tests, quizzes, repeated mistakes and mastery the platform already has."""
 
 import uuid
-from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session
@@ -65,26 +64,11 @@ def _review_mistake(
     threshold = pedagogy.in_effect(
         session, enrolment.course_id
     ).criteria.repeated_mistakes
-    since = datetime.now(UTC) - timedelta(days=threshold.window_days)
     count = func.count(LearningRecordEntry.id)
     latest = func.max(LearningRecordEntry.created_at)
     rows = session.execute(
-        select(
-            LearningRecordEntry.error_type,
-            LearningRecordEntry.topic_id,
-            LearningRecordEntry.topic_name,
-            count,
-            latest,
-        )
-        .where(
-            LearningRecordEntry.course_id == enrolment.course_id,
-            LearningRecordEntry.student_id == enrolment.student_id,
-            LearningRecordEntry.created_at >= since,
-        )
-        .group_by(
-            LearningRecordEntry.error_type,
-            LearningRecordEntry.topic_id,
-            LearningRecordEntry.topic_name,
+        overcome.patterns_in_window(
+            enrolment.course_id, enrolment.student_id, threshold.window_days
         )
         .having(count >= threshold.count)
         .order_by(count.desc(), latest.desc())

@@ -2,14 +2,13 @@
 student repeats most in a course, and the note that asks the model to mind it."""
 
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime
 
-from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.llm.prompts import load_labels
-from app.models import ErrorType, LearningRecordEntry
+from app.models import ErrorType
 from app.schemas.chat import Adaptation
 from app.services import overcome, pedagogy
 
@@ -25,27 +24,8 @@ def focus(
     if not criteria.adaptation.enabled:
         return None
     threshold = criteria.repeated_mistakes
-    since = datetime.now(UTC) - timedelta(days=threshold.window_days)
-    count = func.count(LearningRecordEntry.id)
-    latest = func.max(LearningRecordEntry.created_at)
     rows = session.execute(
-        select(
-            LearningRecordEntry.error_type,
-            LearningRecordEntry.topic_id,
-            LearningRecordEntry.topic_name,
-            count,
-            latest,
-        )
-        .where(
-            LearningRecordEntry.course_id == course_id,
-            LearningRecordEntry.student_id == student_id,
-            LearningRecordEntry.created_at >= since,
-        )
-        .group_by(
-            LearningRecordEntry.error_type,
-            LearningRecordEntry.topic_id,
-            LearningRecordEntry.topic_name,
-        )
+        overcome.patterns_in_window(course_id, student_id, threshold.window_days)
     ).all()
     # Patterns (error type and topic) already overcome do not count (specs/023).
     totals: dict[str, tuple[int, datetime]] = {}

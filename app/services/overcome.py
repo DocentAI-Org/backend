@@ -3,9 +3,9 @@ is overcome once the student's next `overcome_after` assessed exercises in that 
 are all correct; any other result in the topic restarts the count."""
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from app.models import ExerciseSubmission, LearningRecordEntry
@@ -19,6 +19,33 @@ def _same_topic(column_id, column_name, topic_id, topic_name):
     if topic_id is not None:
         return column_id == topic_id
     return column_id.is_(None) & column_name.is_not_distinct_from(topic_name)
+
+
+def patterns_in_window(
+    course_id: uuid.UUID, student_id: uuid.UUID, window_days: int
+) -> Select:
+    """The student's mistakes in the last `window_days`, one row per pattern (error
+    type and topic): error_type, topic_id, topic_name, count and latest entry."""
+    since = datetime.now(UTC) - timedelta(days=window_days)
+    return (
+        select(
+            LearningRecordEntry.error_type,
+            LearningRecordEntry.topic_id,
+            LearningRecordEntry.topic_name,
+            func.count(LearningRecordEntry.id),
+            func.max(LearningRecordEntry.created_at),
+        )
+        .where(
+            LearningRecordEntry.course_id == course_id,
+            LearningRecordEntry.student_id == student_id,
+            LearningRecordEntry.created_at >= since,
+        )
+        .group_by(
+            LearningRecordEntry.error_type,
+            LearningRecordEntry.topic_id,
+            LearningRecordEntry.topic_name,
+        )
+    )
 
 
 def correct_run(
