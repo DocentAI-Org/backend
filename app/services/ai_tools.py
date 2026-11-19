@@ -223,9 +223,9 @@ def _window(session: Session, course: Course, days: int) -> schemas.UsageWindow:
         tasks=[
             schemas.TaskUsage(
                 task=task,
-                messages=found[task][0] if task in found else 0,
-                input_tokens=found[task][1] if task in found else 0,
-                output_tokens=found[task][2] if task in found else 0,
+                messages=int(found[task][0]) if task in found else 0,
+                input_tokens=int(found[task][1]) if task in found else 0,
+                output_tokens=int(found[task][2]) if task in found else 0,
                 estimated_cost_usd=float(found[task][3]) if task in found else 0.0,
             )
             for task in TASKS

@@ -121,6 +121,7 @@ def _review_mistake(
         .order_by(LearningRecordEntry.created_at.desc())
         .limit(1)
     )
+    assert submission_id is not None  # the pattern exists, so an entry does too
     reviewed = session.scalar(
         select(exists().where(MistakeReview.submission_id == submission_id))
     )

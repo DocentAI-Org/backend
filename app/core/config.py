@@ -110,10 +110,11 @@ class Settings(BaseSettings):
     consent_version: str = "2026-10"
 
     # Privacy (research R12)
-    log_pseudonym_secret: str = "change-me"
+    # Local defaults only; every deployed environment sets its own.
+    log_pseudonym_secret: str = "change-me"  # noqa: S105
     # Study export ids (specs/011): a different key, so the export cannot be joined
     # with the interaction logs without it.
-    study_export_secret: str = "change-me-too"
+    study_export_secret: str = "change-me-too"  # noqa: S105
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -145,4 +146,4 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return Settings()  # pyright: ignore[reportCallIssue]  (values come from the env)

@@ -400,7 +400,8 @@ def answer(
             409, "not_current_question", "Answer the current question of the quiz."
         )
     item.choice = payload.choice
-    item.correct = payload.choice == item.correct_option
+    correct = payload.choice == item.correct_option
+    item.correct = correct
     item.answered_at = datetime.now(UTC)
 
     change: schemas.DifficultyChange | None = None
@@ -408,7 +409,7 @@ def answer(
         _complete(quiz)
     else:
         criteria = _criteria(session, quiz.course_id)
-        target = adapt(quiz.level, quiz.streak, item.correct, criteria.streak)
+        target = adapt(quiz.level, quiz.streak, correct, criteria.streak)
         weak = (
             weakness(_progress(session, settings, quiz))
             if criteria.adaptive and quiz.topic_id is None
@@ -420,14 +421,14 @@ def answer(
             quiz.question_count = item.position
             _complete(quiz)
         else:
-            change = level_change(quiz, question.difficulty, target, item.correct)
-            quiz.streak = 0 if change else run(quiz.streak, item.correct)
+            change = level_change(quiz, question.difficulty, target, correct)
+            quiz.streak = 0 if change else run(quiz.streak, correct)
             quiz.level = question.difficulty
             _add_item(session, quiz, question)
     session.flush()
     session.refresh(quiz)
     return schemas.AnswerResult(
-        correct=item.correct,
+        correct=correct,
         correct_option=item.correct_option,
         explanation=item.explanation,
         citations=_citations(item),

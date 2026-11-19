@@ -24,11 +24,11 @@ def status(
     session: Session, settings: Settings, student_id: uuid.UUID
 ) -> schemas.Consent:
     latest = _latest(session, student_id)
-    active = latest is not None and latest.action == "given"
+    active = latest if latest is not None and latest.action == "given" else None
     return schemas.Consent(
-        given=active and latest.version == settings.consent_version,
-        version=latest.version if active and latest else None,
-        given_at=latest.created_at if active and latest else None,
+        given=active is not None and active.version == settings.consent_version,
+        version=active.version if active else None,
+        given_at=active.created_at if active else None,
         current_version=settings.consent_version,
     )
 
@@ -68,8 +68,10 @@ def history(session: Session, student_id: uuid.UUID) -> list[schemas.ConsentEven
     ).all()
     return [
         schemas.ConsentEvent(
-            action=e.action, version=e.version, created_at=e.created_at
-        )  # type: ignore[arg-type]
+            action=e.action,  # type: ignore[arg-type]  (the column holds the literal)
+            version=e.version,
+            created_at=e.created_at,
+        )
         for e in rows
     ]
 

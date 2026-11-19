@@ -37,10 +37,9 @@ def estimate_cost(
         model or "",
         (settings.llm_price_input_per_mtok, settings.llm_price_output_per_mtok),
     )
-    cost = (
+    return (
         Decimal(str(price_in)) * input_tokens + Decimal(str(price_out)) * output_tokens
     ) / Decimal(1_000_000)
-    return cost
 
 
 def record(

@@ -20,7 +20,7 @@ from app.core.errors import ApiError  # noqa: E402
 from app.integrations.auth_admin import SupabaseAuthAdmin  # noqa: E402
 from app.models import Profile  # noqa: E402
 
-PASSWORD = "docentai-dev-password"
+PASSWORD = "docentai-dev-password"  # noqa: S105 (local demo users only)
 USERS = [
     ("admin", "admin@docentai.local", "Admin DocentAI"),
     ("teacher", "profesora@docentai.local", "Prof. Elena Ruiz"),
