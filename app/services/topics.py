@@ -29,7 +29,7 @@ def _assignment_counts(session: Session, course: Course) -> dict[uuid.UUID, int]
         .where(TopicAssignment.course_id == course.id)
         .group_by(TopicAssignment.topic_id)
     ).all()
-    return dict(rows)  # type: ignore[arg-type]
+    return dict(rows)
 
 
 def list_topics(session: Session, course: Course) -> list[schemas.Topic]:
@@ -120,7 +120,7 @@ def _assignment_view(assignment: TopicAssignment) -> schemas.TopicAssignment:
         document_id=assignment.document_id,
         document_name=assignment.document.file_name,
         section=assignment.section,
-        status=assignment.status,  # type: ignore[arg-type]
+        status=assignment.status,
     )
 
 

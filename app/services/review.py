@@ -26,7 +26,7 @@ def flag_view(flag: TeacherFlag | None) -> schemas.TeacherFlag | None:
         return None
     return schemas.TeacherFlag(
         id=flag.id,
-        category=flag.category,  # type: ignore[arg-type]
+        category=flag.category,
         correction=flag.correction,
         author_name=flag.author.display_name if flag.author else None,
         created_at=flag.created_at,
@@ -255,7 +255,7 @@ def evaluation_set(
             schemas.EvaluationItem(
                 flag_id=flag.id,
                 course_id=flag.course_id,
-                category=flag.category,  # type: ignore[arg-type]
+                category=flag.category,
                 correction=flag.correction,
                 question=question or "",
                 original_answer=original,

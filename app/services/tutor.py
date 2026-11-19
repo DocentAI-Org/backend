@@ -54,9 +54,9 @@ def message_view(message: Message) -> schemas.StudentMessage:
     flag = message.flag
     return schemas.StudentMessage(
         id=message.id,
-        author=message.author,  # type: ignore[arg-type]
-        kind=message.kind,  # type: ignore[arg-type]
-        status=message.status,  # type: ignore[arg-type]
+        author=message.author,
+        kind=message.kind,
+        status=message.status,
         text=message.text,
         hint_number=message.hint_number,
         request_solution=message.request_solution,

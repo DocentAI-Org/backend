@@ -112,7 +112,7 @@ def _tags(
         .where(CourseTag.user_id == user_id, CourseTagLink.course_id == course_id)
         .order_by(func.lower(CourseTag.name), CourseTag.id)
     ).all()
-    return [CourseTagRef(id=t.id, name=t.name, color=t.color) for t in rows]  # type: ignore[arg-type]
+    return [CourseTagRef(id=t.id, name=t.name, color=t.color) for t in rows]
 
 
 def _is_favorite(session: Session, user_id: uuid.UUID, course_id: uuid.UUID) -> bool:
@@ -230,7 +230,7 @@ def list_students(
             student_id=e.student_id,
             display_name=e.student.display_name,
             joined_at=e.joined_at,
-            status=e.status,  # type: ignore[arg-type]
+            status=e.status,
         )
         for e in rows
     ]

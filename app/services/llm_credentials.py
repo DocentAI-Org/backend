@@ -47,7 +47,7 @@ def access(settings: Settings, row: LLMCredential) -> CredentialAccess:
 def view(row: LLMCredential) -> schemas.Credential:
     return schemas.Credential(
         id=row.id,
-        provider=row.provider,  # type: ignore[arg-type]
+        provider=row.provider,
         label=row.label,
         base_url=row.base_url,
         key_hint=row.key_hint,

@@ -60,7 +60,7 @@ def _view(session: Session, user: Profile, tag: CourseTag) -> schemas.CourseTag:
     return schemas.CourseTag(
         id=tag.id,
         name=tag.name,
-        color=tag.color,  # type: ignore[arg-type]  (the column holds the literal)
+        color=tag.color,
         course_count=count or 0,
     )
 

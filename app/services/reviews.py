@@ -146,7 +146,7 @@ def review_view(review: MistakeReview) -> schemas.MistakeReview:
         submission_id=review.submission_id,
         error_type=review.error_type,
         topic_name=review.topic_name,
-        kind=review.kind,  # type: ignore[arg-type]
+        kind=review.kind,
         explanation=review.explanation,
         worked_example=review.worked_example,
         practice=list(review.practice),

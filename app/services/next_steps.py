@@ -171,9 +171,9 @@ def _topic_steps(
     practice = (
         schemas.PracticeTopicStep(
             kind="practice_topic",
-            topic_id=weakest.topic_id,  # type: ignore[arg-type]
-            topic_name=weakest.topic_name,  # type: ignore[arg-type]
-            level=weakest.level,  # type: ignore[arg-type]
+            topic_id=weakest.topic_id,  # type: ignore[arg-type]  (a course topic has an id)
+            topic_name=weakest.topic_name,  # type: ignore[arg-type]  (a course topic has a name)
+            level=weakest.level,  # type: ignore[arg-type]  (weak: filtered by level above)
             score=weakest.score or 0.0,
             items=_items(weakest),
             has_questions=weakest.topic_id in asked,
@@ -184,9 +184,9 @@ def _topic_steps(
     start = (
         schemas.StartTopicStep(
             kind="start_topic",
-            topic_id=fresh.topic_id,  # type: ignore[arg-type]
-            topic_name=fresh.topic_name,  # type: ignore[arg-type]
-            level=fresh.level,  # type: ignore[arg-type]
+            topic_id=fresh.topic_id,  # type: ignore[arg-type]  (a course topic has an id)
+            topic_name=fresh.topic_name,  # type: ignore[arg-type]  (a course topic has a name)
+            level=fresh.level,  # type: ignore[arg-type]  (fresh: filtered by level above)
             items=_items(fresh),
             min_items=current.criteria.min_items,
             has_questions=fresh.topic_id in asked,

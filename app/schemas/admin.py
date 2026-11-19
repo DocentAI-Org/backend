@@ -21,11 +21,11 @@ class AdminUser(ApiModel):
     def from_profile(cls, profile: Profile) -> "AdminUser":
         return cls(
             id=profile.id,
-            role=profile.role,  # type: ignore[arg-type]
+            role=profile.role,
             display_name=profile.display_name,
             email=profile.email,
             is_pseudonymous=profile.pseudonym_code is not None,
-            status=profile.status,  # type: ignore[arg-type]
+            status=profile.status,
             created_at=profile.created_at,
         )
 

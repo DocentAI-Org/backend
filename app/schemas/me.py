@@ -28,11 +28,11 @@ class Me(ApiModel):
     def from_profile(cls, profile: Profile) -> "Me":
         return cls(
             id=profile.id,
-            role=profile.role,  # type: ignore[arg-type]
+            role=profile.role,
             display_name=profile.display_name,
             email=profile.email,
             is_pseudonymous=profile.pseudonym_code is not None,
-            preferred_language=profile.preferred_language,  # type: ignore[arg-type]
+            preferred_language=profile.preferred_language,
         )
 
 
