@@ -25,7 +25,9 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
 
 ## Rules
 
-### Grounded, teacher-controlled answers
+Code comments cite them by number, e.g. "AGENTS.md II".
+
+### I. Grounded, teacher-controlled answers
 
 - The tutor answers only from fragments of documents a teacher has validated. Excluded documents
   and fragments are never retrieved, sent to the LLM or cited (T2, S1).
@@ -37,7 +39,7 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
   tutor request (T3, S3).
 - Teacher corrections are stored linked to the original message and returned with it (T6).
 
-### Backend-enforced authorization
+### II. Backend-enforced authorization
 
 - Every endpoint except health and public metadata requires a Supabase Auth session, verified
   here on every request.
@@ -48,7 +50,7 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
   only inside the backend and never bypasses the per-request ownership checks.
 - Every endpoint has tests proving that another student's or teacher's data is rejected (403/404).
 
-### Contract-first API
+### III. Contract-first API
 
 - The OpenAPI schema is the contract with the frontend. Every request and response body is a
   named Pydantic model; untyped `dict` responses are forbidden.
@@ -58,7 +60,7 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
 - Errors use one error schema with a stable machine-readable `code`; the API returns codes, not
   user-facing copy (the frontend owns translated strings).
 
-### Test-first
+### IV. Test-first
 
 - Tests are written and seen failing before the implementation.
 - pytest; every acceptance scenario has at least one API-level test through the test client.
@@ -66,7 +68,7 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
   fake in `tests/fakes.py`. Integration tests may use the local Supabase stack.
 - No merge with skipped tests unless the pull request justifies each one.
 
-### One provider-agnostic LLM layer, with costs measured
+### V. One provider-agnostic LLM layer, with costs measured
 
 - Every chat and embedding call goes through `app/llm/`. Provider, base URL, model and key come
   from configuration only; changing provider needs no code change.
@@ -80,7 +82,7 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
 - Changes to prompts, chunking, retrieval or the default model are measured on real models before
   merge, and the pull request reports the result.
 
-### Privacy by design (GDPR)
+### VI. Privacy by design (GDPR)
 
 - Personal data is minimised: pseudonymous student codes are supported in place of emails.
 - No identifying data (names, emails, user IDs that map to a person) is sent to an LLM provider.
@@ -90,7 +92,7 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
   anonymised.
 - Deployed environments store data in EU regions.
 
-### Versioned data
+### VII. Versioned data
 
 - The schema changes only through Supabase CLI migrations in `supabase/migrations/`, each with
   its RLS policies. Manual schema changes are forbidden in every environment.
@@ -98,7 +100,7 @@ CI runs the lint, the format check, the contract check and `pytest`; all must pa
 - Uploaded files go to a private Storage bucket and are served only through short-lived signed
   URLs.
 
-### Simplicity
+### VIII. Simplicity
 
 - One modular monolith: no microservices, queues or extra services without a justification in the
   pull request. The same for every new dependency.

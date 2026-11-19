@@ -1,4 +1,4 @@
-"""Retrieval over validated material only (constitution I, FR-034, research R5)."""
+"""Retrieval over validated material only (AGENTS.md I, FR-034, research R5)."""
 
 import uuid
 from dataclasses import dataclass

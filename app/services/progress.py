@@ -172,7 +172,7 @@ def student_progress(
     student_id: uuid.UUID,
     now: datetime | None = None,
 ) -> schemas.Progress:
-    """The same for the student and the teacher (constitution I)."""
+    """The same for the student and the teacher (AGENTS.md I)."""
     criteria = Criteria.of_course(session, course_id)
     weeks = last_weeks(now or datetime.now(UTC))
     by_topic: dict[uuid.UUID | None, _Topic] = defaultdict(_Topic)

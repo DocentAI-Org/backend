@@ -1,4 +1,4 @@
-"""The committed openapi.json is the contract with the frontend (constitution III)."""
+"""The committed openapi.json is the contract with the frontend (AGENTS.md III)."""
 
 import json
 

@@ -1,4 +1,4 @@
-"""Grounded tutor replies (S1, S2, S3; constitution I and V; research R4-R6)."""
+"""Grounded tutor replies (S1, S2, S3; AGENTS.md I and V; research R4-R6)."""
 
 import logging
 import re
