@@ -81,20 +81,19 @@ def evaluate(
                         never_active=facts.last_activity_at is None,
                     )
                 )
-        elif criterion.code == "error_rate":
-            if (
-                facts.assessed > 0
-                and facts.assessed >= t["min_exercises"]
-                and facts.mistakes / facts.assessed >= t["rate"]
-            ):
-                reasons.append(
-                    ErrorRateReason(
-                        criterion="error_rate",
-                        mistakes=facts.mistakes,
-                        assessed=facts.assessed,
-                        window_days=t["window_days"],
-                        min_exercises=t["min_exercises"],
-                        threshold_rate=t["rate"],
-                    )
+        elif criterion.code == "error_rate" and (
+            facts.assessed > 0
+            and facts.assessed >= t["min_exercises"]
+            and facts.mistakes / facts.assessed >= t["rate"]
+        ):
+            reasons.append(
+                ErrorRateReason(
+                    criterion="error_rate",
+                    mistakes=facts.mistakes,
+                    assessed=facts.assessed,
+                    window_days=t["window_days"],
+                    min_exercises=t["min_exercises"],
+                    threshold_rate=t["rate"],
                 )
+            )
     return reasons
