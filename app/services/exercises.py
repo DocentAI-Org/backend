@@ -240,12 +240,12 @@ def submission_view(submission: ExerciseSubmission) -> schemas.StudentSubmission
         id=submission.id,
         problem_statement=submission.problem_statement,
         worked_answer=submission.worked_answer,
-        verdict=submission.verdict,  # type: ignore[arg-type]
+        verdict=submission.verdict,
         mistake_location=submission.mistake_location,
         error_type=submission.error_type,
         topic_name=submission.topic_name,
         explanation=submission.explanation,
-        explanation_kind=submission.explanation_kind,  # type: ignore[arg-type]
+        explanation_kind=submission.explanation_kind,
         citations=[tutor.citation_view(c) for c in submission.citations],
         saved_to_record=submission.saved_to_record,
         is_stub=submission.is_stub,

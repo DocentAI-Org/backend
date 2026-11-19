@@ -4,10 +4,10 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field
 
+from app.core.types import ExplanationKind, QuestionOrigin, QuestionStatus, QuizStatus
 from app.schemas.chat import Citation
 from app.schemas.common import CleanText
 
-QuestionStatus = Literal["pending", "approved", "rejected"]
 Level = Annotated[
     int, Field(ge=1, le=3, description="1 basic, 2 intermediate, 3 advanced.")
 ]
@@ -47,7 +47,7 @@ class TeacherQuestion(BaseModel):
     explanation: str
     difficulty: int
     status: QuestionStatus
-    origin: Literal["ai", "edited"] = Field(
+    origin: QuestionOrigin = Field(
         description="`edited` once the teacher changes an AI draft."
     )
     citations: list[Citation]
@@ -60,7 +60,7 @@ class TeacherQuestion(BaseModel):
 
 
 class GeneratedQuestions(BaseModel):
-    kind: Literal["answer", "no_source"] = Field(
+    kind: ExplanationKind = Field(
         description="`no_source` when the material gave no usable question."
     )
     questions: list[TeacherQuestion]
@@ -155,7 +155,7 @@ class Quiz(BaseModel):
     id: uuid.UUID
     topic_id: uuid.UUID | None
     topic_name: str | None
-    status: Literal["in_progress", "completed"]
+    status: QuizStatus
     question_count: int
     answered_count: int
     level: int = Field(description="Current difficulty level, 1-3.")

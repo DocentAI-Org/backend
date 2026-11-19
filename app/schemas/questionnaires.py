@@ -1,14 +1,12 @@
 import uuid
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated
 from urllib.parse import urlsplit
 
 from pydantic import AfterValidator, BaseModel, Field, StringConstraints
 
+from app.core.types import Audience, QuestionnaireStatus
 from app.schemas.common import ApiModel, CleanText
-
-Audience = Literal["student", "teacher"]
-Status = Literal["open", "closed"]
 
 
 def _title(title: str) -> str:
@@ -41,7 +39,7 @@ class QuestionnaireCreate(BaseModel):
 class QuestionnaireUpdate(BaseModel):
     title: Title | None = None
     url: Link | None = None
-    status: Status | None = None
+    status: QuestionnaireStatus | None = None
 
 
 class Questionnaire(ApiModel):
@@ -49,7 +47,7 @@ class Questionnaire(ApiModel):
     title: str
     url: str
     audience: Audience
-    status: Status
+    status: QuestionnaireStatus
     created_at: datetime
     updated_at: datetime
 

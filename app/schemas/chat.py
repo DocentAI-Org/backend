@@ -4,9 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.types import MessageAuthor, MessageKind, MessageStatus
 from app.schemas.common import CleanText
-
-MessageKind = Literal["question", "answer", "hint", "no_source"]
 
 
 class MessageCreate(BaseModel):
@@ -39,9 +38,9 @@ class Adaptation(BaseModel):
 
 class StudentMessage(BaseModel):
     id: uuid.UUID
-    author: Literal["student", "tutor"]
+    author: MessageAuthor
     kind: MessageKind
-    status: Literal["sent", "failed"]
+    status: MessageStatus
     text: str
     hint_number: int | None
     request_solution: bool

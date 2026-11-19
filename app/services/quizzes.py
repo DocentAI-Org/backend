@@ -116,7 +116,7 @@ def quiz_view(quiz: Quiz) -> schemas.Quiz:
         id=quiz.id,
         topic_id=quiz.topic_id,
         topic_name=quiz.topic_name,
-        status=quiz.status,  # type: ignore[arg-type]
+        status=quiz.status,
         question_count=quiz.question_count,
         answered_count=len(_answered(quiz)),
         level=quiz.level,
@@ -149,12 +149,12 @@ def quiz_detail(quiz: Quiz) -> schemas.QuizDetail:
                 options=list(item.options),
                 difficulty=item.difficulty,
                 topic_name=item.topic_name,
-                choice=item.choice,  # type: ignore[arg-type]
+                choice=item.choice,  # type: ignore[arg-type]  (an answered item has a choice)
                 correct=bool(item.correct),
                 correct_option=item.correct_option,
                 explanation=item.explanation,
                 citations=_citations(item),
-                answered_at=item.answered_at,  # type: ignore[arg-type]
+                answered_at=item.answered_at,  # type: ignore[arg-type]  (_answered keeps answered items)
             )
             for item in _answered(quiz)
         ],
@@ -185,7 +185,7 @@ def _times_answered(
         )
         .group_by(QuizItem.question_id)
     ).all()
-    return dict(rows)  # type: ignore[arg-type]
+    return dict(rows)  # type: ignore[arg-type]  (each row's question is one of ids)
 
 
 def _criteria(session: Session, course_id: uuid.UUID) -> QuizCriteria:

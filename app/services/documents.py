@@ -56,12 +56,12 @@ def to_schema(session: Session, document: Document) -> schemas.Document:
     return schemas.Document(
         id=document.id,
         file_name=document.file_name,
-        file_type=document.file_type,  # type: ignore[arg-type]
+        file_type=document.file_type,
         size_bytes=document.size_bytes,
         page_count=document.page_count,
-        processing_status=document.processing_status,  # type: ignore[arg-type]
-        error_reason=document.error_reason,  # type: ignore[arg-type]
-        validation_status=document.validation_status,  # type: ignore[arg-type]
+        processing_status=document.processing_status,
+        error_reason=document.error_reason,
+        validation_status=document.validation_status,
         validated_by_name=document.validator.display_name
         if document.validator
         else None,

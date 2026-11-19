@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.types import EnrolmentStatus, TagColor
 from app.schemas.common import CleanText
 
 
@@ -19,9 +19,6 @@ class CourseUpdate(BaseModel):
 
 class ClassCodeUpdate(BaseModel):
     active: bool
-
-
-TagColor = Literal["violet", "green", "blue", "amber", "red", "gray"]
 
 
 class CourseTagRef(BaseModel):
@@ -53,7 +50,7 @@ class CourseStudent(BaseModel):
     student_id: uuid.UUID
     display_name: str
     joined_at: datetime
-    status: Literal["active", "revoked"]
+    status: EnrolmentStatus
 
 
 class JoinCourse(BaseModel):

@@ -1,15 +1,12 @@
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel
 
-Level = Literal["basic", "intermediate", "advanced"]
-Tone = Literal["friendly", "neutral", "formal"]
-SolutionPolicy = Literal["direct", "hints_first", "hints_only"]
+from app.core.types import SolutionPolicy, Tone, TutorLevel
 
 
 class StudentTutorSettings(BaseModel):
-    level: Level
+    level: TutorLevel
     tone: Tone
     solution_policy: SolutionPolicy
 

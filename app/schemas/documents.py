@@ -1,18 +1,9 @@
 import uuid
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel
 
-FileType = Literal["pdf", "docx", "markdown"]
-ProcessingStatus = Literal["processing", "ready", "error"]
-ValidationStatus = Literal["pending_validation", "validated", "excluded"]
-ErrorReason = Literal[
-    "unsupported_format",
-    "no_readable_text",
-    "processing_failed",
-    "processing_interrupted",
-]
+from app.core.types import ErrorReason, FileType, ProcessingStatus, ValidationStatus
 
 
 class TopicRef(BaseModel):

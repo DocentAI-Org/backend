@@ -4,12 +4,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.types import Phase, PhaseStatus
 from app.schemas.common import CleanText
 from app.schemas.quizzes import Choice, Options
-
-Phase = Literal["pre", "post"]
-PhaseStatus = Literal["not_open", "open", "closed"]
-
 
 # --- Teacher -----------------------------------------------------------------------
 

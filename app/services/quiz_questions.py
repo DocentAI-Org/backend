@@ -134,22 +134,27 @@ def validate_drafts(
         options = _options(item.get("options"))
         correct = _correct_index(item.get("correct"))
         cited = item.get("cited")
-        if None in (statement, explanation, options, correct):
+        if (
+            statement is None
+            or explanation is None
+            or options is None
+            or correct is None
+        ):
             continue
         if not isinstance(cited, list):
             continue
         indexes = tutor.cited_fragment_indexes(cited, fragment_count)
-        key = statement_key(statement)  # type: ignore[arg-type]
+        key = statement_key(statement)
         if not indexes or key in seen:
             continue
         seen.add(key)
-        options, correct = spread(options, correct, len(accepted) % OPTIONS)  # type: ignore[arg-type]
+        options, correct = spread(options, correct, len(accepted) % OPTIONS)
         accepted.append(
             Draft(
-                statement=statement,  # type: ignore[arg-type]
+                statement=statement,
                 options=options,
                 correct_option=correct,
-                explanation=explanation,  # type: ignore[arg-type]
+                explanation=explanation,
                 difficulty=_difficulty(item.get("difficulty")),
                 cited_indexes=indexes,
             )
@@ -248,8 +253,7 @@ def _answer_stats(
         .where(QuizItem.question_id.in_(ids), QuizItem.answered_at.is_not(None))
         .group_by(QuizItem.question_id)
     ).all()
-    # Every row's question is one of `ids`, never None.
-    return {question_id: (total, right) for question_id, total, right in rows}  # type: ignore[misc]
+    return {question_id: (total, right) for question_id, total, right in rows}  # type: ignore[misc]  (each row's question is one of ids, never None)
 
 
 def question_views(
@@ -269,8 +273,8 @@ def question_views(
                 correct_option=question.correct_option,
                 explanation=question.explanation,
                 difficulty=question.difficulty,
-                status=question.status,  # type: ignore[arg-type]
-                origin=question.origin,  # type: ignore[arg-type]
+                status=question.status,
+                origin=question.origin,
                 citations=[tutor.citation_view(c) for c in question.citations],
                 answered_count=answered,
                 correct_rate=right / answered if answered else None,
@@ -394,7 +398,7 @@ def _generate(
     for row in rows:
         session.refresh(row)
     return schemas.GeneratedQuestions(
-        kind=kind,  # type: ignore[arg-type]
+        kind=kind,
         questions=question_views(session, rows),
     )
 

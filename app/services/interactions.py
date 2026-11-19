@@ -8,6 +8,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
+from app.core.types import InteractionKind, Outcome
 from app.models import InteractionLog
 
 
@@ -48,10 +49,10 @@ def record(
     *,
     course_id: uuid.UUID,
     student_id: uuid.UUID | None,
-    kind: str,
+    kind: InteractionKind,
     question: str,
     fragment_ids: list[uuid.UUID],
-    outcome: str,
+    outcome: Outcome,
     answer: str | None = None,
     model: str | None = None,
     input_tokens: int = 0,

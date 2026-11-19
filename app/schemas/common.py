@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict
 
@@ -9,9 +9,6 @@ def _strip_nul(value: object) -> object:
 
 
 CleanText = Annotated[str, BeforeValidator(_strip_nul)]
-
-Role = Literal["admin", "teacher", "student"]
-Language = Literal["es", "en"]
 
 
 class ApiModel(BaseModel):

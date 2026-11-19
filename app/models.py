@@ -11,12 +11,47 @@ from sqlalchemy import (
     ForeignKey,
     Numeric,
     SmallInteger,
+    String,
     Text,
     Uuid,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+from app.core.types import (
+    AccountStatus,
+    AssignmentStatus,
+    Audience,
+    ConsentAction,
+    CredentialProvider,
+    EnrolmentStatus,
+    ErrorReason,
+    ExplanationKind,
+    FileType,
+    FlagCategory,
+    InteractionKind,
+    Language,
+    MessageAuthor,
+    MessageKind,
+    MessageStatus,
+    Outcome,
+    Period,
+    Phase,
+    PhaseStatus,
+    ProcessingStatus,
+    QuestionnaireStatus,
+    QuestionOrigin,
+    QuestionStatus,
+    QuizStatus,
+    Role,
+    SolutionPolicy,
+    TagColor,
+    Tone,
+    TutorLevel,
+    ValidationStatus,
+    Verdict,
+)
 
 
 class Base(DeclarativeBase):
@@ -31,12 +66,12 @@ class Profile(Base):
     __tablename__ = "profiles"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
-    role: Mapped[str] = mapped_column(server_default="student")
+    role: Mapped[Role] = mapped_column(String, server_default="student")
     display_name: Mapped[str]
     email: Mapped[str | None]
     pseudonym_code: Mapped[str | None]
-    status: Mapped[str] = mapped_column(server_default="active")
-    preferred_language: Mapped[str] = mapped_column(server_default="es")
+    status: Mapped[AccountStatus] = mapped_column(String, server_default="active")
+    preferred_language: Mapped[Language] = mapped_column(String, server_default="es")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
@@ -63,7 +98,7 @@ class Enrolment(Base):
     id: Mapped[uuid.UUID] = _uuid_pk()
     course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
     student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
-    status: Mapped[str] = mapped_column(server_default="active")
+    status: Mapped[EnrolmentStatus] = mapped_column(String, server_default="active")
     joined_at: Mapped[datetime] = mapped_column(server_default=func.now())
     disclosure_acknowledged_at: Mapped[datetime | None]
 
@@ -93,7 +128,7 @@ class CourseTag(Base):
     id: Mapped[uuid.UUID] = _uuid_pk()
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
     name: Mapped[str]
-    color: Mapped[str]
+    color: Mapped[TagColor] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
@@ -114,9 +149,11 @@ class TutorSettings(Base):
     course_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("courses.id"), primary_key=True
     )
-    level: Mapped[str] = mapped_column(server_default="intermediate")
-    tone: Mapped[str] = mapped_column(server_default="friendly")
-    solution_policy: Mapped[str] = mapped_column(server_default="hints_first")
+    level: Mapped[TutorLevel] = mapped_column(String, server_default="intermediate")
+    tone: Mapped[Tone] = mapped_column(String, server_default="friendly")
+    solution_policy: Mapped[SolutionPolicy] = mapped_column(
+        String, server_default="hints_first"
+    )
     updated_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), onupdate=func.now()
     )
@@ -128,13 +165,17 @@ class Document(Base):
     id: Mapped[uuid.UUID] = _uuid_pk()
     course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
     file_name: Mapped[str]
-    file_type: Mapped[str]
+    file_type: Mapped[FileType] = mapped_column(String)
     size_bytes: Mapped[int]
     storage_path: Mapped[str]
     page_count: Mapped[int | None]
-    processing_status: Mapped[str] = mapped_column(server_default="processing")
-    error_reason: Mapped[str | None]
-    validation_status: Mapped[str] = mapped_column(server_default="pending_validation")
+    processing_status: Mapped[ProcessingStatus] = mapped_column(
+        String, server_default="processing"
+    )
+    error_reason: Mapped[ErrorReason | None] = mapped_column(String)
+    validation_status: Mapped[ValidationStatus] = mapped_column(
+        String, server_default="pending_validation"
+    )
     validated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
     validated_at: Mapped[datetime | None]
     uploaded_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
@@ -179,7 +220,7 @@ class TopicAssignment(Base):
     topic_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("topics.id"))
     document_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("documents.id"))
     section: Mapped[str | None]
-    status: Mapped[str] = mapped_column(server_default="confirmed")
+    status: Mapped[AssignmentStatus] = mapped_column(String, server_default="confirmed")
     confirmed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
     confirmed_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
@@ -205,9 +246,9 @@ class Message(Base):
 
     id: Mapped[uuid.UUID] = _uuid_pk()
     conversation_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("conversations.id"))
-    author: Mapped[str]
-    kind: Mapped[str]
-    status: Mapped[str] = mapped_column(server_default="sent")
+    author: Mapped[MessageAuthor] = mapped_column(String)
+    kind: Mapped[MessageKind] = mapped_column(String)
+    status: Mapped[MessageStatus] = mapped_column(String, server_default="sent")
     text: Mapped[str] = mapped_column(Text)
     request_solution: Mapped[bool] = mapped_column(server_default="false")
     hint_number: Mapped[int | None]
@@ -230,13 +271,13 @@ class ExerciseSubmission(Base):
     student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
     problem_statement: Mapped[str] = mapped_column(Text)
     worked_answer: Mapped[str] = mapped_column(Text)
-    verdict: Mapped[str]
+    verdict: Mapped[Verdict] = mapped_column(String)
     mistake_location: Mapped[str | None]
     error_type: Mapped[str | None]
     topic_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("topics.id"))
     topic_name: Mapped[str | None]
     explanation: Mapped[str] = mapped_column(Text)
-    explanation_kind: Mapped[str]
+    explanation_kind: Mapped[ExplanationKind] = mapped_column(String)
     saved_to_record: Mapped[bool] = mapped_column(server_default="false")
     is_stub: Mapped[bool] = mapped_column(server_default="false")
     adaptation: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
@@ -284,7 +325,7 @@ class MistakeReview(Base):
     student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
     error_type: Mapped[str]
     topic_name: Mapped[str | None]
-    kind: Mapped[str]
+    kind: Mapped[ExplanationKind] = mapped_column(String)
     explanation: Mapped[str] = mapped_column(Text)
     worked_example: Mapped[str | None] = mapped_column(Text)
     practice: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
@@ -308,8 +349,8 @@ class QuizQuestion(Base):
     correct_option: Mapped[int] = mapped_column(SmallInteger)
     explanation: Mapped[str] = mapped_column(Text)
     difficulty: Mapped[int] = mapped_column(SmallInteger)
-    status: Mapped[str] = mapped_column(server_default="pending")
-    origin: Mapped[str] = mapped_column(server_default="ai")
+    status: Mapped[QuestionStatus] = mapped_column(String, server_default="pending")
+    origin: Mapped[QuestionOrigin] = mapped_column(String, server_default="ai")
     reviewed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
     reviewed_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
@@ -328,7 +369,7 @@ class Quiz(Base):
     student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
     topic_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("topics.id"))
     topic_name: Mapped[str | None]
-    status: Mapped[str] = mapped_column(server_default="in_progress")
+    status: Mapped[QuizStatus] = mapped_column(String, server_default="in_progress")
     question_count: Mapped[int] = mapped_column(SmallInteger)
     level: Mapped[int] = mapped_column(SmallInteger)
     streak: Mapped[int] = mapped_column(SmallInteger, server_default="0")
@@ -389,8 +430,8 @@ class TestPhase(Base):
     course_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("courses.id"), primary_key=True
     )
-    phase: Mapped[str] = mapped_column(primary_key=True)
-    status: Mapped[str] = mapped_column(server_default="not_open")
+    phase: Mapped[Phase] = mapped_column(String, primary_key=True)
+    status: Mapped[PhaseStatus] = mapped_column(String, server_default="not_open")
     opened_at: Mapped[datetime | None]
     closed_at: Mapped[datetime | None]
 
@@ -401,7 +442,7 @@ class TestAttempt(Base):
     id: Mapped[uuid.UUID] = _uuid_pk()
     course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
     student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
-    phase: Mapped[str]
+    phase: Mapped[Phase] = mapped_column(String)
     submitted_at: Mapped[datetime] = mapped_column(
         server_default=func.clock_timestamp()
     )
@@ -508,7 +549,7 @@ class LLMCredential(Base):
 
     id: Mapped[uuid.UUID] = _uuid_pk()
     course_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("courses.id"))
-    provider: Mapped[str]
+    provider: Mapped[CredentialProvider] = mapped_column(String)
     label: Mapped[str]
     base_url: Mapped[str | None]
     encrypted_key: Mapped[str] = mapped_column(Text)
@@ -527,7 +568,7 @@ class TeacherFlag(Base):
     submission_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("exercise_submissions.id")
     )
-    category: Mapped[str]
+    category: Mapped[FlagCategory] = mapped_column(String)
     correction: Mapped[str] = mapped_column(Text)
     author_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
@@ -545,7 +586,7 @@ class InteractionLog(Base):
     course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
     # None only for teacher actions such as generating quiz questions (specs/006).
     student_ref: Mapped[str | None]
-    kind: Mapped[str]
+    kind: Mapped[InteractionKind] = mapped_column(String)
     question: Mapped[str] = mapped_column(Text)
     retrieved_fragment_ids: Mapped[list[uuid.UUID]] = mapped_column(ARRAY(Uuid))
     answer: Mapped[str | None] = mapped_column(Text)
@@ -556,7 +597,7 @@ class InteractionLog(Base):
     estimated_cost_usd: Mapped[Decimal] = mapped_column(
         Numeric(12, 6), server_default="0"
     )
-    outcome: Mapped[str]
+    outcome: Mapped[Outcome] = mapped_column(String)
     error_code: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
@@ -582,7 +623,7 @@ class CourseUsage(Base):
     course_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("courses.id"), primary_key=True
     )
-    period: Mapped[str] = mapped_column(primary_key=True)
+    period: Mapped[Period] = mapped_column(String, primary_key=True)
     period_start: Mapped[date] = mapped_column(primary_key=True)
     used: Mapped[int] = mapped_column(server_default="0")
 
@@ -592,7 +633,7 @@ class ConsentEvent(Base):
 
     id: Mapped[uuid.UUID] = _uuid_pk()
     student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id"))
-    action: Mapped[str]
+    action: Mapped[ConsentAction] = mapped_column(String)
     version: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
 
@@ -605,7 +646,7 @@ class Questionnaire(Base):
     id: Mapped[uuid.UUID] = _uuid_pk()
     title: Mapped[str]
     url: Mapped[str]
-    audience: Mapped[str]
-    status: Mapped[str] = mapped_column(server_default="open")
+    audience: Mapped[Audience] = mapped_column(String)
+    status: Mapped[QuestionnaireStatus] = mapped_column(String, server_default="open")
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())

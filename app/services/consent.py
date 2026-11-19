@@ -68,7 +68,7 @@ def history(session: Session, student_id: uuid.UUID) -> list[schemas.ConsentEven
     ).all()
     return [
         schemas.ConsentEvent(
-            action=e.action,  # type: ignore[arg-type]  (the column holds the literal)
+            action=e.action,
             version=e.version,
             created_at=e.created_at,
         )

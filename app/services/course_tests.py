@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.core.errors import ApiError, not_found
+from app.core.types import Phase, PhaseStatus
 from app.models import (
     Course,
     Enrolment,
@@ -26,7 +27,7 @@ from app.models import (
 from app.schemas import course_tests as schemas
 from app.services import consent
 
-PHASES = ("pre", "post")
+PHASES: tuple[Phase, ...] = ("pre", "post")
 
 
 # --- Shared ------------------------------------------------------------------------
@@ -42,7 +43,7 @@ def _questions(session: Session, course_id: uuid.UUID) -> list[TestQuestion]:
     )
 
 
-def _phase(session: Session, course_id: uuid.UUID, phase: str) -> TestPhase:
+def _phase(session: Session, course_id: uuid.UUID, phase: Phase) -> TestPhase:
     row = session.get(TestPhase, (course_id, phase))
     if row is None:
         row = TestPhase(course_id=course_id, phase=phase, status="not_open")
@@ -62,7 +63,7 @@ def _submitted(session: Session, course_id: uuid.UUID) -> dict[str, int]:
         .where(TestAttempt.course_id == course_id)
         .group_by(TestAttempt.phase)
     ).all()
-    return dict(rows)  # type: ignore[arg-type]
+    return dict(rows)
 
 
 def _phase_views(session: Session, course_id: uuid.UUID) -> list[schemas.TestPhaseView]:
@@ -72,8 +73,8 @@ def _phase_views(session: Session, course_id: uuid.UUID) -> list[schemas.TestPha
         row = session.get(TestPhase, (course_id, phase))
         views.append(
             schemas.TestPhaseView(
-                phase=phase,  # type: ignore[arg-type]
-                status=row.status if row else "not_open",  # type: ignore[arg-type]
+                phase=phase,
+                status=row.status if row else "not_open",
                 opened_at=row.opened_at if row else None,
                 closed_at=row.closed_at if row else None,
                 submitted_count=counts.get(phase, 0),
@@ -211,7 +212,7 @@ def delete_question(session: Session, course: Course, question: TestQuestion) ->
 
 
 def set_phase(
-    session: Session, course: Course, phase: str, status: str
+    session: Session, course: Course, phase: Phase, status: PhaseStatus
 ) -> schemas.TestPhaseView:
     row = _phase(session, course.id, phase)
     now = datetime.now(UTC)
@@ -290,7 +291,7 @@ def results(session: Session, course: Course) -> schemas.TestResults:
                 )
         averages.append(
             schemas.PhaseAverage(
-                phase=phase,  # type: ignore[arg-type]
+                phase=phase,
                 submitted=len(scores),
                 score=sum(s.right / s.total for s in scores) / len(scores)
                 if scores
@@ -314,7 +315,9 @@ def results(session: Session, course: Course) -> schemas.TestResults:
 # --- Student -------------------------------------------------------------------------
 
 
-def _attempt(session: Session, enrolment: Enrolment, phase: str) -> TestAttempt | None:
+def _attempt(
+    session: Session, enrolment: Enrolment, phase: Phase
+) -> TestAttempt | None:
     return session.scalar(
         select(TestAttempt).where(
             TestAttempt.course_id == enrolment.course_id,
@@ -324,7 +327,7 @@ def _attempt(session: Session, enrolment: Enrolment, phase: str) -> TestAttempt 
     )
 
 
-def _status(session: Session, course_id: uuid.UUID, phase: str) -> str:
+def _status(session: Session, course_id: uuid.UUID, phase: Phase) -> PhaseStatus:
     row = session.get(TestPhase, (course_id, phase))
     return row.status if row else "not_open"
 
@@ -335,8 +338,8 @@ def student_phases(
     count = len(_questions(session, enrolment.course_id))
     return [
         schemas.StudentTestPhase(
-            phase=phase,  # type: ignore[arg-type]
-            status=_status(session, enrolment.course_id, phase),  # type: ignore[arg-type]
+            phase=phase,
+            status=_status(session, enrolment.course_id, phase),
             done=_attempt(session, enrolment, phase) is not None,
             question_count=count,
         )
@@ -349,15 +352,15 @@ def _not_open() -> ApiError:
 
 
 def student_test(
-    session: Session, enrolment: Enrolment, phase: str
+    session: Session, enrolment: Enrolment, phase: Phase
 ) -> schemas.StudentTest:
     status = _status(session, enrolment.course_id, phase)
     attempt = _attempt(session, enrolment, phase)
     if attempt is None and status != "open":
         raise _not_open()
     return schemas.StudentTest(
-        phase=phase,  # type: ignore[arg-type]
-        status=status,  # type: ignore[arg-type]
+        phase=phase,
+        status=status,
         done=attempt is not None,
         submitted_at=attempt.submitted_at if attempt else None,
         questions=[]
@@ -379,7 +382,7 @@ def submit(
     session: Session,
     settings: Settings,
     enrolment: Enrolment,
-    phase: str,
+    phase: Phase,
     payload: schemas.TestSubmission,
 ) -> schemas.TestSubmitted:
     consent.require(session, settings, enrolment.student_id)
@@ -413,6 +416,6 @@ def submit(
     session.flush()
     session.refresh(attempt)
     return schemas.TestSubmitted(
-        phase=phase,  # type: ignore[arg-type]
+        phase=phase,
         submitted_at=attempt.submitted_at,
     )

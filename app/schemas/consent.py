@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, Field
+
+from app.core.types import ConsentAction
 
 
 class Consent(BaseModel):
@@ -12,6 +13,6 @@ class Consent(BaseModel):
 
 
 class ConsentEvent(BaseModel):
-    action: Literal["given", "revoked"]
+    action: ConsentAction
     version: str
     created_at: datetime

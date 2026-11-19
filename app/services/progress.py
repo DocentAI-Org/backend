@@ -70,7 +70,7 @@ def score_of(items: list[Item], criteria: Criteria) -> float | None:
     return sum(i.value for i in latest) / len(latest)
 
 
-def level_of(count: int, score: float | None, criteria: Criteria) -> str:
+def level_of(count: int, score: float | None, criteria: Criteria) -> schemas.Level:
     if count == 0:
         return "not_started"
     if score is None:
@@ -151,7 +151,7 @@ def _view(
     return schemas.TopicProgress(
         topic_id=topic_id,
         topic_name=name,
-        level=level_of(len(data.items), score, criteria),  # type: ignore[arg-type]
+        level=level_of(len(data.items), score, criteria),
         score=score,
         basis=_basis(_latest(data.items, criteria)),
         history=[
