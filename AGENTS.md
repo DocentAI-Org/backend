@@ -23,7 +23,7 @@ uv run pytest -m "not db"                         # unit tests only, no database
 ```
 
 CI runs all of them except the last; all must pass before merge. GitHub also runs CodeQL on every
-pull request, and Dependabot proposes dependency and action updates. A rule silenced in code
+pull request, and Dependabot proposes dependency and action updates. A rule silenced in new code
 (`# noqa`, `# type: ignore`, `cast`) says why next to it.
 
 ## Rules

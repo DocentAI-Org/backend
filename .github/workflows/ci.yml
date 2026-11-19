@@ -19,7 +19,7 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run pyright
       - run: uv run python scripts/export_openapi.py --check
-      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
         with:
           version: 2.122.0
       # Postgres + pgvector with every migration applied; the tests need nothing else.
