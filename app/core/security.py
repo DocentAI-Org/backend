@@ -29,7 +29,7 @@ def verify_token(token: str, settings: Settings) -> uuid.UUID:
         if header.get("alg") == "HS256":
             if not settings.supabase_jwt_secret:
                 raise unauthenticated()
-            key: object = settings.supabase_jwt_secret
+            key: str | jwt.PyJWK = settings.supabase_jwt_secret
             algorithms = ["HS256"]
         else:
             jwks_url = (
@@ -39,7 +39,7 @@ def verify_token(token: str, settings: Settings) -> uuid.UUID:
             algorithms = ["ES256", "RS256", "EdDSA"]
         claims = jwt.decode(
             token,
-            key,  # type: ignore[arg-type]
+            key,
             algorithms=algorithms,
             audience=settings.jwt_audience,
             options={"require": ["exp", "sub"]},
