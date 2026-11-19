@@ -60,7 +60,8 @@ def main() -> int:
             profile.role = role
         session.commit()
 
-    print(f"Password for every demo user: {PASSWORD}\n")
+    # The password stays out of the output; it is PASSWORD at the top of this file.
+    print("Demo users share the password in PASSWORD, scripts/seed_dev.py.\n")
     for role, email, _ in USERS:
         print(f"{role.upper()}={sign_in(email)}")
     return 0
