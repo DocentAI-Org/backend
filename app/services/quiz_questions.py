@@ -248,7 +248,8 @@ def _answer_stats(
         .where(QuizItem.question_id.in_(ids), QuizItem.answered_at.is_not(None))
         .group_by(QuizItem.question_id)
     ).all()
-    return {question_id: (total, right) for question_id, total, right in rows}
+    # Every row's question is one of `ids`, never None.
+    return {question_id: (total, right) for question_id, total, right in rows}  # type: ignore[misc]
 
 
 def question_views(

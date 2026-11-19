@@ -285,7 +285,8 @@ def build(
                 "outcome",
                 "created_at",
             ],
-            ((by_log_ref[r], *rest) for r, *rest in interactions),
+            # Only interactions whose ref is in by_log_ref are selected.
+            ((by_log_ref[r], *rest) for r, *rest in interactions),  # type: ignore[index]
         ),
     }
     out = io.BytesIO()

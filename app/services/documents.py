@@ -4,9 +4,9 @@ import logging
 import uuid
 from datetime import UTC, datetime
 from pathlib import PurePath
-from typing import Literal
+from typing import Literal, cast
 
-from sqlalchemy import func, select, update
+from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
@@ -192,10 +192,13 @@ def _mark_error(session: Session, document_id: uuid.UUID, reason: str) -> None:
 
 def recover_interrupted(session: Session) -> int:
     """Documents left in `processing` by a restart cannot finish; flag them."""
-    result = session.execute(
-        update(Document)
-        .where(Document.processing_status == "processing")
-        .values(processing_status="error", error_reason="processing_interrupted")
+    result = cast(
+        CursorResult,
+        session.execute(
+            update(Document)
+            .where(Document.processing_status == "processing")
+            .values(processing_status="error", error_reason="processing_interrupted")
+        ),
     )
     session.commit()
     return result.rowcount or 0

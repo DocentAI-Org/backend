@@ -23,7 +23,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+  "pyright>=1.1.414",
   "pytest>=9.2.0",
+  "pytest-cov>=7.1.0",
   "ruff>=0.17.3",
 ]
 
@@ -35,7 +37,18 @@ line-length = 88
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+# S: security (bandit), SIM/RET: simpler code, C90: complexity, ERA: commented-out code.
+select = ["E", "F", "I", "UP", "B", "S", "SIM", "RET", "C90", "ERA"]
+# Asserts narrow types after a row is read or created; under -O the request still fails.
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+# Fixtures use fixed passwords, tokens and temporary paths on purpose; table names in
+# queries come from the catalogue, and the hook tests run the hooks.
+"tests/**" = ["S105", "S106", "S107", "S108", "S311", "S603", "S608"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -43,3 +56,17 @@ pythonpath = ["."]
 markers = [
     "db: needs the local Supabase database (npx supabase start)",
 ]
+
+[tool.pyright]
+include = ["app", "scripts"]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "basic"
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+# 96 % on 2026-11-19; the integrations with Supabase and Ollama are faked in tests.
+fail_under = 95
+skip_covered = true

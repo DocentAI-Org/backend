@@ -202,6 +202,7 @@ def student_progress(
             QuizItem.answered_at.is_not(None),
         )
     ):
+        assert answered_at is not None  # filtered by the query
         by_topic[topic_id].items.append(
             Item(at=answered_at, value=1.0 if correct else 0.0, kind="quiz")
         )

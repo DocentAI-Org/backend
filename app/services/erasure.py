@@ -1,8 +1,9 @@
 """Erasure on request: a student and all linked to them (spec 017, AGENTS.md VI)."""
 
 import uuid
+from typing import cast
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import CursorResult, delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
@@ -58,10 +59,13 @@ def erase_student(
 
     # The logs hold a keyed hash, not the account id, so nothing cascades to them.
     # They go first, in the request's transaction: if the auth call fails, they stay.
-    logs = session.execute(
-        delete(InteractionLog).where(
-            InteractionLog.student_ref == student_ref(settings, student_id)
-        )
+    logs = cast(
+        CursorResult,
+        session.execute(
+            delete(InteractionLog).where(
+                InteractionLog.student_ref == student_ref(settings, student_id)
+            )
+        ),
     ).rowcount
     session.flush()
     session.expunge(profile)

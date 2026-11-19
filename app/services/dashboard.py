@@ -3,6 +3,7 @@
 import uuid
 from collections import Counter, defaultdict
 from datetime import UTC, date, datetime, timedelta
+from typing import cast
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -198,7 +199,8 @@ def errors(
             topic_deleted=topic_id is None and name is not None,
             errors=sum(counter.values()),
             students=len(topic_students[(topic_id, name)]),
-            top_error_type=top(counter, rank),
+            # Every counter has at least one error, so there is a top type.
+            top_error_type=cast(str, top(counter, rank)),
         )
         for (topic_id, name), counter in by_topic.items()
     ]
@@ -208,7 +210,8 @@ def errors(
             student_id=student_id,
             display_name=names[student_id],
             errors=sum(counter.values()),
-            top_error_type=top(counter, rank),
+            # Every counter has at least one error, so there is a top type.
+            top_error_type=cast(str, top(counter, rank)),
             top_topic_name=top(
                 student_topics[student_id], lambda n: (n is None, n or "")
             ),
@@ -284,6 +287,7 @@ def weekly_activity(
             Quiz.completed_at >= start,
         )
     ):
+        assert completed_at is not None  # filtered by the query
         day = completed_at.astimezone(UTC).date()
         counts[day - timedelta(days=day.weekday())]["quizzes"] += 1
     return [

@@ -20,7 +20,7 @@ from app.core.errors import ApiError  # noqa: E402
 from app.integrations.auth_admin import SupabaseAuthAdmin  # noqa: E402
 from app.models import Profile  # noqa: E402
 
-PASSWORD = "docentai-dev-password"
+PASSWORD = "docentai-dev-password"  # noqa: S105 (local demo users only)
 USERS = [
     ("admin", "admin@docentai.local", "Admin DocentAI"),
     ("teacher", "profesora@docentai.local", "Prof. Elena Ruiz"),
@@ -60,7 +60,8 @@ def main() -> int:
             profile.role = role
         session.commit()
 
-    print(f"Password for every demo user: {PASSWORD}\n")
+    # The password stays out of the output; it is PASSWORD at the top of this file.
+    print("Demo users share the password in PASSWORD, scripts/seed_dev.py.\n")
     for role, email, _ in USERS:
         print(f"{role.upper()}={sign_in(email)}")
     return 0
