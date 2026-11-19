@@ -38,8 +38,9 @@ uv run python scripts/seed_dev.py  # demo admin, teacher and student + access to
 
 ```bash
 uv run ruff check . && uv run ruff format --check .
+uv run pyright
 uv run python scripts/export_openapi.py --check   # regenerate without --check after API changes
-uv run pytest                                     # needs `npx supabase db start`
+uv run pytest --cov                               # needs `npx supabase db start`; min. 95 %
 uv run pytest -m "not db"                         # unit tests only, no database
 ```
 

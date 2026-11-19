@@ -16,12 +16,15 @@ npx supabase start                                # local Postgres + pgvector, A
 uv run uvicorn app.main:app --reload              # http://localhost:8000, docs at /docs
 uv run python scripts/seed_dev.py                 # demo admin, teacher and student + tokens
 uv run ruff check . && uv run ruff format --check .
+uv run pyright                                    # types (basic mode)
 uv run python scripts/export_openapi.py --check   # without --check: regenerate openapi.json
-uv run pytest                                     # needs `npx supabase db start`
+uv run pytest --cov                               # needs `npx supabase db start`; fails under 95 %
 uv run pytest -m "not db"                         # unit tests only, no database
 ```
 
-CI runs the lint, the format check, the contract check and `pytest`; all must pass before merge.
+CI runs all of them except the last; all must pass before merge. GitHub also runs CodeQL on every
+pull request, and Dependabot proposes dependency and action updates. A rule silenced in code
+(`# noqa`, `# type: ignore`, `cast`) says why next to it.
 
 ## Rules
 
