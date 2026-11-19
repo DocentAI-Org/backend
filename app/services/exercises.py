@@ -207,11 +207,11 @@ def repeated_mistake(
         return None
     threshold = pedagogy.in_effect(session, entry.course_id).criteria.repeated_mistakes
     window = timedelta(days=threshold.window_days)
-    same_topic = (
-        LearningRecordEntry.topic_id == entry.topic_id
-        if entry.topic_id is not None
-        else LearningRecordEntry.topic_id.is_(None)
-        & LearningRecordEntry.topic_name.is_not_distinct_from(entry.topic_name)
+    same_topic = overcome.same_topic(
+        LearningRecordEntry.topic_id,
+        LearningRecordEntry.topic_name,
+        entry.topic_id,
+        entry.topic_name,
     )
     count = session.scalar(
         select(func.count()).where(

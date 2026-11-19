@@ -3,7 +3,7 @@ the tests, quizzes, repeated mistakes and mastery the platform already has."""
 
 import uuid
 
-from sqlalchemy import exists, func, select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
@@ -64,14 +64,12 @@ def _review_mistake(
     threshold = pedagogy.in_effect(
         session, enrolment.course_id
     ).criteria.repeated_mistakes
-    count = func.count(LearningRecordEntry.id)
-    latest = func.max(LearningRecordEntry.created_at)
     rows = session.execute(
         overcome.patterns_in_window(
             enrolment.course_id, enrolment.student_id, threshold.window_days
         )
-        .having(count >= threshold.count)
-        .order_by(count.desc(), latest.desc())
+        .having(threshold.count <= overcome.PATTERN_COUNT)
+        .order_by(overcome.PATTERN_COUNT.desc(), overcome.PATTERN_LATEST.desc())
     ).all()
     # Patterns already overcome are not recommended (specs/022).
     row = next(
@@ -88,11 +86,11 @@ def _review_mistake(
     if row is None:
         return None
     error_type, topic_id, topic_name, times, _ = row
-    same_topic = (
-        LearningRecordEntry.topic_id == topic_id
-        if topic_id is not None
-        else LearningRecordEntry.topic_id.is_(None)
-        & LearningRecordEntry.topic_name.is_not_distinct_from(topic_name)
+    same_topic = overcome.same_topic(
+        LearningRecordEntry.topic_id,
+        LearningRecordEntry.topic_name,
+        topic_id,
+        topic_name,
     )
     submission_id = session.scalar(
         select(LearningRecordEntry.submission_id)
