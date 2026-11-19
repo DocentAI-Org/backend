@@ -6,6 +6,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import Literal, cast
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -27,6 +28,8 @@ from app.services.ai_settings import InEffect
 from app.services.retrieval import Hit, retrieve
 
 logger = logging.getLogger(__name__)
+# A tutor reply: one of the model's two kinds, or no_source when it is not grounded.
+ReplyKind = Literal["answer", "hint", "no_source"]
 REPLY_KINDS = {"answer", "hint"}
 HISTORY_CHARS = 1000
 
@@ -77,7 +80,7 @@ def message_view(message: Message) -> schemas.StudentMessage:
 
 @dataclass(frozen=True)
 class GroundedReply:
-    kind: str
+    kind: ReplyKind
     text: str
     cited_indexes: list[int] = field(default_factory=list)
     is_problem: bool = False
@@ -115,7 +118,10 @@ def ground_reply(data: dict, fragment_count: int) -> GroundedReply:
     if not indexes:
         return GroundedReply("no_source", "")
     return GroundedReply(
-        kind, text.strip(), indexes, is_problem=data.get("is_problem") is True
+        cast(ReplyKind, kind),  # checked against REPLY_KINDS above
+        text.strip(),
+        indexes,
+        is_problem=data.get("is_problem") is True,
     )
 
 

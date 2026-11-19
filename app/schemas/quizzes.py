@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field
 
-from app.core.types import QuestionOrigin, QuestionStatus, QuizStatus
+from app.core.types import ExplanationKind, QuestionOrigin, QuestionStatus, QuizStatus
 from app.schemas.chat import Citation
 from app.schemas.common import CleanText
 
@@ -60,7 +60,7 @@ class TeacherQuestion(BaseModel):
 
 
 class GeneratedQuestions(BaseModel):
-    kind: Literal["answer", "no_source"] = Field(
+    kind: ExplanationKind = Field(
         description="`no_source` when the material gave no usable question."
     )
     questions: list[TeacherQuestion]

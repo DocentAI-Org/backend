@@ -30,10 +30,13 @@ from app.core.types import (
     ExplanationKind,
     FileType,
     FlagCategory,
+    InteractionKind,
     Language,
     MessageAuthor,
     MessageKind,
     MessageStatus,
+    Outcome,
+    Period,
     Phase,
     PhaseStatus,
     ProcessingStatus,
@@ -583,7 +586,7 @@ class InteractionLog(Base):
     course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses.id"))
     # None only for teacher actions such as generating quiz questions (specs/006).
     student_ref: Mapped[str | None]
-    kind: Mapped[str]
+    kind: Mapped[InteractionKind] = mapped_column(String)
     question: Mapped[str] = mapped_column(Text)
     retrieved_fragment_ids: Mapped[list[uuid.UUID]] = mapped_column(ARRAY(Uuid))
     answer: Mapped[str | None] = mapped_column(Text)
@@ -594,7 +597,7 @@ class InteractionLog(Base):
     estimated_cost_usd: Mapped[Decimal] = mapped_column(
         Numeric(12, 6), server_default="0"
     )
-    outcome: Mapped[str]
+    outcome: Mapped[Outcome] = mapped_column(String)
     error_code: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
@@ -620,7 +623,7 @@ class CourseUsage(Base):
     course_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("courses.id"), primary_key=True
     )
-    period: Mapped[str] = mapped_column(primary_key=True)
+    period: Mapped[Period] = mapped_column(String, primary_key=True)
     period_start: Mapped[date] = mapped_column(primary_key=True)
     used: Mapped[int] = mapped_column(server_default="0")
 

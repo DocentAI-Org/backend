@@ -58,3 +58,19 @@ CredentialProvider = Literal["openai", "anthropic", "openai_compatible"]
 ConsentAction = Literal["given", "revoked"]
 Audience = Literal["student", "teacher"]
 QuestionnaireStatus = Literal["open", "closed"]
+
+# interaction_logs, course_usage
+InteractionKind = Literal["chat", "exercise", "review", "quiz_generation"]
+Outcome = Literal[
+    "answer",
+    "hint",
+    "no_source",
+    "error",
+    "stub",
+    "correct",
+    "partially_correct",
+    "incorrect",
+    "not_assessed",
+    "unclassified",
+]
+Period = Literal["day", "week", "course"]

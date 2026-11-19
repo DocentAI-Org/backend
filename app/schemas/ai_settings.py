@@ -14,8 +14,8 @@ from pydantic import (
 )
 
 from app.core.config import Effort, Provider, Task
+from app.core.types import Period
 
-Period = Literal["day", "week", "course"]
 CountedTask = Literal["tutor", "feedback", "review"]
 COUNTED_TASKS: tuple[CountedTask, ...] = ("tutor", "feedback", "review")
 Origin = Literal["course", "study", "server"]
