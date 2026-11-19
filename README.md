@@ -5,9 +5,8 @@ teacher has validated, and cites it.
 
 - **Contract**: [`openapi.json`](openapi.json) (committed; the frontend generates its types from
   it). Interactive docs at `http://localhost:8000/docs`.
-- **Spec-driven**: specs, plans and tasks live in [`specs/`](specs/); principles in
-  [`.specify/memory/constitution.md`](.specify/memory/constitution.md). Current feature:
-  [`specs/001-api-v1-contract`](specs/001-api-v1-contract/spec.md).
+- **Rules**: [`AGENTS.md`](AGENTS.md), for people and coding agents alike; conventions in
+  [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Stack
 
@@ -34,9 +33,6 @@ npx supabase status -o env         # ...from SERVICE_ROLE_KEY and JWT_SECRET her
 uv run uvicorn app.main:app --reload
 uv run python scripts/seed_dev.py  # demo admin, teacher and student + access tokens
 ```
-
-The full walkthrough is in
-[`specs/001-api-v1-contract/quickstart.md`](specs/001-api-v1-contract/quickstart.md).
 
 ## Checks (same as CI)
 
@@ -78,8 +74,7 @@ LLM_EMBEDDING_PROVIDER=ollama
 Any OpenAI-compatible API (OpenAI, Mistral, vLLM…) is `openai` with its `OPENAI_BASE_URL`.
 Anthropic takes no temperature (`LLM_FEEDBACK_TEMPERATURE` only applies to the others) and
 has no embeddings. Costs in the interaction log use `LLM_PRICES` per model (current Claude
-models are built in). Compare models with the evaluation: `LLM_FEEDBACK_PROVIDER=…
-LLM_FEEDBACK_MODEL=… uv run pytest -m eval -s`.
+models are built in).
 
 Embeddings must stay 1024-dimensional (`EMBEDDING_DIMENSIONS`); a different size needs a
 migration and re-processing the material. Re-tune `RETRIEVAL_MIN_SIMILARITY` and

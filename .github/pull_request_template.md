@@ -8,18 +8,10 @@
 
 ## Type of change
 
-- [ ] Feature (spec `NNN-name`)
+- [ ] Feature (`NNN-name`)
 - [ ] Fix
 - [ ] Refactor (no behavior change)
 - [ ] Docs, CI or tooling
-
-## Spec and tasks
-
-<!-- Feature PRs (branch NNN-name) must link their spec; CI checks it. Otherwise "n/a". -->
-
-- Spec: `specs/NNN-name/spec.md`
-- Tasks: T###–T###
-- Checklists: `specs/NNN-name/checklists/`
 
 ## What changes
 
@@ -57,7 +49,7 @@
 
 ## Checks
 
-- [ ] Constitution Check passed in `plan.md` (before and after design)
+- [ ] Follows the rules in `AGENTS.md`
 - [ ] Tests written first and seen failing; none skipped without a reason below
 - [ ] `openapi.json` exported and checked; the frontend must regenerate its types if it changed
 - [ ] Migrations apply on a clean database (`supabase db reset`) and RLS covers new tables
