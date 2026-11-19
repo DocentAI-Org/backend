@@ -1,5 +1,5 @@
 """Courses, class codes and enrolment (T1), plus the ownership checks every
-course-scoped endpoint relies on (constitution II)."""
+course-scoped endpoint relies on (AGENTS.md II)."""
 
 import uuid
 from datetime import UTC, datetime

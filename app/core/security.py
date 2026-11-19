@@ -1,4 +1,4 @@
-"""Supabase JWT verification and role dependencies (constitution II, research R8)."""
+"""Supabase JWT verification and role dependencies (AGENTS.md II, research R8)."""
 
 import uuid
 from collections.abc import Callable

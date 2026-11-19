@@ -1,4 +1,4 @@
-"""Writes the committed API contract, or checks it is up to date (constitution III).
+"""Writes the committed API contract, or checks it is up to date (AGENTS.md III).
 
 uv run python scripts/export_openapi.py          # regenerate openapi.json
 uv run python scripts/export_openapi.py --check  # fail if it is stale

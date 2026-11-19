@@ -199,7 +199,7 @@ def _topic_steps(
 def next_steps(
     session: Session, settings: Settings, enrolment: Enrolment
 ) -> schemas.NextSteps:
-    """The same for the student and the teacher (constitution I)."""
+    """The same for the student and the teacher (AGENTS.md I)."""
     practice, start = _topic_steps(session, settings, enrolment)
     candidates = [
         *_tests(session, enrolment),

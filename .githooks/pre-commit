@@ -18,7 +18,7 @@ if [ "${#python_files[@]}" -gt 0 ]; then
   uv run ruff format --check "${python_files[@]}"
 fi
 
-# The committed contract must match the app (constitution III).
+# The committed contract must match the app (AGENTS.md III).
 if [ -f scripts/export_openapi.py ] && git diff --cached --name-only | grep -q '^app/'; then
   uv run python scripts/export_openapi.py --check
 fi

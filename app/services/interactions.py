@@ -1,4 +1,4 @@
-"""Interaction log for every model call (P2, constitution V and VI, research R12)."""
+"""Interaction log for every model call (P2, AGENTS.md V and VI, research R12)."""
 
 import hashlib
 import hmac

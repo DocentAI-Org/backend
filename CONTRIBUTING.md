@@ -1,7 +1,8 @@
 # Contributing
 
-The rules come from the constitution (`.specify/memory/constitution.md`, Development Workflow).
-Git hooks check them locally and the `PR conventions` workflow checks them on every pull request.
+The rules for the code are in `AGENTS.md`; these are the conventions for branches, commits and
+pull requests. Git hooks check them locally and the `PR conventions` workflow checks them on every
+pull request.
 The hooks in `.githooks/` are mirrored in the frontend repository: change both together.
 
 ## Set up the hooks (once per clone)
@@ -16,7 +17,7 @@ git config core.hooksPath .githooks
 
 ## Branches
 
-- A Spec Kit feature: the name of its `specs/` folder, e.g. `001-api-v1-contract`.
+- A feature: its number and name, e.g. `001-api-v1-contract`.
 - Anything else: `<type>/<name>`, e.g. `ci/commit-conventions`, `fix/upload-names`.
 
 ## Commit messages
@@ -31,17 +32,15 @@ git config core.hooksPath .githooks
   `revert`. The scope is required and lowercase.
 - Header of at most 72 characters, no trailing period.
 - `feat` and `fix` reference their task IDs: `feat(chat): T045 grounded replies`.
-- One commit per Spec Kit artifact: `docs(spec): …`, `docs(plan): …`, `docs(tasks): …`.
-  Amendments to the constitution: `docs(constitution): vX.Y.Z`.
+- Changes to `AGENTS.md` rules: `docs(agents): …`, with the reason in the body.
 
 ## Pull requests
 
 - One PR per feature, squash-merged. The PR title becomes the commit, so it follows the same
   format (a task ID is not required in the title).
-- Feature PRs link `specs/NNN-name/spec.md` in the description; the template has the place.
 - A PR that changes `openapi.json` says so in "API contract", so the frontend can regenerate its
   types.
-- The description follows the template: summary, type, spec, what changes, API contract,
+- The description follows the template: summary, type, feature, what changes, API contract,
   database, how to verify, dependencies and merge order, risks and rollback, checks, and known
   gaps. CI fails if "Summary" or "How to verify" is empty. Write "None" or "n/a" in a section that
   does not apply.

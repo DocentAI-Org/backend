@@ -1,4 +1,4 @@
-"""Single entry point for chat and embedding calls (constitution V, research R1), with a
+"""Single entry point for chat and embedding calls (AGENTS.md V, research R1), with a
 provider and model per task (specs/014): Ollama, OpenAI-compatible APIs, Anthropic."""
 
 import json

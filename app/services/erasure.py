@@ -1,4 +1,4 @@
-"""Erasure on request: a student and all linked to them (spec 017, constitution VI)."""
+"""Erasure on request: a student and all linked to them (spec 017, AGENTS.md VI)."""
 
 import uuid
 

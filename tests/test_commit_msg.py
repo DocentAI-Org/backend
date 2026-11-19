@@ -1,4 +1,4 @@
-"""The commit-msg hook enforces the constitution's commit conventions."""
+"""The commit-msg hook enforces the commit conventions in CONTRIBUTING.md."""
 
 import os
 import subprocess
