@@ -116,7 +116,8 @@ Code comments cite them by number, e.g. "AGENTS.md II".
 - Tutor output is in Spanish for now; prompts and server-generated text live outside code
   (`app/prompts/`), so other languages can be added.
 - Secrets only in environment variables. `.env` is ignored; `.env.example` documents every
-  setting.
+  setting. A deployed environment sets `ENVIRONMENT=production`, so the server refuses to start
+  with a local default secret.
 - Deployment: Docker image on Railway (EU region), Sentry.
 
 ## Feature numbers
