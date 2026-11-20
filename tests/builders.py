@@ -3,10 +3,16 @@
 import io
 
 from docx import Document as DocxDocument
+from pypdf import PdfReader, PdfWriter
+
+Line = tuple[float, str]
 
 
-def build_pdf(pages: list[str]) -> bytes:
-    """A minimal valid PDF with one line of Helvetica text per page."""
+def build_pdf(
+    pages: list[str] | list[list[Line]], outline: list[tuple[str, int]] = ()
+) -> bytes:
+    """A minimal valid PDF in Helvetica: one 12 pt line per page, or a page's lines as
+    (size, text) from the top; `outline` adds bookmarks (title, page index)."""
     objects: list[bytes] = []
     page_ids = [4 + 2 * i for i in range(len(pages))]
     objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")
@@ -21,8 +27,11 @@ def build_pdf(pages: list[str]) -> bytes:
                 f"/Resources << /Font << /F1 3 0 R >> >> /Contents {content_id} 0 R >>"
             ).encode()
         )
-        escaped = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-        stream = f"BT /F1 12 Tf 72 720 Td ({escaped}) Tj ET".encode("latin-1")
+        lines = [(12.0, text)] if isinstance(text, str) else text
+        stream = " ".join(
+            f"BT /F1 {size} Tf 72 {720 - 24 * row} Td ({_escape(line)}) Tj ET"
+            for row, (size, line) in enumerate(lines)
+        ).encode("latin-1")
         objects.append(
             b"<< /Length "
             + str(len(stream)).encode()
@@ -45,7 +54,18 @@ def build_pdf(pages: list[str]) -> bytes:
         f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\n"
         f"startxref\n{xref}\n%%EOF\n".encode()
     )
-    return out.getvalue()
+    if not outline:
+        return out.getvalue()
+    writer = PdfWriter(clone_from=PdfReader(io.BytesIO(out.getvalue())))
+    for title, page in outline:
+        writer.add_outline_item(title=title, page_number=page)
+    with_outline = io.BytesIO()
+    writer.write(with_outline)
+    return with_outline.getvalue()
+
+
+def _escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
 
 def build_docx(blocks: list[tuple[str, str]]) -> bytes:
