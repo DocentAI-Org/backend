@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     # Exercise statements are short and symbolic: lower similarity (spec 009 US3).
     retrieval_min_similarity_exercises: float = 0.40
     history_max_messages: int = 6
+    # Each AI quiz draft is solved again without its key to flag wrong keys (025).
+    quiz_key_check: bool = True
     # A section's closest topic is suggested from this similarity on (specs/024).
     topic_suggestion_min_similarity: float = 0.55
 

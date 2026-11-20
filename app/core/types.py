@@ -47,6 +47,7 @@ FlagCategory = Literal["incorrect", "poor"]
 # quiz_questions, quizzes
 QuestionStatus = Literal["pending", "approved", "rejected"]
 QuestionOrigin = Literal["ai", "edited"]
+KeyCheck = Literal["agrees", "disagrees", "several"]
 QuizStatus = Literal["in_progress", "completed"]
 
 # test_phases, test_attempts

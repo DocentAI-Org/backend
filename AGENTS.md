@@ -139,3 +139,4 @@ nothing else. Changing them is a change to this repository, made in a pull reque
 - `app.core.config` (`get_settings`, `Task`), `app.llm.client` (`get_llm`, `LLMClient`,
   `ChatResult`, `OpenAICompatProvider`), `app.models.Fragment` and
   `app.services.retrieval.retrieve`, to run the app's real models outside the test suite.
+- `app.services.quiz_questions` (`check_keys`, `Draft`), to check quiz keys on fixed drafts.
