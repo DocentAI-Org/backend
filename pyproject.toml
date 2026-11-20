@@ -3,6 +3,7 @@ name = "docentai-backend"
 version = "0.1.0"
 description = "Backend API for DocentAI"
 readme = "README.md"
+license = "Apache-2.0"
 requires-python = ">=3.11"
 dependencies = [
   "anthropic==2.9.0",
