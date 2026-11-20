@@ -1,7 +1,9 @@
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
+from app.core.config import Settings
 from app.core.errors import ApiError, register_error_handlers
 from app.core.pagination import Page, Pagination
 
@@ -61,3 +63,25 @@ def test_pagination_defaults_and_bounds() -> None:
     assert body["offset"] == 45
     assert body["total"] == 50
     assert [item["value"] for item in body["items"]] == [45, 46, 47, 48, 49]
+
+
+def test_production_refuses_the_default_secrets() -> None:
+    defaults = {"log_pseudonym_secret": "change-me", "study_export_secret": ""}
+
+    with pytest.raises(
+        ValidationError, match="LOG_PSEUDONYM_SECRET, STUDY_EXPORT_SECRET must be set"
+    ):
+        Settings(_env_file=None, environment="production", **defaults)  # pyright: ignore[reportCallIssue]
+    # Development keeps them, so the local stack runs without configuring any.
+    assert Settings(_env_file=None, **defaults).environment == "development"  # pyright: ignore[reportCallIssue]
+
+
+def test_production_starts_with_its_own_secrets() -> None:
+    settings = Settings(  # pyright: ignore[reportCallIssue]
+        _env_file=None,
+        environment="production",
+        log_pseudonym_secret="log-key",
+        study_export_secret="export-key",
+    )
+
+    assert settings.environment == "production"

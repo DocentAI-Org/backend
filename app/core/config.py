@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import TYPE_CHECKING, Literal, NamedTuple
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 if TYPE_CHECKING:
@@ -25,7 +25,16 @@ class Route(NamedTuple):
     credential: "CredentialAccess | None" = None
 
 
+# Local defaults that a deployed environment must replace.
+_DEFAULT_SECRETS = {
+    "log_pseudonym_secret": "change-me",
+    "study_export_secret": "change-me-too",
+}
+
+
 class Settings(BaseSettings):
+    # Anything but "development" refuses to start with the local default secrets.
+    environment: Literal["development", "production"] = "development"
     app_name: str = "DocentAI API"
     app_version: str = "0.1.0"
     allowed_origins: str = "http://localhost:3000"
@@ -111,10 +120,10 @@ class Settings(BaseSettings):
 
     # Privacy (research R12)
     # Local defaults only; every deployed environment sets its own.
-    log_pseudonym_secret: str = "change-me"  # noqa: S105
+    log_pseudonym_secret: str = _DEFAULT_SECRETS["log_pseudonym_secret"]
     # Study export ids (specs/011): a different key, so the export cannot be joined
     # with the interaction logs without it.
-    study_export_secret: str = "change-me-too"  # noqa: S105
+    study_export_secret: str = _DEFAULT_SECRETS["study_export_secret"]
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -122,6 +131,21 @@ class Settings(BaseSettings):
         extra="ignore",
         populate_by_name=True,
     )
+
+    @model_validator(mode="after")
+    def _secrets_set_outside_development(self) -> "Settings":
+        if self.environment == "development":
+            return self
+        unset = [
+            name.upper()
+            for name, default in _DEFAULT_SECRETS.items()
+            if getattr(self, name) in ("", default)
+        ]
+        if unset:
+            raise ValueError(
+                f"{', '.join(unset)} must be set in the {self.environment} environment"
+            )
+        return self
 
     def route(self, task: Task) -> Route:
         """The provider, model and effort for a task: its own, or the defaults."""
