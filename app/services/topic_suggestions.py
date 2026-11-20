@@ -1,7 +1,9 @@
 """A suggested topic for each section of the material (specs/024, FR-073 of spec 001).
 
-A section is compared with the course's topic names through the embeddings the
-platform already has: the mean of its fragments' vectors against each name's vector.
+A section is compared with the course's topic names through embeddings: the mean of
+its fragments' vectors and, when it is named by a heading, of its heading's, against
+each name's vector. The heading counts as much as the text: Word and Markdown leave it
+out of the fragments, and it is the closest thing to a topic name the material has.
 The closest topic is suggested when it reaches the threshold. Suggestions never
 count until the teacher confirms them, and never touch a confirmed assignment.
 """
@@ -19,6 +21,7 @@ from app.core.config import get_settings
 from app.core.db import SessionFactory
 from app.llm.client import LLMClient, LLMError
 from app.models import Document, Fragment, Topic, TopicAssignment
+from app.services.parsing import PREFACE_SECTION
 
 logger = logging.getLogger(__name__)
 
@@ -106,10 +109,16 @@ def _suggestions(
     if not open_sections:
         return targets, []
 
+    headings = sorted({section for _, section in open_sections if _is_heading(section)})
+    heading_vectors = dict(
+        zip(headings, llm.embed(headings) if headings else [], strict=True)
+    )
     names = llm.embed([topic.name for topic in topics])
     threshold = get_settings().topic_suggestion_min_similarity
     rows = []
-    for (document_id, section), vector in open_sections.items():
+    for (document_id, section), content in open_sections.items():
+        heading = heading_vectors.get(section)
+        vector = content if heading is None else _mean([content, heading])
         similarity, topic = max(
             (
                 (_cosine(vector, name), topic)
@@ -152,6 +161,15 @@ def _section_vectors(
             sums[key] = values
         counts[key] += 1
     return {key: [v / counts[key] for v in total] for key, total in sums.items()}
+
+
+def _is_heading(section: str) -> bool:
+    """Named by the material rather than by a page number or as the preface."""
+    return not section.isdigit() and section != PREFACE_SECTION
+
+
+def _mean(vectors: list[Vector]) -> Vector:
+    return [sum(column) / len(vectors) for column in zip(*vectors, strict=True)]
 
 
 def _cosine(a: Vector, b: Vector) -> float:

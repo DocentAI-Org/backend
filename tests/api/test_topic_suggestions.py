@@ -65,6 +65,16 @@ def test_each_section_gets_its_closest_topic_after_processing(client, teacher) -
     assert _pending(client, teacher, course["id"], document["id"]) == 2
 
 
+def test_a_section_heading_counts_as_much_as_its_text(client, teacher) -> None:
+    course = create_course(client, teacher)
+    # "Mezcla" appears only in its heading, which Markdown leaves out of the text.
+    create_topic(client, teacher, course["id"], "Mezcla")
+
+    _document(client, teacher, course["id"])
+
+    assert _suggested(client, teacher, course["id"]) == {"Mezcla": "Mezcla"}
+
+
 def test_no_suggestion_below_the_threshold_or_without_topics(
     client, teacher, monkeypatch
 ) -> None:
