@@ -175,9 +175,9 @@ def check_keys(
     hits: list[Hit],
     drafts: list[Draft],
 ) -> tuple[list[CheckedKey | None], ChatResult | None]:
-    """Each draft solved from the same material without its key: `agrees`, `disagrees`
-    or `several`, with the options found right; None where the reply is unusable. The
-    drafts never change: the teacher decides."""
+    """Each draft solved from the same material without its key: `agrees`, `disagrees`,
+    `several` or `no_right`, with the options found right; None where the reply is
+    unusable. The drafts never change: the teacher decides."""
     questions = "\n\n".join(
         f"{number}. {draft.statement}\n"
         + "\n".join(f"{LETTERS[i]}) {option}" for i, option in enumerate(draft.options))
@@ -218,7 +218,8 @@ def _checked_options(data: object, count: int) -> list[list[int] | None]:
         letters = [letters] if isinstance(letters, str) else letters
         if not isinstance(number, int) or not 1 <= number <= count:
             continue
-        if not isinstance(letters, list) or not letters:
+        # An empty list is an answer: no option is right.
+        if not isinstance(letters, list):
             continue
         indexes = [_correct_index(letter) for letter in letters]
         if any(index is None for index in indexes):
@@ -228,6 +229,8 @@ def _checked_options(data: object, count: int) -> list[list[int] | None]:
 
 
 def _verdict(right: list[int], key: int) -> KeyCheck:
+    if not right:
+        return "no_right"
     if len(right) > 1:
         return "several"
     return "agrees" if right == [key] else "disagrees"
@@ -524,7 +527,7 @@ def list_questions(
         (
             and_(
                 QuizQuestion.status == "pending",
-                QuizQuestion.key_check.in_(("disagrees", "several")),
+                QuizQuestion.key_check.in_(("disagrees", "several", "no_right")),
             ),
             0,
         ),

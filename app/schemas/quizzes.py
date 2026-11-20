@@ -59,7 +59,8 @@ class TeacherQuestion(BaseModel):
     citations: list[Citation]
     key_check: KeyCheck | None = Field(
         description="The draft solved by the AI without its key (specs/025): `agrees`, "
-        "`disagrees` (another option is right) or `several` (more than one is); null "
+        "`disagrees` (another option is right), `several` (more than one is) or "
+        "`no_right` (none is); null "
         "when not checked, or after the teacher changed the options or the key."
     )
     key_check_options: list[int] = Field(
