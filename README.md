@@ -19,7 +19,7 @@ This repository is the FastAPI service behind it. The web app is
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/student-chat-dark.png">
-  <img src="docs/images/student-chat-light.png" alt="A student asks the course tutor how to solve 2x = 4. The tutor answers from the teacher's material and cites it: ecuaciones.md, section 3.2, with a link to the passage. Below, the student's remaining daily messages.">
+  <img src="docs/images/student-chat-light.png" alt="A student asks the course tutor how to solve 2x = 4. The tutor answers from the teacher's material and cites it: equations.md, section 3.2, with a link to the passage. Below, the student's remaining daily messages.">
 </picture>
 
 - **Contract**: [`openapi.json`](openapi.json) (committed; the frontend generates its types from
