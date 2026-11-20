@@ -75,11 +75,25 @@ def test_a_failed_check_keeps_the_drafts_unchecked(
     }
 
 
+def test_no_right_option_is_flagged(client, llm, teacher, student) -> None:
+    reply = answering(
+        {"question": 1, "right": []},
+        {"question": 2, "right": ["B"]},
+        {"question": 3, "right": ["C"]},
+    )
+
+    room, _, made = generated(client, llm, teacher, student, reply)
+
+    assert (made[0]["key_check"], made[0]["key_check_options"]) == ("no_right", [])
+    listed = client.get(questions_path(room.course_id), headers=teacher.headers).json()
+    assert listed["items"][0]["id"] == made[0]["id"]
+
+
 @pytest.mark.parametrize(
     "answers",
     [
         (),
-        ({"question": 1, "right": []},),
+        ({"question": 1},),
         ({"question": 1, "right": ["Z"]}, {"question": 9, "right": ["A"]}),
     ],
 )
