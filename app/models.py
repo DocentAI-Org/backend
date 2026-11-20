@@ -31,6 +31,7 @@ from app.core.types import (
     FileType,
     FlagCategory,
     InteractionKind,
+    KeyCheck,
     Language,
     MessageAuthor,
     MessageKind,
@@ -351,6 +352,9 @@ class QuizQuestion(Base):
     difficulty: Mapped[int] = mapped_column(SmallInteger)
     status: Mapped[QuestionStatus] = mapped_column(String, server_default="pending")
     origin: Mapped[QuestionOrigin] = mapped_column(String, server_default="ai")
+    # The draft solved without its key (specs/025); None when not checked.
+    key_check: Mapped[KeyCheck | None] = mapped_column(String)
+    key_check_options: Mapped[list[int] | None] = mapped_column(ARRAY(SmallInteger))
     reviewed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("profiles.id"))
     reviewed_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())

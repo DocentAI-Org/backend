@@ -12,9 +12,10 @@ from typing import Literal
 from sqlalchemy import and_, case, func, or_, select, true
 from sqlalchemy.orm import Session
 
-from app.core.config import Settings
+from app.core.config import Route, Settings
 from app.core.errors import ApiError, not_found
 from app.core.search import matches
+from app.core.types import KeyCheck
 from app.llm.client import ChatResult, LLMClient, LLMError
 from app.llm.prompts import load_labels, load_prompt
 from app.models import (
@@ -162,6 +163,76 @@ def validate_drafts(
     return accepted
 
 
+# --- Key check (specs/025) ----------------------------------------------------------
+
+CheckedKey = tuple[KeyCheck, list[int]]
+
+
+def check_keys(
+    llm: LLMClient,
+    language: str,
+    route: Route | None,
+    hits: list[Hit],
+    drafts: list[Draft],
+) -> tuple[list[CheckedKey | None], ChatResult | None]:
+    """Each draft solved from the same material without its key: `agrees`, `disagrees`
+    or `several`, with the options found right; None where the reply is unusable. The
+    drafts never change: the teacher decides."""
+    questions = "\n\n".join(
+        f"{number}. {draft.statement}\n"
+        + "\n".join(f"{LETTERS[i]}) {option}" for i, option in enumerate(draft.options))
+        for number, draft in enumerate(drafts, start=1)
+    )
+    try:
+        result = llm.chat_json(
+            load_prompt("quiz_key_check", language),
+            [
+                {
+                    "role": "user",
+                    "content": f"{tutor.material_block(hits)}\n\n"
+                    f"<preguntas>\n{questions}\n</preguntas>",
+                }
+            ],
+            temperature=0.0,
+            task="questions",
+            route=route,
+        )
+    except LLMError:
+        logger.warning("Quiz key check failed")
+        return [None] * len(drafts), None
+    right = _checked_options(result.data, len(drafts))
+    return [
+        None if found is None else (_verdict(found, draft.correct_option), found)
+        for draft, found in zip(drafts, right, strict=True)
+    ], result
+
+
+def _checked_options(data: object, count: int) -> list[list[int] | None]:
+    found: list[list[int] | None] = [None] * count
+    answers = data.get("answers") if isinstance(data, dict) else None
+    for answer in answers if isinstance(answers, list) else []:
+        if not isinstance(answer, dict):
+            continue
+        number = answer.get("question")
+        letters = answer.get("right")
+        letters = [letters] if isinstance(letters, str) else letters
+        if not isinstance(number, int) or not 1 <= number <= count:
+            continue
+        if not isinstance(letters, list) or not letters:
+            continue
+        indexes = [_correct_index(letter) for letter in letters]
+        if any(index is None for index in indexes):
+            continue
+        found[number - 1] = sorted({i for i in indexes if i is not None})
+    return found
+
+
+def _verdict(right: list[int], key: int) -> KeyCheck:
+    if len(right) > 1:
+        return "several"
+    return "agrees" if right == [key] else "disagrees"
+
+
 def build_prompt(
     settings: Settings, tutor_settings: TutorSettings, teacher: str | None = None
 ) -> str:
@@ -274,6 +345,8 @@ def question_views(
                 explanation=question.explanation,
                 difficulty=question.difficulty,
                 status=question.status,
+                key_check=question.key_check,
+                key_check_options=list(question.key_check_options or []),
                 origin=question.origin,
                 citations=[tutor.citation_view(c) for c in question.citations],
                 answered_count=answered,
@@ -333,6 +406,8 @@ def _generate(
     hits = topic_material(session, llm, settings, topic)
     result: ChatResult | None = None
     drafts: list[Draft] = []
+    checks: list[CheckedKey | None] = []
+    check_result: ChatResult | None = None
     if hits:
         tutor_settings = session.get(TutorSettings, course.id)
         assert tutor_settings is not None
@@ -352,6 +427,10 @@ def _generate(
             )
         }
         drafts = validate_drafts(result.data, len(hits), count, existing)
+        if drafts and settings.quiz_key_check:
+            checks, check_result = check_keys(
+                llm, settings.tutor_language, ai.route("questions"), hits, drafts
+            )
 
     rows = [
         QuizQuestion(
@@ -362,8 +441,10 @@ def _generate(
             correct_option=draft.correct_option,
             explanation=draft.explanation,
             difficulty=draft.difficulty,
+            key_check=check[0] if check else None,
+            key_check_options=check[1] if check else None,
         )
-        for draft in drafts
+        for draft, check in zip(drafts, checks or [None] * len(drafts), strict=True)
     ]
     session.add_all(rows)
     session.flush()
@@ -390,8 +471,8 @@ def _generate(
         outcome=kind,
         answer="\n".join(row.statement for row in rows) or None,
         model=result.model if result else None,
-        input_tokens=result.input_tokens if result else 0,
-        output_tokens=result.output_tokens if result else 0,
+        input_tokens=sum(r.input_tokens for r in (result, check_result) if r),
+        output_tokens=sum(r.output_tokens for r in (result, check_result) if r),
         latency_ms=int((time.perf_counter() - started) * 1000),
     )
     session.flush()
@@ -438,7 +519,18 @@ def list_questions(
     counted = _counts(session, scope)
     query = scope.where(QuizQuestion.status == status) if status else scope
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
-    pending_first = case((QuizQuestion.status == "pending", 0), else_=1)
+    # Pending first, and among them the drafts whose key the check doubts (specs/025).
+    pending_first = case(
+        (
+            and_(
+                QuizQuestion.status == "pending",
+                QuizQuestion.key_check.in_(("disagrees", "several")),
+            ),
+            0,
+        ),
+        (QuizQuestion.status == "pending", 1),
+        else_=2,
+    )
     order = (QuizQuestion.created_at.desc(), QuizQuestion.id)
     rows = session.scalars(
         query.order_by(*((pending_first, *order) if sort == "default" else order))
@@ -472,13 +564,17 @@ def update_question(
     payload: schemas.QuestionUpdate,
 ) -> schemas.TeacherQuestion:
     changes = payload.model_dump(exclude_unset=True, exclude_none=True)
-    edited = False
+    edited = set()
     for field in CONTENT_FIELDS:
         if field in changes and changes[field] != getattr(question, field):
             setattr(question, field, changes[field])
-            edited = True
+            edited.add(field)
     if edited:
         question.origin = "edited"
+    if edited & {"options", "correct_option"}:
+        # The check was of the old options or key.
+        question.key_check = None
+        question.key_check_options = None
     if "status" in changes:
         question.status = changes["status"]
         question.reviewed_by = teacher_id

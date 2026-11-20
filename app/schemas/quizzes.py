@@ -4,7 +4,13 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field
 
-from app.core.types import ExplanationKind, QuestionOrigin, QuestionStatus, QuizStatus
+from app.core.types import (
+    ExplanationKind,
+    KeyCheck,
+    QuestionOrigin,
+    QuestionStatus,
+    QuizStatus,
+)
 from app.schemas.chat import Citation
 from app.schemas.common import CleanText
 
@@ -51,6 +57,14 @@ class TeacherQuestion(BaseModel):
         description="`edited` once the teacher changes an AI draft."
     )
     citations: list[Citation]
+    key_check: KeyCheck | None = Field(
+        description="The draft solved by the AI without its key (specs/025): `agrees`, "
+        "`disagrees` (another option is right) or `several` (more than one is); null "
+        "when not checked, or after the teacher changed the options or the key."
+    )
+    key_check_options: list[int] = Field(
+        description="The options the check found right, by index."
+    )
     answered_count: int = Field(description="Answers given in students' quizzes.")
     correct_rate: float | None = Field(
         description="Share of those answers that were right; null before any."
