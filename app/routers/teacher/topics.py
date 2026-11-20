@@ -1,11 +1,12 @@
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response
 
-from app.core.db import DbSession
+from app.core.db import DbSession, SessionFactoryDep
 from app.core.errors import error_responses
 from app.core.security import TeacherUser
+from app.llm.client import LLMClient, get_llm
 from app.schemas.topics import (
     Topic,
     TopicAssignment,
@@ -16,9 +17,11 @@ from app.schemas.topics import (
     TopicUpdate,
     UnassignedDocument,
 )
-from app.services import courses, topics
+from app.services import courses, topic_suggestions, topics
 
 router = APIRouter(prefix="/courses/{course_id}", tags=["teacher: topics"])
+
+LLM = Annotated[LLMClient, Depends(get_llm)]
 
 
 @router.get("/topics", response_model=list[Topic], responses=error_responses(404))
@@ -36,10 +39,20 @@ def list_topics(
     responses=error_responses(404, 409, 422),
 )
 def create_topic(
-    course_id: uuid.UUID, payload: TopicCreate, teacher: TeacherUser, session: DbSession
+    course_id: uuid.UUID,
+    payload: TopicCreate,
+    teacher: TeacherUser,
+    session: DbSession,
+    llm: LLM,
+    session_factory: SessionFactoryDep,
+    background: BackgroundTasks,
 ) -> Topic:
     course = courses.get_owned_course(session, course_id, teacher)
     topic = topics.create_topic(session, course, payload.name)
+    # The material's suggestions now have one more topic to choose from (specs/024).
+    background.add_task(
+        topic_suggestions.suggest_for_course, session_factory, llm, course.id
+    )
     return topics.topic_view(session, course, topic)
 
 
@@ -64,10 +77,16 @@ def rename_topic(
     payload: TopicUpdate,
     teacher: TeacherUser,
     session: DbSession,
+    llm: LLM,
+    session_factory: SessionFactoryDep,
+    background: BackgroundTasks,
 ) -> Topic:
     course = courses.get_owned_course(session, course_id, teacher)
     topic = topics.rename_topic(
         session, topics.get_topic(session, course, topic_id), payload.name
+    )
+    background.add_task(
+        topic_suggestions.suggest_for_course, session_factory, llm, course.id
     )
     return topics.topic_view(session, course, topic)
 

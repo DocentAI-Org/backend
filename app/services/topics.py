@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -153,6 +153,14 @@ def create_assignment(
     document = session.get(Document, payload.document_id)
     if document is None or document.course_id != course.id:
         raise not_found("Document")
+    # The teacher's choice replaces the suggestions for the same material (specs/024).
+    stale = delete(TopicAssignment).where(
+        TopicAssignment.document_id == document.id,
+        TopicAssignment.status == "suggested",
+    )
+    if payload.section is not None:
+        stale = stale.where(TopicAssignment.section == payload.section)
+    session.execute(stale)
     assignment = TopicAssignment(
         course_id=course.id,
         topic_id=topic.id,

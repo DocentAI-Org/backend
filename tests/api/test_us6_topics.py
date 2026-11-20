@@ -2,6 +2,7 @@
 
 import uuid
 
+from app.core.config import get_settings
 from app.models import TopicAssignment
 from tests.api.test_us2_courses import create_course
 from tests.api.test_us3_material import validated_document
@@ -72,7 +73,9 @@ def test_order_must_list_every_topic(client, teacher) -> None:
     assert response.status_code == 422
 
 
-def test_assignments_and_unassigned_material(client, db, teacher) -> None:
+def test_assignments_and_unassigned_material(client, db, teacher, monkeypatch) -> None:
+    # The suggestion below is placed by hand; none is computed (specs/024).
+    monkeypatch.setattr(get_settings(), "topic_suggestion_min_similarity", 1.1)
     course = create_course(client, teacher)
     document = validated_document(client, teacher, course["id"])
     topic = create_topic(client, teacher, course["id"], "Ecuaciones").json()

@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     # Exercise statements are short and symbolic: lower similarity (spec 009 US3).
     retrieval_min_similarity_exercises: float = 0.40
     history_max_messages: int = 6
+    # A section's closest topic is suggested from this similarity on (specs/024).
+    topic_suggestion_min_similarity: float = 0.55
 
     # Limits (research R10, R11)
     daily_message_limit: int = 30
