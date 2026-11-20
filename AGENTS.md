@@ -14,7 +14,7 @@ These are the rules for changing this repository, for people and coding agents a
 uv sync                                           # dependencies
 npx supabase start                                # local Postgres + pgvector, Auth, Storage
 uv run uvicorn app.main:app --reload              # http://localhost:8000, docs at /docs
-uv run python scripts/seed_dev.py                 # demo admin, teacher and student + tokens
+uv run python scripts/seed_dev.py                 # sample users, courses and activity + tokens (--reset)
 uv run ruff check . && uv run ruff format --check .
 uv run pyright                                    # types (basic mode)
 uv run python scripts/export_openapi.py --check   # without --check: regenerate openapi.json
