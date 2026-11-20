@@ -26,6 +26,8 @@ class Document(BaseModel):
     excluded_fragment_count: int
     uploaded_at: datetime
     topics: list[TopicRef]
+    # Sections with a topic suggested and not yet confirmed (specs/024).
+    suggested_sections: int
 
 
 class Fragment(BaseModel):

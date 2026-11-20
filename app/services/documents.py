@@ -17,6 +17,7 @@ from app.integrations.storage import StorageClient, StorageError
 from app.llm.client import LLMClient, LLMError
 from app.models import Course, Document, Fragment, Profile, TopicAssignment
 from app.schemas import documents as schemas
+from app.services import topic_suggestions
 from app.services.chunking import chunk_sections
 from app.services.parsing import (
     CONTENT_TYPES,
@@ -53,6 +54,12 @@ def to_schema(session: Session, document: Document) -> schemas.Document:
         )
     ).all()
     unique_topics = {a.topic.id: a.topic for a in topics}
+    suggested = session.scalar(
+        select(func.count(func.distinct(TopicAssignment.section))).where(
+            TopicAssignment.document_id == document.id,
+            TopicAssignment.status == "suggested",
+        )
+    )
     return schemas.Document(
         id=document.id,
         file_name=document.file_name,
@@ -73,6 +80,7 @@ def to_schema(session: Session, document: Document) -> schemas.Document:
             schemas.TopicRef(id=t.id, name=t.name)
             for t in sorted(unique_topics.values(), key=lambda t: t.position)
         ],
+        suggested_sections=suggested or 0,
     )
 
 
@@ -179,6 +187,8 @@ def process_document(
             logger.exception("Storing fragments failed for document %s", document_id)
             session.rollback()
             _mark_error(session, document_id, "processing_failed")
+            return
+    topic_suggestions.suggest_for_document(session_factory, llm, document_id)
 
 
 def _mark_error(session: Session, document_id: uuid.UUID, reason: str) -> None:
