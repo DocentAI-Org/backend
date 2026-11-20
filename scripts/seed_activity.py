@@ -54,6 +54,8 @@ from app.services.tutor import no_source_text
 from scripts.seed_material import build_file, course_content, people, section_key
 
 DAY = timedelta(days=1)
+# Activity covers the last eight weeks, the span of the teacher's weekly charts.
+ACTIVE_DAYS = 56
 
 # What happens to each course's third, supplementary document.
 SUPPLEMENT = {
@@ -125,15 +127,15 @@ class Behaviour:
 
 
 PROFILES = [
-    ("engaged", 0.22),
-    ("regular", 0.43),
-    ("struggling", 0.18),
-    ("fading", 0.11),
-    ("silent", 0.06),
+    ("engaged", 0.25),
+    ("regular", 0.47),
+    ("struggling", 0.14),
+    ("fading", 0.09),
+    ("silent", 0.05),
 ]
 BEHAVIOUR = {
     "engaged": Behaviour((4, 7), (9, 14), (2, 4), 0.78, 0.12, 0.85, (0, 2)),
-    "regular": Behaviour((2, 4), (5, 9), (1, 2), 0.6, 0.18, 0.65, (0, 5)),
+    "regular": Behaviour((2, 4), (5, 9), (1, 2), 0.6, 0.18, 0.65, (0, 4)),
     "struggling": Behaviour((3, 6), (7, 11), (1, 2), 0.25, 0.2, 0.4, (0, 4)),
     "fading": Behaviour((1, 3), (2, 5), (0, 1), 0.5, 0.2, 0.55, (9, 20)),
     "silent": Behaviour((0, 0), (0, 0), (0, 0), 0, 0, 0, (0, 0)),
@@ -213,7 +215,7 @@ class Window:
     def topic_at(self, moment: datetime, reviewed_only: bool = False) -> TopicSeed:
         """Topics follow the course calendar: later dates, later topics."""
         topics = self.seed.topics
-        share = (moment - self.seed.created) / (self.now - self.seed.created)
+        share = (moment - (self.now - ACTIVE_DAYS * DAY)) / (ACTIVE_DAYS * DAY)
         last = len(topics) - (2 if reviewed_only else 1)
         index = int(share * len(topics) + (self.rng.random() - 0.5))
         return topics[max(0, min(last, index))]
@@ -543,7 +545,7 @@ class Seeder:
             seed,
             student,
             behaviour,
-            start=max(joined, self.days_ago(56)),
+            start=max(joined, self.days_ago(ACTIVE_DAYS)),
             end=self.days_ago(idle),
             now=self.now,
         )
@@ -637,10 +639,15 @@ class Seeder:
 
     def exercises(self, w: Window, struggling: bool) -> None:
         b = w.behaviour
-        for n in range(w.rng.between(b.exercises), 0, -1):
-            # Half of a struggling student's exercises are recent, so the error rate
-            # shows.
-            at = w.when(recent=struggling and n % 2 == 0)
+        count = w.rng.between(b.exercises)
+        for n in range(count, 0, -1):
+            # The first is their latest activity; half of a struggling student's are
+            # recent, so the error rate shows.
+            at = (
+                w.during(w.end)
+                if n == count
+                else w.when(recent=struggling and n % 2 == 0)
+            )
             topic = w.topic_at(at)
             exercise = w.rng.choice(topic.content["exercises"])
             roll = w.rng.random()
