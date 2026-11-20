@@ -64,8 +64,16 @@ npx supabase start                 # Postgres + pgvector, Auth, Storage; applies
 cp .env.example .env               # fill SUPABASE_SERVICE_ROLE_KEY and SUPABASE_JWT_SECRET
 npx supabase status -o env         # ...from SERVICE_ROLE_KEY and JWT_SECRET here
 uv run uvicorn app.main:app --reload
-uv run python scripts/seed_dev.py  # demo admin, teacher and student + access tokens
+uv run python scripts/seed_dev.py  # sample data (needs Ollama) + demo access tokens
 ```
+
+The seed creates four teachers, three class groups (25–30 students each), twelve courses of
+several subjects with their material, topics and question bank, and about eight weeks of
+student activity dated relative to now, from `scripts/seed_data/` (shared with the frontend's
+demo). It signs in as `admin@docentai.local`, `profesora@docentai.local` (Prof. Elena Ruiz) and
+`alumno@docentai.local` (Lucas Herrera, at risk in Álgebra); every sample account shares the
+password in `scripts/seed_dev.py`. Running it again only prints the tokens;
+`--reset` deletes the sample courses and builds them again.
 
 ## Checks (same as CI)
 
@@ -88,7 +96,7 @@ Tests never call a model provider: they use a deterministic fake (`tests/fakes.p
 | `app/llm/` | the only place that talks to a model provider |
 | `app/prompts/es/` | tutor prompts and fixed texts, outside code |
 | `supabase/migrations/` | the database schema, RLS and storage bucket |
-| `scripts/` | OpenAPI export/check, local seed |
+| `scripts/` | OpenAPI export/check, local seed and its data (`seed_data/`) |
 
 ## Changing the model provider
 
