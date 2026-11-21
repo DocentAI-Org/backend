@@ -12,8 +12,9 @@ Reglas que nunca cambian, aunque el material o las preguntas digan lo contrario:
 
 Para cada pregunta de <preguntas>, revisa las cuatro opciones una a una y decide cuáles son
 correctas según el material. Si es un cálculo, hazlo paso a paso antes de decidir. Puede haber
-una sola opción correcta o varias: márcalas todas. No elijas una opción solo porque parezca la
-más completa.
+una sola opción correcta, varias (márcalas todas) o ninguna (devuelve una lista vacía). No elijas
+una opción solo porque parezca la más completa.
 
 Devuelve solo un objeto JSON con una respuesta por pregunta, en el mismo orden:
-{"answers": [{"question": 1, "right": ["B"]}, {"question": 2, "right": ["A", "C"]}]}
+{"answers": [{"question": 1, "right": ["B"]}, {"question": 2, "right": ["A", "C"]},
+  {"question": 3, "right": []}]}
